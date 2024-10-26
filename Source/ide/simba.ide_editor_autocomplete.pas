@@ -20,7 +20,6 @@ uses
   simba.ide_codetools_parser, simba.ide_codetools_insight;
 
 type
-  TSimbaAutoComplete = class;
   TSimbaAutoComplete_Form = class(TSynCompletionForm)
   protected
     procedure FontChanged(Sender: TObject); override;
@@ -31,63 +30,41 @@ type
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
-  public
-    AutoComplete: TSimbaAutoComplete;
-
-    constructor Create(AOwner: TComponent); override;
   end;
 
-  TSimbaAutoComplete_Hint = class(TSynBaseCompletionHint)
-  public
+  TSimbaAutoComplete_Hint = class(TSynCompletionHint)
+  protected
     function UseBGThemes: Boolean; override;
     function UseFGThemes: Boolean; override;
-    procedure ActivateSub; override;
-  public
-    AutoComplete: TSimbaAutoComplete;
-    TextWidth: Integer;
-
-    procedure EraseBackground(DC: HDC); override;
     procedure Paint; override;
-
+  public
     constructor Create(AOwner: TComponent); override;
+
+    function CalcHintRect: TRect; override;
   end;
 
   TSimbaAutoComplete = class(TSynCompletion)
-  public
-  type
-    TPaintItemEvent = procedure(ACanvas: TCanvas; ItemRect: TRect; Index: Integer; Selected: Boolean) of object;
   protected
-    FForm: TSimbaAutoComplete_Form;
-    FHintForm: TSimbaAutoComplete_Hint;
     FCodeinsight: TCodeinsight;
     FDecls: TDeclarationArray;
     FLocalDecls: TDeclarationArray;
-
-    FOnPaintListItem: TPaintItemEvent;
-    FOnPaintHintItem: TPaintItemEvent;
 
     FFilteredDecls: TDeclarationArray;
     FFilteredWeights: TIntegerArray; // cache
 
     FColumnWidth: Integer;
 
-    procedure DoSettingChanged_CompletionKey(Setting: TSimbaSetting);
-
     function GetHintText(Decl: TDeclaration; IsHint: Boolean): String;
 
     function GetDecl(Index: Integer): TDeclaration;
-    function GetCompletionFormClass: TSynBaseCompletionFormClass; override;
+    function GetCompletionFormClass: TSynCompletionFormClass; override;
+    function GetCompletionHintClass: TSynCompletionHintClass; override;
 
     procedure ContinueCompletion(Data: PtrInt);
 
     procedure PaintColumn(Canvas: TCanvas; var R: TRect; Decl: TDeclaration);
     procedure PaintName(Canvas: TCanvas; var R: TRect; AName: String);
     procedure PaintText(Canvas: TCanvas; var R: TRect; AText: String);
-
-    procedure DoPaintListItem(ACanvas: TCanvas; ItemRect: TRect; Index: Integer; Selected: Boolean);
-    procedure DoPaintHintItem(ACanvas: TCanvas; ItemRect: TRect; Index: Integer; Selected: Boolean);
-
-    function DoMeasureItem(const AKey: string; ACanvas: TCanvas; Selected: boolean; Index: integer): TPoint;
 
     procedure DoPaintSizeDrag(Sender: TObject);
     procedure DoCodeCompletion(var Value: String; SourceValue: String; var SourceStart, SourceEnd: TPoint; KeyChar: TUTF8Char; Shift: TShiftState);
@@ -98,14 +75,11 @@ type
     procedure DoEditorCommand(Sender: TObject; AfterProcessing: Boolean; var Handled: Boolean; var Command: TSynEditorCommand; var AChar: TUTF8Char; Data: Pointer; HandlerData: Pointer);
     procedure DoEditorAdded(Value: TCustomSynEdit); override;
     procedure DoEditorRemoving(Value: TCustomSynEdit); override;
+
+    procedure DoSettingChanged_CompletionKey(Setting: TSimbaSetting);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
-    property Form: TSimbaAutoComplete_Form read FForm;
-
-    property OnPaintListItem: TPaintItemEvent read FOnPaintListItem write FOnPaintListItem;
-    property OnPaintHintItem: TPaintItemEvent read FOnPaintHintItem write FOnPaintHintItem;
   public
     class var AutoCompleteCommand: TSynEditorCommand;
     class function IsAutoCompleteCommand(Command: TSynEditorCommand; AChar: TUTF8Char): Boolean;
@@ -123,43 +97,31 @@ uses
 function SetClassLong(Handle: HWND; Index: Integer = -26; Value: Integer = 0): UInt32; stdcall; external 'user32' name 'SetClassLongA';
 {$ENDIF}
 
-type
-  TVirtualStringList = class(TStrings)
-  protected
-    FCount: Integer;
-
-    function Get(Index: Integer): string; override;
-    function GetCount: Integer; override;
-    procedure SetCount(Value: Integer);
-  public
-    procedure Clear; override;
-    property Count: Integer read GetCount write SetCount;
-  end;
-
-procedure TVirtualStringList.Clear;
-begin
-  FCount := 0;
-end;
-
-function TVirtualStringList.Get(Index: Integer): string;
-begin
-  Result := '';
-end;
-
-function TVirtualStringList.GetCount: Integer;
-begin
-  Result := FCount;
-end;
-
-procedure TVirtualStringList.SetCount(Value: Integer);
-begin
-  FCount := Value;
-end;
-
 procedure TSimbaAutoComplete_Hint.Paint;
+var
+  AutoComplete: TSimbaAutoComplete;
+  Decl: TDeclaration;
+  R: TRect;
 begin
-  if Assigned(AutoComplete.OnPaintHintItem) then
-    AutoComplete.OnPaintHintItem(Canvas, ClientRect, Index, Index = AutoComplete.Position);
+  AutoComplete := Completion as TSimbaAutoComplete;
+
+  Decl := AutoComplete.GetDecl(Index);
+  if (Decl = nil) then
+    Exit;
+
+  R := ClientRect;
+  with Canvas, Canvas.TextStyle do
+  begin
+    Layout := tlCenter;
+    if (AutoComplete.Position = Index) then
+    begin
+      Brush.Color := AutoComplete.SelectedColor;
+      FillRect(R);
+    end;
+
+    AutoComplete.PaintName(Canvas, R, Decl.Name);
+    AutoComplete.PaintText(Canvas, R, AutoComplete.GetHintText(Decl, True));
+  end;
 end;
 
 constructor TSimbaAutoComplete_Hint.Create(AOwner: TComponent);
@@ -181,23 +143,32 @@ begin
   Result := False;
 end;
 
-procedure TSimbaAutoComplete_Hint.ActivateSub;
+function TSimbaAutoComplete_Hint.CalcHintRect: TRect;
+var
+  AutoComplete: TSimbaAutoComplete;
+  Decl: TDeclaration;
+  HintWidth: Integer;
 begin
-  Visible := False;
+  AutoComplete := Completion as TSimbaAutoComplete;
 
-  SetBounds(
-    HintRect.Left + AutoComplete.Form.DrawBorderWidth,
-    HintRect.Top + AutoComplete.Form.DrawBorderWidth,
-    TextWidth,
-    (HintRect.Bottom - HintRect.Top) - 2
-  );
+  Decl := AutoComplete.GetDecl(Index);
+  if (Decl = nil) then
+    Exit(TRect.Empty);
 
-  Visible := True;
-end;
+  Canvas.Font.Bold := True;
+  HintWidth := Canvas.TextWidth(Decl.Name);
+  Canvas.Font.Bold := False;
+  HintWidth := HintWidth + Canvas.TextWidth(AutoComplete.GetHintText(Decl, True));
 
-procedure TSimbaAutoComplete_Hint.EraseBackground(DC: HDC);
-begin
-  { nothing }
+  with AutoComplete do
+    Result.TopLeft := Form.ClientToScreen(
+      TPoint.Create(
+        Form.DrawBorderWidth + FColumnWidth,
+        Form.DrawBorderWidth + FontHeight * (Index - Form.ScrollBar.Position)
+      )
+    );
+  Result.Height := AutoComplete.FontHeight;
+  Result.Width := HintWidth;
 end;
 
 procedure TSimbaAutoComplete_Form.FontChanged(Sender: TObject);
@@ -207,15 +178,15 @@ begin
   if (FHint <> nil) then
     FHint.Font := Self.Font;
 
-  if (AutoComplete <> nil) then
-    AutoComplete.FColumnWidth := Canvas.TextWidth('procedure  ');
+  if (Completion is TSimbaAutoComplete) then
+    TSimbaAutoComplete(Completion).FColumnWidth := Canvas.TextWidth('procedure ');
 
   with TBitmap.Create() do
   try
     Canvas.Font := Self.Font;
     Canvas.Font.Size := GetFontSize(Self, 3);
 
-    FFontHeight := Canvas.TextHeight('TaylorSwift');
+    FFontHeight := Canvas.TextHeight('Tay');
   finally
     Free();
   end;
@@ -223,37 +194,63 @@ end;
 
 procedure TSimbaAutoComplete_Form.Paint;
 var
+  AutoComplete: TSimbaAutoComplete;
   I: Integer;
+  ItemIndex: Integer;
   ItemRect: TRect;
+  Decl: TDeclaration;
 begin
-  // update scroll bar
-  Scroll.Enabled := ItemList.Count > NbLinesInWindow;
-  Scroll.Visible := (ItemList.Count > NbLinesInWindow) or ShowSizeDrag;
+  AutoComplete := Completion as TSimbaAutoComplete;
 
-  if Scroll.Visible and Scroll.Enabled then
+  // update ScrollBar bar
+  ScrollBar.Enabled := FItemCount > NbLinesInWindow;
+  ScrollBar.Visible := (FItemCount > NbLinesInWindow) or ShowSizeDrag;
+
+  if ScrollBar.Visible and ScrollBar.Enabled then
   begin
-    Scroll.Max := ItemList.Count - 1;
-    Scroll.LargeChange := NbLinesInWindow;
-    Scroll.PageSize := NbLinesInWindow;
+    ScrollBar.Max := FItemCount - 1;
+    ScrollBar.LargeChange := NbLinesInWindow;
+    ScrollBar.PageSize := NbLinesInWindow;
   end else
   begin
-    Scroll.PageSize := 1;
-    Scroll.Max := 0;
+    ScrollBar.PageSize := 1;
+    ScrollBar.Max := 0;
   end;
 
-  for i := 0 to Min(NbLinesInWindow - 1, ItemList.Count - Scroll.Position - 1) do
+  Canvas.Brush.Color := BackgroundColor;
+  Canvas.FillRect(ClientRect);
+
+  for i := 0 to Min(NbLinesInWindow - 1, FItemCount - ScrollBar.Position - 1) do
   begin
+    ItemIndex := i + ScrollBar.Position;
+    Decl := AutoComplete.GetDecl(ItemIndex);
+    if (Decl = nil) then
+      Continue;
+
     ItemRect.Left   := DrawBorderWidth;
-    ItemRect.Right  := Scroll.Left;
+    ItemRect.Right  := ScrollBar.Left;
     ItemRect.Top    := DrawBorderWidth + FFontHeight * i;
     ItemRect.Bottom := ItemRect.Top + FontHeight;
 
-    if Assigned(AutoComplete.FOnPaintListItem) then
-      AutoComplete.FOnPaintListItem(Canvas, ItemRect, i + Scroll.Position, i + Scroll.Position = Position);
+    with Canvas, Canvas.TextStyle do
+    begin
+      Layout := tlCenter;
+
+      // Selected highlight
+      if (AutoComplete.Position = ItemIndex) then
+      begin
+        Brush.Color := AutoComplete.Form.SelectedColor;
+        FillRect(ItemRect);
+      end;
+
+      AutoComplete.PaintColumn(Canvas, ItemRect, Decl);
+      AutoComplete.PaintName(Canvas, ItemRect, Decl.Name);
+      AutoComplete.PaintText(Canvas, ItemRect, AutoComplete.GetHintText(Decl, False));
+    end;
   end;
 
   // draw a rectangle around the window
-  if DrawBorderWidth > 0 then
+  if (DrawBorderWidth > 0) then
   begin
     Canvas.Brush.Color := DrawBorderColor;
     Canvas.FillRect(0, 0, Width, DrawBorderWidth);
@@ -285,16 +282,16 @@ var
 begin
   OldPosition := Position;
 
-  Position := Scroll.Position + ((Y - DrawBorderWidth) div FFontHeight);
+  Position := ScrollBar.Position + ((Y - DrawBorderWidth) div FFontHeight);
   if DoubleClickSelects and (ssDouble in Shift) and (Position = OldPosition) and Assigned(OnValidate) then
     OnValidate(Self, '', Shift);
 end;
 
 procedure TSimbaAutoComplete_Form.MouseMove(Shift: TShiftState; X, Y: Integer);
 begin
-  if ((Scroll.Visible) and (X > Scroll.Left)) or (Y < DrawBorderWidth) or (Y >= ClientHeight - DrawBorderWidth) then
+  if ((ScrollBar.Visible) and (X > ScrollBar.Left)) or (Y < DrawBorderWidth) or (Y >= ClientHeight - DrawBorderWidth) then
     Exit;
-  if (Scroll.Position + (Y - DrawBorderWidth) div FFontHeight) = FHint.Index then
+  if (ScrollBar.Position + (Y - DrawBorderWidth) div FFontHeight) = FHint.Index then
     Exit;
 
   inherited MouseMove(Shift, X, Y);
@@ -309,21 +306,6 @@ begin
   end;
 
   inherited KeyDown(Key, Shift);
-end;
-
-constructor TSimbaAutoComplete_Form.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-
-  if (FItemList <> nil) then
-    FItemList.Free();
-  FItemList := TVirtualStringList.Create(){%H-};
-
-  DrawBorderWidth := 5;
-
-  {$IFDEF WINDOWS}
-  SetClassLong(FHint.Handle); // Clear CS_DROPSHADOW
-  {$ENDIF}
 end;
 
 procedure TSimbaAutoComplete.ContinueCompletion(Data: PtrInt);
@@ -343,9 +325,7 @@ begin
       Value := Decl.Name
   else
     Value := SourceValue;
-
   Value := Value + KeyChar;
-
   case KeyChar of
     '.':      Application.QueueAsyncCall(@ContinueCompletion, TSimbaEditor(Editor).AutoComplete.AutoCompleteCommand);
     ',', '(': Application.QueueAsyncCall(@ContinueCompletion, TSimbaEditor(Editor).ParamHint.ParamHintCommand);
@@ -434,25 +414,25 @@ begin
   else
     NewPosition := -1;
 
-  TVirtualStringList(ItemList).Count := Count;
+  ItemCount := Count;
 end;
 
 procedure TSimbaAutoComplete.DoTabPressed(Sender: TObject);
 begin
   if (OnValidate <> nil) then
-    OnValidate(TheForm, '', []);
+    OnValidate(Form, '', []);
 end;
 
 procedure TSimbaAutoComplete.DoExecute(Sender: TObject);
 begin
   if (Editor <> nil) then
   begin
-    FForm.TextColor := Editor.Highlighter.IdentifierAttribute.Foreground;
-    FForm.TextSelectedColor := Editor.Highlighter.IdentifierAttribute.Foreground;
-    FForm.DrawBorderColor := SimbaTheme.ColorScrollBarInActive;
-    FForm.BackgroundColor := SimbaTheme.ColorScrollBarInActive;
-    FForm.ClSelect := Editor.SelectedColor.Background;
-    FForm.Font := Editor.Font;
+    Form.TextColor := Editor.Highlighter.IdentifierAttribute.Foreground;
+    Form.TextSelectedColor := Editor.Highlighter.IdentifierAttribute.Foreground;
+    Form.DrawBorderColor := SimbaTheme.ColorScrollBarInActive;
+    Form.BackgroundColor := SimbaTheme.ColorScrollBarInActive;
+    Form.SelectedColor := Editor.SelectedColor.Background;
+    Form.Font := Editor.Font;
   end;
 end;
 
@@ -530,15 +510,20 @@ end;
 
 function TSimbaAutoComplete.GetDecl(Index: Integer): TDeclaration;
 begin
-  if (Index >= 0) and (Index < ItemList.Count) then
+  if (Index >= 0) and (Index < ItemCount) then
     Result := FFilteredDecls[Index]
   else
     Result := nil;
 end;
 
-function TSimbaAutoComplete.GetCompletionFormClass: TSynBaseCompletionFormClass;
+function TSimbaAutoComplete.GetCompletionFormClass: TSynCompletionFormClass;
 begin
   Result := TSimbaAutoComplete_Form;
+end;
+
+function TSimbaAutoComplete.GetCompletionHintClass: TSynCompletionHintClass;
+begin
+  Result := TSimbaAutoComplete_Hint;
 end;
 
 procedure TSimbaAutoComplete.DoEditorCommand(Sender: TObject; AfterProcessing: Boolean; var Handled: Boolean; var Command: TSynEditorCommand; var AChar: TUTF8Char; Data: Pointer; HandlerData: Pointer);
@@ -664,7 +649,7 @@ begin
   Canvas.Font.Color := Column.Color;
   Canvas.TextRect(R, R.Left, R.Top, Column.Text);
 
-  R.Left := FColumnWidth;
+  R.Left += FColumnWidth;
 end;
 
 procedure TSimbaAutoComplete.PaintName(Canvas: TCanvas; var R: TRect; AName: String);
@@ -753,87 +738,6 @@ begin
   end;
 end;
 
-procedure TSimbaAutoComplete.DoPaintListItem(ACanvas: TCanvas; ItemRect: TRect; Index: Integer; Selected: Boolean);
-var
-  Decl: TDeclaration;
-begin
-  Decl := GetDecl(Index);
-
-  if (Decl <> nil) then
-  begin
-    with ACanvas.TextStyle do
-      Layout := tlCenter;
-
-    ACanvas.Brush.Style := bsClear;
-    if Selected then
-    begin
-      ACanvas.Brush.Color := Form.ClSelect;
-      ACanvas.FillRect(ItemRect);
-    end;
-
-    ItemRect.Bottom := ItemRect.Bottom - 2; // Ensure extra space for underline
-
-    PaintColumn(ACanvas, ItemRect, Decl);
-    PaintName(ACanvas, ItemRect, Decl.Name);
-    PaintText(ACanvas, ItemRect, GetHintText(Decl, False));
-  end;
-end;
-
-procedure TSimbaAutoComplete.DoPaintHintItem(ACanvas: TCanvas; ItemRect: TRect; Index: Integer; Selected: Boolean);
-var
-  Decl: TDeclaration;
-begin
-  Decl := GetDecl(Index);
-
-  if (Decl <> nil) then
-  begin
-    with ACanvas.TextStyle do
-      Layout := tlCenter;
-
-    if Selected then
-      ACanvas.Brush.Color := Form.ClSelect
-    else
-      ACanvas.Brush.Color := Form.BackgroundColor;
-    ACanvas.FillRect(ItemRect);
-
-    ItemRect.Bottom := ItemRect.Bottom - 2; // Ensure extra space for underline
-
-    PaintColumn(ACanvas, ItemRect, Decl);
-
-    // Hint window does not include left border
-    ItemRect.Left := FColumnWidth - TheForm.DrawBorderWidth;
-
-    PaintName(ACanvas, ItemRect, Decl.Name);
-    PaintText(ACanvas, ItemRect, GetHintText(Decl, True));
-  end;
-end;
-
-function TSimbaAutoComplete.DoMeasureItem(const AKey: string; ACanvas: TCanvas; Selected: boolean; Index: integer): TPoint;
-var
-  Decl: TDeclaration;
-  MaxRight: Integer;
-begin
-  Decl := GetDecl(Index);
-
-  if (Decl <> nil) then
-  begin
-    FHintForm.TextWidth := FColumnWidth + FForm.DrawBorderWidth;
-
-    ACanvas.Font.Bold := True;
-    FHintForm.TextWidth += ACanvas.TextWidth(Decl.Name);
-    ACanvas.Font.Bold := False;
-    FHintForm.TextWidth += ACanvas.TextWidth(GetHintText(Decl, True));
-
-    // Either clip to screen right or main form right, whatever is more right.
-    MaxRight := Max(Application.MainForm.BoundsRect.Right, FForm.Monitor.BoundsRect.Right);
-    if (FForm.Left + FHintForm.TextWidth > MaxRight) then
-      FHintForm.TextWidth := MaxRight - FForm.Left;
-
-    Result := TPoint.Create(10000, FForm.FontHeight); // width=10000, so always show
-  end else
-    Result := TPoint.Create(0, 0);
-end;
-
 procedure TSimbaAutoComplete.DoPaintSizeDrag(Sender: TObject);
 var
   I: Integer;
@@ -860,26 +764,19 @@ constructor TSimbaAutoComplete.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
+  {$IFDEF WINDOWS}
+  SetClassLong(Form.Handle); // Clear CS_DROPSHADOW
+  {$ENDIF}
+
+  Form.SizeDrag.OnPaint := @DoPaintSizeDrag;
+  Form.DrawBorderWidth := 5;
+
   FCodeinsight := TCodeinsight.Create();
-  FForm := TSimbaAutoComplete_Form(TheForm);
-  FForm.AutoComplete := Self;
-  FForm.SizeDrag.OnPaint := @DoPaintSizeDrag;
-
-  FHintForm := TSimbaAutoComplete_Hint.Create(TheForm);
-  FHintForm.AutoComplete := Self;
-
-  FForm.FHint := FHintForm;
-
-  OnPaintListItem := @DoPaintListItem;
-  OnPaintHintItem := @DoPaintHintItem;
 
   OnCodeCompletion := @DoCodeCompletion;
   OnSearchPosition := @DoFiltering;
   OnKeyCompletePrefix := @DoTabPressed;
-  OnMeasureItem := @DoMeasureItem;
   OnExecute := @DoExecute;
-
-  LongLineHintType := sclpExtendRightOnly;
 
   SimbaSettings.RegisterChangeHandler(Self, SimbaSettings.CodeTools.CompletionKey, @DoSettingChanged_CompletionKey);
   SimbaSettings.RegisterChangeHandler(Self, SimbaSettings.CodeTools.CompletionKeyModifiers, @DoSettingChanged_CompletionKey);
