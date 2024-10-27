@@ -80,8 +80,8 @@ begin
   Value := '';
 
   case Name of
-    'LIBLOADED': Value := BoolToStr(FindLoadedPlugin(Argument) <> '', True);
-    'LIBEXISTS': Value := BoolToStr(SimbaEnv.HasPlugin(Argument, [Sender.Tokenizer.FileName]), True);
+    'LOADEDLIB': Value := BoolToStr(FindLoadedPlugin(Argument) <> '', True);
+    'FINDLIB': Value := BoolToStr(SimbaEnv.HasPlugin(Argument, [Sender.Tokenizer.FileName]), True);
   end;
 end;
 
@@ -187,8 +187,8 @@ begin
   FCompiler.addPreprocessorMacro('LOADEDLIB', @DoCompilerMacro);
   FCompiler.addPreprocessorMacro('LOADEDLIBS', @DoCompilerMacro);
 
-  FCompiler.addPreprocessorFunc('LIBLOADED', @DoCompilerPreprocessorFunc);
-  FCompiler.addPreprocessorFunc('LIBEXISTS', @DoCompilerPreprocessorFunc);
+  FCompiler.addPreprocessorFunc('LOADEDLIB', @DoCompilerPreprocessorFunc);
+  FCompiler.addPreprocessorFunc('FINDLIB', @DoCompilerPreprocessorFunc);
 
   FCompiler.OnFindFile := @DoCompilerFindFile;
   FCompiler.OnHint := @DoCompilerHint;

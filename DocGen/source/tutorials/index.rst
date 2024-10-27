@@ -11,5 +11,6 @@ Tutorials
    Mouse & Keyboard.rst
    Variant Data Type.rst
    Properties.rst
+   Preprocessor.rst
 
    plugins/index.rst
