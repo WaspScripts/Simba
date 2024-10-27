@@ -19,7 +19,7 @@ uses
 (*
 ASync
 =====
-Things that run in the background.
+Simple functions that run in the background.
 
 ```
 procedure ThisIsCalledWhenFinished(constref Result: TASyncHTTPResult);
@@ -41,6 +41,7 @@ ASync.HTTPGet
 -------------
 ```
 procedure ASync.HTTPGet(URL: String; OnFinish: TASyncHTTPFinishEvent; OnProgress: TASyncHTTPProgressEvent = nil); static;
+procedure ASync.HTTPGet(URL: String; RequestHeaders: TStringArray; OnFinish: TASyncHTTPFinishEvent; OnProgress: TASyncHTTPProgressEvent = nil); static;
 ```
 *)
 procedure _LapeASyncHTTP_Get1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
@@ -48,13 +49,6 @@ begin
   ASyncHTTP.Get(PString(Params^[0])^, [], TASyncHTTPFinishEvent(Params^[1]^), TASyncHTTPProgressEvent(Params^[3]^));
 end;
 
-(*
-ASync.HTTPGet
--------------
-```
-procedure ASync.HTTPGet(URL: String; RequestHeaders: TStringArray; OnFinish: TASyncHTTPFinishEvent; OnProgress: TASyncHTTPProgressEvent = nil); static;
-```
-*)
 procedure _LapeASyncHTTP_Get2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   ASyncHTTP.Get(PString(Params^[0])^, PStringArray(Params^[1])^, TASyncHTTPFinishEvent(Params^[2]^), TASyncHTTPProgressEvent(Params^[3]^));
@@ -65,6 +59,8 @@ ASync.HTTPGetFile
 -----------------
 ```
 procedure ASync.HTTPGetFile(URL: String; DestFile: String; OnFinish: TASyncHTTPFinishEvent; OnProgress: TASyncHTTPProgressEvent = nil); static;
+procedure ASync.HTTPGetFile(URL: String; RequestHeaders: TStringArray; DestFile: String; OnFinish: TASyncHTTPFinishEvent; OnProgress: TASyncHTTPProgressEvent = nil); static;
+
 ```
 *)
 procedure _LapeASyncHTTP_GetFile1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
@@ -72,13 +68,6 @@ begin
   ASyncHTTP.GetFile(PString(Params^[0])^, [], PString(Params^[1])^, TASyncHTTPFinishEvent(Params^[2]^), TASyncHTTPProgressEvent(Params^[3]^));
 end;
 
-(*
-ASync.HTTPGetFile
------------------
-```
-procedure ASync.HTTPGetFile(URL: String; RequestHeaders: TStringArray; DestFile: String; OnFinish: TASyncHTTPFinishEvent; OnProgress: TASyncHTTPProgressEvent = nil); static;
-```
-*)
 procedure _LapeASyncHTTP_GetFile2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   ASyncHTTP.GetFile(PString(Params^[0])^, PStringArray(Params^[1])^, PString(Params^[2])^,TASyncHTTPFinishEvent(Params^[3]^), TASyncHTTPProgressEvent(Params^[4]^));
@@ -90,6 +79,7 @@ ASync.HTTPPost
 --------------
 ```
 procedure ASync.HTTPPost(URL, Data: String; OnFinish: TASyncHTTPFinishEvent); static;
+procedure ASync.HTTPPost(URL: String; RequestHeaders: TStringArray; Data: String; RequestHeaders: TStringArray; OnFinish: TASyncHTTPFinishEvent); static;
 ```
 *)
 procedure _LapeASyncHTTP_Post1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
@@ -97,13 +87,6 @@ begin
   ASyncHTTP.Post(PString(Params^[0])^, [], PString(Params^[1])^, TASyncHTTPFinishEvent(Params^[2]^));
 end;
 
-(*
-ASync.HTTPPost
---------------
-```
-procedure ASync.HTTPPost(URL: String; RequestHeaders: TStringArray; Data: String; RequestHeaders: TStringArray; OnFinish: TASyncHTTPFinishEvent); static;
-```
-*)
 procedure _LapeASyncHTTP_Post2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   ASyncHTTP.Post(PString(Params^[0])^, PStringArray(Params^[1])^, PString(Params^[2])^, TASyncHTTPFinishEvent(Params^[3]^));
@@ -114,7 +97,9 @@ ASync.MouseMove
 ---------------
 ```
 procedure ASync.MouseMove(Target: TTarget; Dest: TPoint; Accuracy: Double = 1);
+procedure ASync.MouseMove(Dest: TPoint; Accuracy: Double = 1);
 ```
+Moves the mouse on another thread, so the script can do other things such as updating the destination.
 *)
 procedure _LapeASyncMouse_Move(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -137,7 +122,7 @@ end;
 ASync.MouseMoving
 -----------------
 ```
-function ASync.MouseMoving: Boolean;
+property ASync.MouseMoving: Boolean;
 ```
 *)
 procedure _LapeASyncMouse_IsMoving(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -181,6 +166,42 @@ begin
   ASyncUnzip.Unzip(PString(Params^[0])^, PString(Params^[1])^, TASyncUnzipFinishEvent(Params^[2]^), TASyncUnzipProgressEvent(Params^[3]^));
 end;
 
+(*
+ASync.Schedules
+---------------
+```
+function ASync.Schedules: TStringArray; static;
+```
+Returns all running schedules.
+*)
+
+(*
+ASync.ScheduleEvery
+-------------------
+```
+function ASync.ScheduleEvery(Name: String; Method: procedure of object; Interval: Integer); static;
+```
+Schedule a method to be called every `interval` (in milliseconds).
+*)
+
+(*
+ASync.ScheduleEvery
+-------------------
+```
+function ASync.ScheduleEvery(Name: String; Method: procedure(Params: TPointerArray) of object; Params: TPointerArray; Interval: Integer); static;
+```
+ScheduleEvery with passing parameters to the method (as TPointerArray).
+*)
+
+(*
+ASync.ScheduleStop
+------------------
+```
+procedure ASync.ScheduleStop(Name: String); static;
+```
+Stop a scheduled method.
+*)
+
 procedure ImportASync(Compiler: TSimbaScript_Compiler);
 begin
   with Compiler do
@@ -197,7 +218,7 @@ begin
                   'end;'
                  ]);
     addGlobalFunc('procedure ASync.MouseChangeDest(Dest: TPoint); static;', @_LapeASyncMouse_MouseChangeDest);
-    addGlobalFunc('function ASync.MouseMoving: Boolean; static;', @_LapeASyncMouse_IsMoving);
+    addGlobalFunc('property ASync.MouseMoving: Boolean; static;', @_LapeASyncMouse_IsMoving);
     addGlobalFunc('procedure ASync.MouseWaitMoving; static;', @_LapeASyncMouse_WaitMoving);
     addGlobalFunc('procedure ASync.MouseStop; static;', @_LapeASyncMouse_Stop);
 

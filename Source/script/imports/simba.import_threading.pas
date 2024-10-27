@@ -81,6 +81,7 @@ TThread.Name
 ------------
 ```
 property TThread.Name: String;
+property TThread.Name(Value: String);
 ```
 *)
 procedure _LapeThread_Name_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -88,13 +89,6 @@ begin
   PString(Result)^ := PSimbaThread(Params^[0])^.Name;
 end;
 
-(*
-TThread.Name
-------------
-```
-property TThread.Name(Value: String);
-```
-*)
 procedure _LapeThread_Name_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaThread(Params^[0])^.Name := PString(Params^[1])^;
@@ -178,6 +172,7 @@ TThread.WaitForTerminate
 ------------------------
 ```
 procedure TThread.WaitForTerminate;
+function TThread.WaitForTerminate(Timeout: Int32): Boolean;
 ```
 *)
 procedure _LapeThread_WaitForTerminate1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
@@ -185,13 +180,6 @@ begin
   PSimbaThread(Params^[0])^.WaitFor();
 end;
 
-(*
-TThread.WaitForTerminate
-------------------------
-```
-function TThread.WaitForTerminate(Timeout: Int32): Boolean;
-```
-*)
 procedure _LapeThread_WaitForTerminate2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PBoolean(Result)^ := PSimbaThread(Params^[0])^.WaitForTerminate(PInteger(Params^[1])^);
@@ -275,6 +263,11 @@ CurrentThread
 ```
 function CurrentThread: TThread;
 ```
+Returns the current thread instance.
+
+```{note}
+This will return nil if called outside of a script created thread.
+```
 *)
 procedure _LapeCurrentThread(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -325,7 +318,7 @@ procedure ImportThreading(Compiler: TSimbaScript_Compiler);
 begin
   with Compiler do
   begin
-    ImportingSection := '!Threading';
+    ImportingSection := 'Threading';
 
     addGlobalVar(
       'record'                    + LineEnding +
@@ -336,8 +329,6 @@ begin
        @SimbaCPUInfo,
        'CPUInfo'
     ).isConstant := True;
-
-    ImportingSection := 'Threading';
 
     addGlobalType('strict Pointer', 'TThread');
     addGlobalFunc('property TThread.Name: String', @_LapeThread_Name_Read);
@@ -360,7 +351,7 @@ begin
 
     addGlobalFunc('function CurrentThread: TThread', @_LapeCurrentThread);
 
-    ImportingSection := '!Threading';
+    ImportingSection := '!Hidden';
 
     addGlobalVar(Emitter, '_CodeEmitter').isConstant := True;
     addGlobalFunc('function _CreateThread(Emitter: Pointer; Method: procedure of object; OnTerminate: procedure(Thread: TThread) of object): TThread;', @_LapeCreateThread);
@@ -404,7 +395,7 @@ begin
 
     addGlobalFunc(
       'procedure _ScheduleStop(Name: String);', [
-      'var I: Int32;',
+      'var I: Integer;',
       'begin',
       '  _ScheduleLock.Enter();',
       '  try',

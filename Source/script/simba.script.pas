@@ -18,7 +18,6 @@ uses
   simba.script_plugin;
 
 type
-  PSimbaScript = ^TSimbaScript;
   TSimbaScript = class(TObject)
   protected
     FUserTerminated: Boolean;

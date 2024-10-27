@@ -10,7 +10,8 @@ unit simba.component_button;
 interface
 
 uses
-  Classes, SysUtils, Controls, StdCtrls, Buttons, Graphics, LMessages, ImgList;
+  Classes, SysUtils, Controls, StdCtrls, Buttons, Graphics, LMessages, ImgList,
+  simba.base;
 
 type
   {$push}
@@ -54,7 +55,7 @@ type
     FImageSpacing: Integer;
 
     function HasImage: Boolean;
-    function ImageSize: TPoint;
+    function ImageSize: TSize;
     function CalculateSize: TPoint;
 
     procedure MouseEnter; override;
@@ -286,18 +287,14 @@ begin
   Result := (FImage <> ESimbaButtonImage.NONE) or (FImageIndex > -1);
 end;
 
-function TSimbaButton.ImageSize: TPoint;
+function TSimbaButton.ImageSize: TSize;
 begin
   if (FImage <> ESimbaButtonImage.NONE) then
-  begin
-    Result.X := LCLGlyphs.WidthForPPI[FImageList.Width, Font.PixelsPerInch];
-    Result.Y := LCLGlyphs.HeightForPPI[FImageList.Width, Font.PixelsPerInch];
-  end
+    Result := LCLGlyphs.SizeForPPI[LCLGlyphs.Width, Font.PixelsPerInch]
   else if (FImageIndex > -1) then
-  begin
-    Result.X := FImageList.WidthForPPI[FImageList.Width, Font.PixelsPerInch];
-    Result.Y := FImageList.HeightForPPI[FImageList.Width, Font.PixelsPerInch];
-  end;
+    Result := FImageList.SizeForPPI[FImageList.Width, Font.PixelsPerInch]
+  else
+    Result := TSize.Create(0, 0);
 end;
 
 function TSimbaButton.CalculateSize: TPoint;
@@ -319,9 +316,9 @@ begin
   if HasImage then
   begin
     Result.X += FImageSpacing;
-    Result.X += ImageSize.X;
-    if ImageSize.Y > Result.Y then
-      Result.Y := ImageSize.Y;
+    Result.X += ImageSize.Width;
+    if ImageSize.Height > Result.Y then
+      Result.Y := ImageSize.Height;
   end;
 
   Result.X += XPadding * 2;
@@ -384,12 +381,12 @@ begin
   begin
     if (Caption = '') then
     begin
-      ImgPoint.X := R.Left + (R.Width div 2) - (ImageSize.X div 2);
-      ImgPoint.Y := R.Top + (R.Height div 2) - (ImageSize.Y div 2);
+      ImgPoint.X := R.Left + (R.Width div 2) - (ImageSize.Width div 2);
+      ImgPoint.Y := R.Top + (R.Height div 2) - (ImageSize.Height div 2);
     end else
     begin
       ImgPoint.X := R.Left;
-      ImgPoint.Y := R.CenterPoint.Y - (ImageSize.Y div 2);
+      ImgPoint.Y := R.CenterPoint.Y - (ImageSize.Height div 2);
     end;
 
     if (FImage <> ESimbaButtonImage.NONE) then
@@ -408,7 +405,7 @@ begin
 
     R := ClientRect;
     if HasImage then
-      R.Left += ImageSize.X + FImageSpacing;
+      R.Left += ImageSize.Width + FImageSpacing;
 
     Canvas.TextRect(R, 0,0, Caption, Style);
   end;

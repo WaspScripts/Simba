@@ -17,7 +17,7 @@ uses
   simba.vartype_pointarray, simba.vartype_ordarray, simba.vartype_stringarray;
 
 type
-  PProcessID = ^TProcessID;
+  PSimbaScript = ^TSimbaScript;
 
 procedure _LapeWrite(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -348,7 +348,7 @@ begin
   begin
     if (SimbaCommunication = nil) then
       SimbaException('GetSimbaPID requires Simba communication');
-    PProcessID(Result)^ := SimbaCommunication.GetSimbaPID();
+    TProcessID(Result^) := SimbaCommunication.GetSimbaPID();
   end;
 end;
 
@@ -358,7 +358,7 @@ begin
   begin
     if (SimbaCommunication = nil) then
       SimbaException('GetSimbaTargetPID requires Simba communication');
-    PProcessID(Result)^ := SimbaCommunication.GetSimbaTargetPID();
+    TProcessID(Result^) := SimbaCommunication.GetSimbaTargetPID();
   end;
 end;
 
