@@ -24,7 +24,7 @@ function GetLoadedPlugins: TStringArray;
 implementation
 
 uses
-  simba.fs, simba.env;
+  simba.fs, simba.env, simba.vartype_string;
 
 var
   LoadedPlugins: array of record
@@ -33,7 +33,7 @@ var
     Handle: TLibHandle;
   end;
 
-// Make a copy of the plugin to data/plugins/ so we can delete/update if it's loaded
+// On windows, make a copy of the plugin to data/plugins/ so we can delete/update if it's loaded
 procedure CopyPlugin(var FileName: String);
 var
   NewFileName: String;
@@ -86,9 +86,8 @@ var
   I: Integer;
 begin
   Result := '';
-
   for I := 0 to High(LoadedPlugins) do
-    if (LoadedPlugins[I].OrginalFileName = FileName) then
+    if (TSimbaPath.PathExtractNameWithoutExt(LoadedPlugins[I].OrginalFileName).EqualsIgnoreCase(TSimbaPath.PathExtractNameWithoutExt(FileName))) then
       Exit(LoadedPlugins[I].FileName);
 end;
 

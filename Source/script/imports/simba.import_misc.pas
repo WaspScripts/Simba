@@ -381,8 +381,8 @@ SaveScreenshot
 ```
 function SaveScreenshot(FileName: String): String;
 ```
-
 Saves a screenshot of the current target to the given filename.
+Will overwrite if the file already exists.
 *)
 
 (*
@@ -632,7 +632,7 @@ begin
       '',
       '  with TImage.CreateFromTarget() do',
       '  try',
-      '    if Save(FileName) then',
+      '    if Save(FileName, True) then',
       '      Result := FileName;',
       '  finally',
       '    Free();',

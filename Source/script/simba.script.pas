@@ -73,6 +73,7 @@ implementation
 
 uses
   simba.env, simba.fs, simba.datetime, simba.target, simba.vartype_windowhandle,
+  simba.vartype_string,
   simba.script_pluginloader;
 
 function TSimbaScript.DoCompilerPreprocessorFunc(Sender: TLapeCompiler; Name, Argument: lpString; out Value: lpString): Boolean;
@@ -80,7 +81,7 @@ begin
   Value := '';
 
   case Name of
-    'LIBLOADED': Value := BoolToStr(FindLoadedPlugin(SimbaEnv.FindPlugin(Argument, [Sender.Tokenizer.FileName])) <> '', True);
+    'LIBLOADED': Value := BoolToStr(FindLoadedPlugin(Argument) <> '', True);
     'LIBEXISTS': Value := BoolToStr(SimbaEnv.HasPlugin(Argument, [Sender.Tokenizer.FileName]), True);
   end;
 end;
@@ -92,14 +93,14 @@ begin
   Result := True;
 
   case Name of
-    'FINDLIBPATH':
+    'FINDLIB':
       begin
         Value := #39 + SimbaEnv.FindPlugin(Argument, [Sender.Tokenizer.FileName]) + #39;
       end;
 
-    'LOADEDLIBPATH':
+    'LOADEDLIB':
       begin
-        Value := #39 + FindLoadedPlugin(SimbaEnv.FindPlugin(Argument, [Sender.Tokenizer.FileName])) + #39;
+        Value := #39 + FindLoadedPlugin(Argument) + #39;
       end;
 
     'LOADEDLIBS':
@@ -183,8 +184,8 @@ begin
   else
     FCompiler.Options := FCompiler.Options - [lcoHints];
 
-  FCompiler.addPreprocessorMacro('FINDLIBPATH', @DoCompilerMacro);
-  FCompiler.addPreprocessorMacro('LOADEDLIBPATH', @DoCompilerMacro);
+  FCompiler.addPreprocessorMacro('FINDLIB', @DoCompilerMacro);
+  FCompiler.addPreprocessorMacro('LOADEDLIB', @DoCompilerMacro);
   FCompiler.addPreprocessorMacro('LOADEDLIBS', @DoCompilerMacro);
 
   FCompiler.addPreprocessorFunc('LIBLOADED', @DoCompilerPreprocessorFunc);
