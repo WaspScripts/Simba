@@ -38,8 +38,6 @@ type
     function UseFGThemes: Boolean; override;
     procedure Paint; override;
   public
-    constructor Create(AOwner: TComponent); override;
-
     function CalcHintRect: TRect; override;
   end;
 
@@ -122,15 +120,6 @@ begin
     AutoComplete.PaintName(Canvas, R, Decl.Name);
     AutoComplete.PaintText(Canvas, R, AutoComplete.GetHintText(Decl, True));
   end;
-end;
-
-constructor TSimbaAutoComplete_Hint.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-
-  {$IFDEF WINDOWS}
-  SetClassLong(Handle); // Clear CS_DROPSHADOW
-  {$ENDIF}
 end;
 
 function TSimbaAutoComplete_Hint.UseBGThemes: Boolean;
@@ -764,8 +753,10 @@ constructor TSimbaAutoComplete.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
+  // On Windows remove shadows CS_DROPSHADOW
   {$IFDEF WINDOWS}
-  SetClassLong(Form.Handle); // Clear CS_DROPSHADOW
+  SetClassLong(Form.Handle);
+  SetClassLong(Form.Hint.Handle);
   {$ENDIF}
 
   Form.SizeDrag.OnPaint := @DoPaintSizeDrag;

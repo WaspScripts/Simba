@@ -16,6 +16,7 @@ uses
 
 type
   TSimbaTabsForm = class(TForm)
+    MenuItemCloseTabsOnRight: TMenuItem;
     OpenDialog: TOpenDialog;
     MenuItemNewTab: TMenuItem;
     MenuItemCloseTab: TMenuItem;
@@ -93,6 +94,7 @@ type
 
     function CloseTab(Tab: TSimbaScriptTab; KeepOne: Boolean): Boolean;
     function CloseOtherTabs(Tab: TSimbaScriptTab): Boolean;
+    function CloseTabsOnRight(Tab: TSimbaScriptTab): Boolean;
     function CloseAllTabs: Boolean;
 
     function Open(FileName: String; CheckOtherTabs: Boolean = True): Boolean; overload;
@@ -147,8 +149,9 @@ begin
 
     if Assigned(Tab) then
     begin
-      if (Sender = MenuItemCloseTab)       then CloseTab(Tab, True);
-      if (Sender = MenuItemCloseOtherTabs) then CloseOtherTabs(Tab);
+      if (Sender = MenuItemCloseTab)         then CloseTab(Tab, True);
+      if (Sender = MenuItemCloseOtherTabs)   then CloseOtherTabs(Tab);
+      if (Sender = MenuItemCloseTabsOnRight) then CloseTabsOnRight(Tab);
     end;
   end;
 end;
@@ -534,6 +537,25 @@ begin
       Result := False;
       Exit;
     end;
+end;
+
+function TSimbaTabsForm.CloseTabsOnRight(Tab: TSimbaScriptTab): Boolean;
+var
+  I: Integer;
+begin
+  Result := True;
+
+  for I := TabCount - 1 downto 0 do
+  begin
+    if (Tabs[I] = Tab) then
+      Exit;
+
+    if (not CloseTab(Tabs[I], True)) then
+    begin
+      Result := False;
+      Exit;
+    end;
+  end;
 end;
 
 function TSimbaTabsForm.CloseAllTabs: Boolean;

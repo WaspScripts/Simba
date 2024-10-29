@@ -1305,15 +1305,17 @@ end;
 function TDeclaration_Method.GetParams: TDeclarationArray;
 var
   Decl: TDeclaration;
+  Decls: TDeclarationArray;
 begin
   if FParams.IsNull then
   begin
-    FParams := [];
-
+    Decls := [];
     Decl := Items.GetByClassFirst(TDeclaration_ParamList);
     if (Decl <> nil) then
       for Decl in Decl.Items.GetByClass(TDeclaration_ParamGroup) do
-        FParams.Value.Add(Decl.Items.GetByClass(TDeclaration_Parameter));
+        Decls.Add(Decl.Items.GetByClass(TDeclaration_Parameter));
+
+    FParams := Decls;
   end;
 
   Result := FParams;

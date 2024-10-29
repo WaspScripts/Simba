@@ -15,7 +15,7 @@ object SimbaTabsForm: TSimbaTabsForm
   OnMouseMove = FormMouseMove
   OnMouseUp = FormMouseUp
   ShowInTaskBar = stAlways
-  LCLVersion = '3.0.0.3'
+  LCLVersion = '3.6.0.0'
   object FindPanel: TPanel
     Left = 0
     Height = 0
@@ -76,7 +76,11 @@ object SimbaTabsForm: TSimbaTabsForm
       OnClick = DoTabPopupClick
     end
     object MenuItemCloseOtherTabs: TMenuItem
-      Caption = 'Close All Other Tabs'
+      Caption = 'Close All Other'
+      OnClick = DoTabPopupClick
+    end
+    object MenuItemCloseTabsOnRight: TMenuItem
+      Caption = 'Close All On Right'
       OnClick = DoTabPopupClick
     end
   end

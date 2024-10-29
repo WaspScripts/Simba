@@ -11,7 +11,7 @@ object SimbaMainForm: TSimbaMainForm
   OnDestroy = FormDestroy
   OnWindowStateChange = FormWindowStateChange
   Position = poScreenCenter
-  LCLVersion = '3.4.0.0'
+  LCLVersion = '3.6.0.0'
   object DockPanel: TAnchorDockPanel
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Side = asrBottom
@@ -320,7 +320,7 @@ object SimbaMainForm: TSimbaMainForm
     end
     object MenuItemRunLast: TMenuItem
       Caption = 'Run Last Script'
-      ShortCut = 41042
+      ShortCut = 32849
       Visible = False
       OnClick = MenuItemRunLastClick
     end
