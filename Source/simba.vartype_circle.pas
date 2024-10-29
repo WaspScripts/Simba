@@ -152,26 +152,26 @@ function TCircleHelper.RandomPoint: TPoint;
 var
   R, Theta, SinValue, CosValue: Double;
 begin
-  R := Radius * Sqrt(Random());
+  R := Floor(Radius * Sqrt(Random()));
   Theta := Random() * 2 * PI;
 
   SinCos(Theta, SinValue, CosValue);
 
   Result.X := Center.X + Round(R * CosValue);
-  Result.Y := Center.X + Round(R * SinValue);
+  Result.Y := Center.Y + Round(R * SinValue);
 end;
 
 function TCircleHelper.RandomPointCenter: TPoint;
 var
   R, Theta, SinValue, CosValue: Double;
 begin
-  R := Radius * Sqrt(RandomLeft(0.0, 1.0));
+  R := Floor(Radius * Sqrt(RandomLeft(0.0, 1.0)));
   Theta := Random() * 2 * PI;
 
   SinCos(Theta, SinValue, CosValue);
 
   Result.X := Center.X + Round(R * CosValue);
-  Result.Y := Center.X + Round(R * SinValue);
+  Result.Y := Center.Y + Round(R * SinValue);
 end;
 
 function TCircleHelper.Circularity(TPA: TPointArray): Double;

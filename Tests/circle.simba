@@ -1,0 +1,19 @@
+{$assertions on}
+
+var
+  c: TCircle;
+begin
+  c := TCircle.Create(100, 100, 25);
+
+  Assert(c.Contains([100, 125]));
+  Assert(not c.Contains([100, 126]));
+  Assert(c.Contains([117, 117]));
+  Assert(not c.Contains([118, 118]));
+
+  RandSeed := 123;
+
+  for 1 to 1000 do
+    Assert(c.Contains(c.RandomPoint));
+  for 1 to 1000 do
+    Assert(c.Contains(c.RandomPointCenter));
+end.
