@@ -27,7 +27,7 @@ begin
   // Find all, entire client
   TPA := Target.FindDTMRotatedEx(DTM, 89,91,1, degs, -1);
   TPA := TPA.Unique();
-  Assert(TPA.Length() = 8);
+  Assert(TPA.Length = 8);
   Assert(TPA[0] = TreePoints[0]);
   Assert(TPA[1] = TreePoints[1]);
   Assert(TPA[2] = TreePoints[2]);
@@ -38,7 +38,7 @@ begin
   Assert(TPA[7] = TreePoints[7]);
 
   Degs := Degs.Unique().Sorted();
-  Assert(Degs.Length() = 3);
+  Assert(Degs.Length = 3);
   Assert(Degs[0] = 89);
   Assert(Degs[1] = 91);
   Assert(Degs[2] = 92);
@@ -46,13 +46,13 @@ begin
   // find all, area
   TPA := Target.FindDTMRotatedEx(DTM, 89,91,1, degs, -1, [56,5,95,28]);
   TPA := TPA.Unique();
-  Assert(TPA.Length() = 3);
+  Assert(TPA.Length = 3);
   Assert(TPA[0] = TreePoints[0]);
   Assert(TPA[1] = TreePoints[2]);
   Assert(TPA[2] = TreePoints[3]);
 
   Degs := Degs.Unique().Sorted();
-  Assert(Degs.Length() = 3);
+  Assert(Degs.Length = 3);
   Assert(Degs[0] = 89);
   Assert(Degs[1] = 91);
   Assert(Degs[2] = 92);

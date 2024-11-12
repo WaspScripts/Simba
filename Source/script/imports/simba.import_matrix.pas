@@ -13,7 +13,7 @@ procedure ImportMatrix(Compiler: TSimbaScript_Compiler);
 implementation
 
 uses
-  lptypes,
+  lptypes, lpvartypes,
   simba.vartype_floatmatrix, simba.vartype_ordmatrix;
 
 (*
@@ -395,18 +395,6 @@ begin
 end;
 
 (*
-TSingleMatrix.Mean
-------------------
-```
-function TSingleMatrix.Mean: Single;
-```
-*)
-procedure _LapeSingleMatrix_Mean(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSingle(Result)^ := PSingleMatrix(Params^[0])^.Mean;
-end;
-
-(*
 TSingleMatrix.MeanStdev
 -----------------------
 ```
@@ -428,30 +416,6 @@ procedure TSingleMatrix.MinMax(out MinValue, MaxValue: Single);
 procedure _LapeSingleMatrix_MinMax(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSingleMatrix(Params^[0])^.MinMax(PSingle(Params^[1])^, PSingle(Params^[2])^);
-end;
-
-(*
-TSingleMatrix.Min
------------------
-```
-function TSingleMatrix.Min: Single;
-```
-*)
-procedure _LapeSingleMatrix_Min(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSingle(Result)^ := PSingleMatrix(Params^[0])^.Min;
-end;
-
-(*
-TSingleMatrix.Max
------------------
-```
-function TSingleMatrix.Max: Single;
-```
-*)
-procedure _LapeSingleMatrix_Max(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSingle(Result)^ := PSingleMatrix(Params^[0])^.Max;
 end;
 
 (*
@@ -653,11 +617,11 @@ begin
   begin
     ImportingSection := 'Matrix';
 
-    addGlobalType('array of TSingleArray', 'TSingleMatrix');
-    addGlobalType('array of TDoubleArray', 'TDoubleMatrix');
-    addGlobalType('array of TByteArray', 'TByteMatrix');
-    addGlobalType('array of TIntegerArray', 'TIntegerMatrix');
-    addGlobalType('array of TBooleanArray', 'TBooleanMatrix');
+    //addGlobalType('array of TSingleArray', 'TSingleMatrix');
+    //addGlobalType('array of TDoubleArray', 'TDoubleMatrix');
+    //addGlobalType('array of TByteArray', 'TByteMatrix');
+    //addGlobalType('array of TIntegerArray', 'TIntegerMatrix');
+    //addGlobalType('array of TBooleanArray', 'TBooleanMatrix');
 
     // single
     addGlobalFunc('function TSingleMatrix.Width: Integer;', @_LapeSingleMatrix_Width);
@@ -672,18 +636,15 @@ begin
     addGlobalFunc('procedure TSingleMatrix.Fill(Value: Single); overload', @_LapeSingleMatrix_Fill);
     addGlobalFunc('function TSingleMatrix.Flatten: TSingleArray', @_LapeSingleMatrix_Flatten);
     addGlobalFunc('function TSingleMatrix.ToIntegerMatrix: TIntegerMatrix;', @_LapeSingleMatrix_ToIntegerMatrix);
-    addGlobalFunc('function TSingleMatrix.Mean: Single; overload;', @_LapeSingleMatrix_Mean);
     addGlobalFunc('procedure TSingleMatrix.MeanStdev(out Mean, Stdev: Double);', @_LapeSingleMatrix_MeanStdev);
     addGlobalFunc('procedure TSingleMatrix.MinMax(out MinValue, MaxValue: Single);', @_LapeSingleMatrix_MinMax);
-    addGlobalFunc('function TSingleMatrix.Min: Single; overload;', @_LapeSingleMatrix_Min);
-    addGlobalFunc('function TSingleMatrix.Max: Single; overload;', @_LapeSingleMatrix_Max);
     addGlobalFunc('function TSingleMatrix.ArgMax: TPoint;', @_LapeSingleMatrix_ArgMax);
     addGlobalFunc('function TSingleMatrix.ArgMin: TPoint;', @_LapeSingleMatrix_ArgMin);
     addGlobalFunc('function TSingleMatrix.NormMinMax(Alpha, Beta: Single): TSingleMatrix;', @_LapeSingleMatrix_NormMinMax);
     addGlobalFunc('function TSingleMatrix.Indices(Value: Single; Comparator: EComparator): TPointArray;', @_LapeSingleMatrix_Indices);
     addGlobalFunc('function TSingleMatrix.ArgMulti(Count: Integer; HiLo: Boolean): TPointArray;', @_LapeSingleMatrix_ArgMulti);
     addGlobalFunc('procedure TSingleMatrix.Smoothen(Block: Integer);', @_LapeSingleMatrix_Smoothen);
-    addGlobalFunc('function TSingleMatrix.Equals(Other: TSingleMatrix; Epsilon: Single = 0): Boolean;', @_LapeSingleMatrix_Equals);
+    addGlobalFunc('function TSingleMatrix.Equals(Other: TSingleMatrix; Epsilon: Single = 0): Boolean; overload;', @_LapeSingleMatrix_Equals);
     addGlobalFunc('function TSingleMatrix.Copy: TSingleMatrix; overload', @_LapeSingleMatrix_Copy1);
     addGlobalFunc('function TSingleMatrix.Copy(Y1, Y2: Integer): TSingleMatrix; overload', @_LapeSingleMatrix_Copy2);
     addGlobalFunc('function TSingleMatrix.Rot90: TSingleMatrix;', @_LapeSingleMatrix_Rot90);

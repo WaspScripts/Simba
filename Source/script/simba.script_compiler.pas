@@ -48,6 +48,8 @@ type
     procedure addProperty(Obj, Name, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer = nil);
     procedure addPropertyIndexed(Obj, Name, Params, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer = nil);
 
+    procedure addMagic(Name: String; Params: array of lpString; ParamTypes: array of ELapeParameterType; Res: String; Func: Pointer);
+
     procedure Import; virtual;
     function Compile: Boolean; override;
 
@@ -82,6 +84,41 @@ begin
     addGlobalFunc('property ' + Obj + '.' + Name + '(' + Params + '):' + Typ + ';', ReadFunc);
   if (WriteFunc <> nil) then
     addGlobalFunc('property ' + Obj + '.' + Name + '(' + Params + '; Value: ' + Typ + ');', WriteFunc);
+end;
+
+procedure TSimbaScript_Compiler.addMagic(Name: String; Params: array of lpString; ParamTypes: array of ELapeParameterType; Res: String; Func: Pointer);
+
+  function getType(Name: lpString): TLapeType;
+  begin
+    if (Name <> '') then
+    begin
+      Result := getGlobalType(Name);
+      if (Result = nil) then
+      begin
+        Result := getBaseType(Name);
+        if (Result = nil) then
+          SimbaException('Type "%s" not found', [Name]);
+      end;
+    end else
+      Result := nil;
+  end;
+
+var
+  ParamVarTypes: array of TLapeType;
+  ParamDefaults: array of TLapeGlobalVar;
+  i: Integer;
+  Header: TLapeType_Method;
+begin
+  if (Globals[Name] = nil) or (not (Globals[Name].VarType is TLapeType_OverloadedMethod)) then
+    SimbaException('addNativeMagic "%s" is incorrect', [Name]);
+
+  SetLength(ParamVarTypes, Length(Params));
+  SetLength(ParamDefaults, Length(Params));
+  for i := 0 to High(ParamVarTypes) do
+    ParamVarTypes[i] := getType(Params[i]);
+
+  Header := addManagedType(TLapeType_Method.Create(Self, ParamVarTypes, ParamTypes, ParamDefaults, getType(Res))) as TLapeType_Method;
+  TLapeType_OverloadedMethod(Globals[Name].VarType).addMethod(Header.NewGlobalVar(Func));
 end;
 
 function TSimbaScript_Compiler.addGlobalFunc(Header: lpString; Body: TStringArray): TLapeTree_Method;

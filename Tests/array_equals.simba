@@ -87,24 +87,6 @@ begin
   Assert(not a.Equals(b));
 end;
 
-{
-procedure TestPointArray;
-var
-  Arr: TPointArray;
-begin
-  Assert(Arr.IndexOf([0,0])=-1);
-  Arr := [[0,0]];
-  Assert(Arr.IndexOf([0,0])=0);
-  Arr := [[0,1],[0,0]];
-  Assert(Arr.IndexOf([0,0])=1);
-  Arr := [[-1,-1],[0,0],[123,123],[123,123]];
-  Assert(Arr.IndexOf([123,123])=2);
-
-  Arr := [[1,2],[3,4],[5,6],[1,2]];
-  Assert(ToString(Arr.IndicesOf([1,2])) = '[0, 3]');
-end;
-}
-
 begin
   TestIntegerArray();
   TestSingleArray();

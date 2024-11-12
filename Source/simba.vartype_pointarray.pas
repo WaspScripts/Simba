@@ -146,6 +146,7 @@ type
     function Intersection(Other: TPointArray): TPointArray;
     function SymmetricDifference(Other: TPointArray): TPointArray;
     function Difference(Other: TPointArray): TPointArray;
+    function Remove(Values: TPointArray): TPointArray;
 
     function DistanceTransform: TSingleMatrix;
     function QuickSkeleton(): TPointArray;
@@ -223,29 +224,31 @@ procedure GetAdjacent4(var Adj: TPointArray; const P: TPoint); inline;
 begin
   Adj[0].X := P.X - 1;
   Adj[0].Y := P.Y;
-
   Adj[1].X := P.X;
   Adj[1].Y := P.Y - 1;
-
   Adj[2].X := P.X + 1;
   Adj[2].Y := P.Y;
-
   Adj[3].X := P.X;
   Adj[3].Y := P.Y + 1;
 end;
 
 procedure GetAdjacent8(var Adj: TPointArray; const P: TPoint); inline;
 begin
-  GetAdjacent4(adj, p);
+  Adj[0].X := P.X - 1;
+  Adj[0].Y := P.Y;
+  Adj[1].X := P.X;
+  Adj[1].Y := P.Y - 1;
+  Adj[2].X := P.X + 1;
+  Adj[2].Y := P.Y;
+  Adj[3].X := P.X;
+  Adj[3].Y := P.Y + 1;
+
   Adj[4].X := P.X - 1;
   Adj[4].Y := P.Y + 1;
-
   Adj[5].X := P.X - 1;
   Adj[5].Y := P.Y - 1;
-
   Adj[6].X := P.X + 1;
   Adj[6].Y := P.Y - 1;
-
   Adj[7].X := P.X + 1;
   Adj[7].Y := P.Y + 1;
 end;
@@ -2354,6 +2357,33 @@ end;
 function TPointArrayHelper.Difference(Other: TPointArray): TPointArray;
 begin
   Result := specialize TArrayRelationship<TPoint>.Difference(Self, Other);
+end;
+
+function TPointArrayHelper.Remove(Values: TPointArray): TPointArray;
+var
+  Box: TBox;
+  test: TBooleanArray;
+  w,h: Integer;
+  i,c: Integer;
+begin
+  Box := Values.Bounds;
+  w := box.Width;
+  h := box.Height;
+  SetLength(test, box.Area);
+  for i:=0 to High(Values) do
+    test[(Values[i].y - box.y1) * w + (Values[i].x - box.x1)] := True;
+
+  SetLength(Result, Length(Self));
+  c := 0;
+  for i:=0 to High(Self) do
+  begin
+    if InRange(Self[i].x - box.x1, 0, w-1) and InRange(Self[i].y - box.y1, 0, h-1) and
+      (test[(Self[i].y - box.y1) * w + (Self[i].x - box.x1)]) then
+      Continue;
+    Result[c] := Self[i];
+    Inc(c);
+  end;
+  SetLength(Result, c);
 end;
 
 function TPointArrayHelper.DistanceTransform: TSingleMatrix;

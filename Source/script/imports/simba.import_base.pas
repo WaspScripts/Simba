@@ -6,6 +6,7 @@ interface
 
 uses
   Classes, SysUtils,
+  lptypes, lpvartypes, lpparser, ffi,
   simba.base, simba.script_compiler;
 
 procedure ImportBase(Compiler: TSimbaScript_Compiler);
@@ -14,8 +15,9 @@ implementation
 
 uses
   Graphics, Variants,
-  lptypes, lpvartypes, lpparser, ffi,
-  simba.nativeinterface, simba.env, simba.baseclass, simba.vartype_ordarray;
+  simba.nativeinterface, simba.env, simba.baseclass, simba.vartype_ordarray,
+  simba.vartype_string, simba.vartype_stringarray, simba.vartype_pointarray,
+  simba.vartype_floatmatrix;
 
 (*
 Base
@@ -560,6 +562,173 @@ begin
   PByteArray(Params^[0])^.FromString(PString(Params^[1])^);
 end;
 
+procedure _LapeWrite(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  Debug(PString(Params^[0])^);
+end;
+
+procedure _LapeWriteLn(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  DebugLn('');
+end;
+
+// Sort
+procedure _LapeSort_IntegerArray(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PIntegerArray(Params^[0])^.Sort();
+end;
+
+procedure _LapeSort_SingleArray(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSingleArray(Params^[0])^.Sort();
+end;
+
+procedure _LapeSort_DoubleArray(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PDoubleArray(Params^[0])^.Sort();
+end;
+
+procedure _LapeSort_StringArray(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PStringArray(Params^[0])^.Sort();
+end;
+
+// Unique
+procedure _LapeUnique_IntegerArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PIntegerArray(Result)^ := PIntegerArray(Params^[0])^.Unique();
+end;
+
+procedure _LapeUnique_SingleArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSingleArray(Result)^ := PSingleArray(Params^[0])^.Unique();
+end;
+
+procedure _LapeUnique_DoubleArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PDoubleArray(Result)^ := PDoubleArray(Params^[0])^.Unique();
+end;
+
+procedure _LapeUnique_StringArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PStringArray(Result)^ := PStringArray(Params^[0])^.Unique();
+end;
+
+procedure _LapeUnique_PointArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPointArray(Result)^ := PPointArray(Params^[0])^.Unique();
+end;
+
+// Sum
+procedure _LapeArraySum_IntegerArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PInt64(Result)^ := PIntegerArray(Params^[0])^.Sum();
+end;
+
+procedure _LapeArraySum_SingleArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PDouble(Result)^ := PSingleArray(Params^[0])^.Sum();
+end;
+
+procedure _LapeArraySum_DoubleArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PDouble(Result)^ := PDoubleArray(Params^[0])^.Sum();
+end;
+
+// Min
+procedure _LapeArrayMin_IntegerArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PInteger(Result)^ := PIntegerArray(Params^[0])^.Min();
+end;
+
+procedure _LapeArrayMin_SingleArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSingle(Result)^ := PSingleArray(Params^[0])^.Min();
+end;
+
+procedure _LapeArrayMin_DoubleArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PDouble(Result)^ := PDoubleArray(Params^[0])^.Min();
+end;
+
+procedure _LapeArrayMin_SingleMatrix(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSingle(Result)^ := PSingleMatrix(Params^[0])^.Min();
+end;
+
+// Max
+procedure _LapeArrayMax_IntegerArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PInteger(Result)^ := PIntegerArray(Params^[0])^.Max();
+end;
+
+procedure _LapeArrayMax_SingleArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSingle(Result)^ := PSingleArray(Params^[0])^.Max();
+end;
+
+procedure _LapeArrayMax_DoubleArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PDouble(Result)^ := PDoubleArray(Params^[0])^.Max();
+end;
+
+procedure _LapeArrayMax_SingleMatrix(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSingle(Result)^ := PSingleMatrix(Params^[0])^.Max();
+end;
+
+// Mean
+procedure _LapeArrayMean_PointArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPoint(Result)^ := PPointArray(Params^[0])^.Mean();
+end;
+
+procedure _LapeArrayMean_2DPointArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPoint(Result)^ := P2DPointArray(Params^[0])^.Mean();
+end;
+
+procedure _LapeArrayMean_SingleMatrix(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSingle(Result)^ := PSingleMatrix(Params^[0])^.Mean();
+end;
+
+// Median
+procedure _LapeArrayMedian_PointArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPoint(Result)^ := PPointArray(Params^[0])^.Median();
+end;
+
+// IndexOf
+procedure _LapeArrayIndexOf_StringArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PInteger(Result)^ := PStringArray(Params^[0])^.IndexOf(PString(Params^[1])^);
+end;
+
+// IndicesOf
+procedure _LapeArrayIndicesOf_StringArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PIntegerArray(Result)^ := PStringArray(Params^[0])^.IndicesOf(PString(Params^[1])^);
+end;
+
+// Intersection
+procedure _LapeArrayIntersection_PointArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPointArray(Result)^ := PPointArray(Params^[0])^.Intersection(PPointArray(Params^[1])^);
+end;
+
+// Difference
+procedure _LapeArrayDifference_PointArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPointArray(Result)^ := PPointArray(Params^[0])^.Difference(PPointArray(Params^[1])^);
+end;
+
+// SymDifference
+procedure _LapeArraySymDifference_PointArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPointArray(Result)^ := PPointArray(Params^[0])^.SymmetricDifference(PPointArray(Params^[1])^);
+end;
+
 procedure ImportBase(Compiler: TSimbaScript_Compiler);
 begin
   with Compiler do
@@ -569,25 +738,11 @@ begin
     addBaseDefine('SIMBA' + Format('%d', [SIMBA_VERSION]));
     addBaseDefine('SIMBAMAJOR' + Format('%d', [SIMBA_MAJOR]));
     addBaseDefine('FPC' + Format('%d', [FPC_FULLVERSION]));
+    addBaseDefine(CPU);
+    addBaseDefine(OS);
 
-    {$IF DEFINED(CPU32)}
-    addBaseDefine('CPU32');
-    {$ELSEIF DEFINED(CPUAARCH64)}
-    addBaseDefine('CPUAARCH64');
-    {$ELSEIF DEFINED(CPU64)}
-    addBaseDefine('CPU64');
-    {$ENDIF}
-
-    {$IF DEFINED(WINDOWS)}
-    addBaseDefine('WINDOWS');
-    {$ELSEIF DEFINED(DARWIN)}
-    addBaseDefine('DARWIN');
-    {$ELSEIF DEFINED(LINUX)}
-    addBaseDefine('LINUX');
-    {$ENDIF}
-
-    addGlobalType(getBaseType(DetermineIntType(SizeOf(Byte), False)).createCopy(), 'Byte');
-    addGlobalType(getBaseType(DetermineIntType(SizeOf(Integer), True)).createCopy(), 'Integer');
+    addGlobalType('UInt8', 'Byte');
+    addGlobalType('Int32', 'Integer');
 
     addGlobalType('Int32', 'TColor');
     addGlobalType('array of TColor', 'TColorArray');
@@ -611,6 +766,12 @@ begin
 
     addGlobalType('record X1, Y1, X2, Y2: Integer; end', 'TBox');
     addGlobalType('array of TBox', 'TBoxArray');
+
+    addGlobalType('array of TSingleArray', 'TSingleMatrix');
+    addGlobalType('array of TDoubleArray', 'TDoubleMatrix');
+    addGlobalType('array of TByteArray', 'TByteMatrix');
+    addGlobalType('array of TIntegerArray', 'TIntegerMatrix');
+    addGlobalType('array of TBooleanArray', 'TBooleanMatrix');
 
     addGlobalType('record Width, Height: Integer; end', 'TSize');
 
@@ -639,6 +800,48 @@ begin
     addClass('TBaseClass', 'Pointer');
     addProperty('TBaseClass', 'Name', 'String', @_LapeBaseClass_Name_Read, @_LapeBaseClass_Name_Write);
     addProperty('TBaseClass', 'FreeOnTerminate', 'Boolean', @_LapeBaseClass_FreeOnTerminate_Read, @_LapeBaseClass_FreeOnTerminate_Write);
+
+    addGlobalFunc('procedure _Write(S: String); override', @_LapeWrite);
+    addGlobalFunc('procedure _WriteLn; override', @_LapeWriteLn);
+
+    // add native versions for lape to use
+    addMagic('_ArrayMin', ['TIntegerArray'], [lptNormal], 'Integer', @_LapeArrayMin_IntegerArray);
+    addMagic('_ArrayMin', ['TSingleArray'], [lptNormal], 'Single', @_LapeArrayMin_SingleArray);
+    addMagic('_ArrayMin', ['TDoubleArray'], [lptNormal], 'Double', @_LapeArrayMin_DoubleArray);
+    addMagic('_ArrayMin', ['TSingleMatrix'], [lptNormal], 'Single', @_LapeArrayMin_SingleMatrix);
+
+    addMagic('_ArrayMax', ['TIntegerArray'], [lptNormal], 'Integer', @_LapeArrayMax_IntegerArray);
+    addMagic('_ArrayMax', ['TSingleArray'], [lptNormal], 'Single', @_LapeArrayMax_SingleArray);
+    addMagic('_ArrayMax', ['TDoubleArray'], [lptNormal], 'Double', @_LapeArrayMax_DoubleArray);
+    addMagic('_ArrayMax', ['TSingleMatrix'], [lptNormal], 'Single', @_LapeArrayMax_SingleMatrix);
+
+    addMagic('_ArraySum', ['TIntegerArray'], [lptNormal], 'Int64', @_LapeArraySum_IntegerArray);
+    addMagic('_ArraySum', ['TSingleArray'], [lptNormal], 'Double', @_LapeArraySum_SingleArray);
+    addMagic('_ArraySum', ['TDoubleArray'], [lptNormal], 'Double', @_LapeArraySum_DoubleArray);
+
+    addMagic('_ArraySort', ['TIntegerArray'], [lptVar], '', @_LapeSort_IntegerArray);
+    addMagic('_ArraySort', ['TSingleArray'], [lptVar], '', @_LapeSort_SingleArray);
+    addMagic('_ArraySort', ['TDoubleArray'], [lptVar], '', @_LapeSort_DoubleArray);
+    addMagic('_ArraySort', ['TStringArray'], [lptVar], '', @_LapeSort_StringArray);
+
+    addMagic('_ArrayUnique', ['TIntegerArray'], [lptNormal], 'TIntegerArray', @_LapeUnique_IntegerArray);
+    addMagic('_ArrayUnique', ['TSingleArray'], [lptNormal], 'TSingleArray', @_LapeUnique_SingleArray);
+    addMagic('_ArrayUnique', ['TDoubleArray'], [lptNormal], 'TDoubleArray', @_LapeUnique_DoubleArray);
+    addMagic('_ArrayUnique', ['TStringArray'], [lptNormal], 'TStringArray', @_LapeUnique_StringArray);
+    addMagic('_ArrayUnique', ['TPointArray'], [lptNormal], 'TPointArray', @_LapeUnique_PointArray);
+
+    addMagic('_ArrayIndexOf', ['String', 'TStringArray'], [lptNormal, lptNormal], 'Integer', @_LapeArrayIndexOf_StringArray);
+    addMagic('_ArrayIndicesOf', ['String', 'TStringArray'], [lptNormal, lptNormal], 'TIntegerArray', @_LapeArrayIndicesOf_StringArray);
+
+    addMagic('_ArrayMean', ['TPointArray'], [lptNormal], 'TPoint', @_LapeArrayMean_PointArray);
+    addMagic('_ArrayMean', ['T2DPointArray'], [lptNormal], 'TPoint', @_LapeArrayMean_2DPointArray);
+    addMagic('_ArrayMean', ['TSingleMatrix'], [lptNormal], 'Single', @_LapeArrayMean_SingleMatrix);
+
+    addMagic('_ArrayMedian', ['TPointArray'], [lptNormal], 'TPoint', @_LapeArrayMedian_PointArray);
+
+    addMagic('_ArrayIntersection', ['TPointArray', 'TPointArray'], [lptNormal, lptNormal], 'TPointArray', @_LapeArrayIntersection_PointArray);
+    addMagic('_ArrayDifference', ['TPointArray', 'TPointArray'], [lptNormal, lptNormal], 'TPointArray', @_LapeArrayDifference_PointArray);
+    addMagic('_ArraySymDifference', ['TPointArray', 'TPointArray'], [lptNormal, lptNormal], 'TPointArray', @_LapeArraySymDifference_PointArray);
   end;
 end;
 

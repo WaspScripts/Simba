@@ -25,7 +25,7 @@ begin
 
   // find all, entire client
   TPA := Target.FindDTMEx(DTM, -1);
-  Assert(TPA.Length() = 8);
+  Assert(TPA.Length = 8);
   Assert(TPA[0] = TreePoints[0]);
   Assert(TPA[1] = TreePoints[1]);
   Assert(TPA[2] = TreePoints[2]);
@@ -38,7 +38,7 @@ begin
   // find all, area
   TPA := Target.FindDTMEx(DTM, -1, [4,4,29,42]);
 
-  Assert(TPA.Length() = 3);
+  Assert(TPA.Length = 3);
   Assert(TPA[0] = TreePoints[0]);
   Assert(TPA[1] = TreePoints[1]);
   Assert(TPA[2] = TreePoints[2]);
@@ -55,11 +55,11 @@ begin
   DTM.AddPoint(-3,0,Colors.BLACK,0,0);
 
   // Does not match though
-  Assert(Target.FindDTMEx(DTM).Length() = 0);
+  Assert(Target.FindDTMEx(DTM).Length = 0);
 
   // Add tolerance
   DTM.Points[DTM.PointCount - 1].Tolerance := 45;
-  Assert(Target.FindDTMEx(DTM).Length() = 8);
+  Assert(Target.FindDTMEx(DTM).Length = 8);
 
   img.Free();
 end;

@@ -6,15 +6,12 @@ interface
 
 uses
   Classes, SysUtils,
-  lptypes,
-  simba.base, simba.script_compiler;
+  lptypes, lpvartypes,
+  simba.base, simba.script_compiler, simba.vartype_string, simba.vartype_stringarray;
 
 procedure ImportString(Compiler: TSimbaScript_Compiler);
 
 implementation
-
-uses
-  simba.vartype_string, simba.vartype_stringarray;
 
 (*
 String

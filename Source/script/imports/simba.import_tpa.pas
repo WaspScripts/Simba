@@ -18,7 +18,7 @@ procedure ImportTPA(Compiler: TSimbaScript_Compiler);
 implementation
 
 uses
-  lptypes,
+  lptypes, lpvartypes,
   simba.vartype_pointarray;
 
 (*
@@ -27,40 +27,9 @@ TPointArray
 Methods relating to point arrays.
 *)
 
-(*
-TPointArray.Difference
-----------------------
-```
-function TPointArray.Difference(Other: TPointArray): TPointArray;
-```
-*)
-procedure _Lape_Point_Difference(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _Lape_Point_Remove(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PPointArray(Params^[0])^.Difference(PPointArray(Params^[1])^);
-end;
-
-(*
-TPointArray.SymmetricDifference
--------------------------------
-```
-function TPointArray.SymmetricDifference(Other: TPointArray): TPointArray;
-```
-*)
-procedure _Lape_Point_SymmetricDifference(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PPointArray(Result)^ := PPointArray(Params^[0])^.SymmetricDifference(PPointArray(Params^[1])^);
-end;
-
-(*
-TPointArray.Intersection
-------------------------
-```
-function TPointArray.Intersection(Other: TPointArray): TPointArray;
-```
-*)
-procedure _Lape_Point_Intersection(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PPointArray(Result)^ := PPointArray(Params^[0])^.Intersection(PPointArray(Params^[1])^);
+  PPointArray(Result)^ := PPointArray(Params^[0])^.Remove(PPointArray(Params^[1])^);
 end;
 
 (*
@@ -172,39 +141,15 @@ begin
 end;
 
 (*
-TPointArray.Equals
-------------------
-```
-function TPointArray.Equals(Other: TPointArray): Boolean;
-```
-*)
-procedure _LapeTPAEquals(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := PPointArray(Params^[0])^.Equals(PPointArray(Params^[1])^);
-end;
-
-(*
 TPointArray.Offset
 ------------------
 ```
 function TPointArray.Offset(P: TPoint): TPointArray;
 ```
 *)
-procedure _LapeTPAOffset1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeTPAOffset(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PPointArray(Result)^ := PPointArray(Params^[0])^.Offset(PPoint(Params^[1])^);
-end;
-
-(*
-TPointArray.Offset
-------------------
-```
-function TPointArray.Offset(X, Y: Integer): TPointArray;
-```
-*)
-procedure _LapeTPAOffset2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PPointArray(Result)^ := PPointArray(Params^[0])^.Offset(PInteger(Params^[1])^, PInteger(Params^[2])^);
 end;
 
 (*
@@ -253,18 +198,6 @@ function TPointArray.Bounds: TBox;
 procedure _LapeTPABounds(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PBox(Result)^ := PPointArray(Params^[0])^.Bounds();
-end;
-
-(*
-TPointArray.Mean
-----------------
-```
-function TPointArray.Mean: TPoint;
-```
-*)
-procedure _LapeTPAMean(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PPoint(Result)^ := PPointArray(Params^[0])^.Mean();
 end;
 
 (*
@@ -722,18 +655,6 @@ begin
 end;
 
 (*
-TPointArray.Unique
-------------------
-```
-function TPointArray.Unique: TPointArray; override;
-```
-*)
-procedure _LapeTPAUnique(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PPointArray(Result)^ := PPointArray(Params^[0])^.Unique();
-end;
-
-(*
 TPointArray.Split
 -----------------
 ```
@@ -986,11 +907,6 @@ begin
   PPointArray(Params^[0])^.ToAxes(PIntegerArray(Params^[1])^, PIntegerArray(Params^[2])^);
 end;
 
-procedure _LapeTPAMedian(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PPoint(Result)^ := PPointArray(Params^[0])^.Median();
-end;
-
 procedure ImportTPA(Compiler: TSimbaScript_Compiler);
 begin
   with Compiler do
@@ -1028,17 +944,14 @@ begin
 
     addGlobalFunc('function TPointArray.Rows: T2DPointArray', @_LapeTPARows);
     addGlobalFunc('function TPointArray.Columns: T2DPointArray', @_LapeTPAColumns);
-    addGlobalFunc('function TPointArray.Equals(Other: TPointArray): Boolean;', @_LapeTPAEquals);
-    addGlobalFunc('function TPointArray.Offset(P: TPoint): TPointArray; overload', @_LapeTPAOffset1);
-    addGlobalFunc('function TPointArray.Offset(X, Y: Integer): TPointArray; overload', @_LapeTPAOffset2);
+    addGlobalFunc('function TPointArray.Offset(P: TPoint): TPointArray', @_LapeTPAOffset);
     addGlobalFunc('function TPointArray.FloodFill(const StartPoint: TPoint; const EightWay: Boolean): TPointArray;', @_LapeTPAFloodFill);
     addGlobalFunc('function TPointArray.ShapeFill: TPointArray', @_LapeTPAShapeFill);
 
     addGlobalFunc('function TPointArray.Extremes: TPointArray', @_LapeTPAExtremes);
-    addGlobalFunc('function TPointArray.Bounds: TBox; overload', @_LapeTPABounds);
+    addGlobalFunc('function TPointArray.Bounds: TBox', @_LapeTPABounds);
     addGlobalFunc('function TPointArray.MinAreaRect: TQuad', @_LapeTPAMinAreaRect);
     addGlobalFunc('function TPointArray.MinAreaCircle: TCircle', @_LapeTPAMinAreaCircle);
-    addGlobalFunc('function TPointArray.Mean: TPoint; overload', @_LapeTPAMean);
 
     addGlobalFunc('function TPointArray.Connect: TPointArray', @_LapeTPAConnect);
     addGlobalFunc('function TPointArray.Density: Double', @_LapeTPADensity);
@@ -1059,8 +972,6 @@ begin
     addGlobalFunc('procedure TPointArray.FurthestPoints(out A, B: TPoint)', @_LapeTPAFurthestPoints);
     addGlobalFunc('function TPointArray.NearestPoint(Other: TPoint): TPoint', @_LapeTPANearestPoint);
 
-    addGlobalFunc('function TPointArray.Unique: TPointArray; override', @_LapeTPAUnique);
-
     addGlobalFunc('function TPointArray.Sort(Weights: TIntegerArray; LowToHigh: Boolean = True): TPointArray; overload;', @_LapeTPASort1);
     addGlobalFunc('function TPointArray.Sort(Weights: TDoubleArray; LowToHigh: Boolean = True): TPointArray; overload;', @_LapeTPASort2);
     addGlobalFunc('function TPointArray.SortByX(LowToHigh: Boolean = True): TPointArray;', @_LapeTPASortByX);
@@ -1080,9 +991,8 @@ begin
     addGlobalFunc('function TPointArray.Partition(Width, Height: Integer): T2DPointArray; overload', @_LapeTPAPartition2);
     addGlobalFunc('function TPointArray.PartitionEx(BoxWidth, BoxHeight: Integer): T2DPointArray; overload', @_LapeTPAPartitionEx1);
     addGlobalFunc('function TPointArray.PartitionEx(StartPoint: TPoint; BoxWidth, BoxHeight: Integer): T2DPointArray; overload', @_LapeTPAPartitionEx2);
-    addGlobalFunc('function TPointArray.Intersection(Other: TPointArray): TPointArray', @_Lape_Point_Intersection);
-    addGlobalFunc('function TPointArray.Difference(Other: TPointArray): TPointArray', @_Lape_Point_Difference);
-    addGlobalFunc('function TPointArray.SymmetricDifference(Other: TPointArray): TPointArray', @_Lape_Point_SymmetricDifference);
+
+    addGlobalFunc('function TPointArray.Remove(Points: TPointArray): TPointArray; overload', @_Lape_Point_Remove);
 
     addGlobalFunc('function TPointArray.DistanceTransform: TSingleMatrix;', @_LapeTPADistanceTransform);
     addGlobalFunc('function TPointArray.QuickSkeleton(): TPointArray;', @_LapeTPAQuickSkeleton);
@@ -1097,7 +1007,6 @@ begin
     addGlobalFunc('function TPointArray.ConvexityDefects(Epsilon: Single = 0; Mode: EConvexityDefects = EConvexityDefects.NONE): TPointArray;', @_LapeTPAConvexityDefects);
 
     addGlobalFunc('procedure TPointArray.ToAxes(out X, Y: TIntegerArray);', @_LapeTPAToAxes);
-    addGlobalFunc('function TPointArray.Median: TPoint; overload', @_LapeTPAMedian);
 
     ImportingSection := '';
   end;

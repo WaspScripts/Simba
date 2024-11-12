@@ -24,7 +24,7 @@ begin
 
   // find all, entire client
   TPA := Target.FindImageEx(templ, 0, -1);
-  Assert(TPA.Length() = 8);
+  Assert(TPA.Length = 8);
   Assert(TPA[0] = TreePoints[0]);
   Assert(TPA[1] = TreePoints[1]);
   Assert(TPA[2] = TreePoints[2]);
@@ -36,7 +36,7 @@ begin
 
   // find all, area
   TPA := Target.FindImageEx(templ, 0, -1, [24, 37, 45, 71]);
-  Assert(TPA.Length() = 2);
+  Assert(TPA.Length = 2);
   Assert(TPA[0] = TreePoints[3]);
   Assert(TPA[1] = TreePoints[4]);
 
@@ -56,7 +56,7 @@ begin
 
   // find all with tolerance, entire client
   TPA := Target.FindImageEx(templBrightnessed, 10, -1);
-  Assert(TPA.Length() = 8);
+  Assert(TPA.Length = 8);
   Assert(TPA[0] = TreePoints[0]);
   Assert(TPA[1] = TreePoints[1]);
   Assert(TPA[2] = TreePoints[2]);
@@ -68,7 +68,7 @@ begin
 
   // find all with (too low) tolerance, entire client
   TPA := Target.FindImageEx(templBrightnessed, 5);
-  Assert(TPA.Length() = 0);
+  Assert(TPA.Length = 0);
 
   img.Free();
   templ.Free();

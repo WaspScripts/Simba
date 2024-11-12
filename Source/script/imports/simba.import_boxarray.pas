@@ -226,42 +226,6 @@ begin
   PBoxArray(Result)^ := PBoxArray(Params^[0])^.Sort(PDoubleArray(Params^[1])^, PBoolean(Params^[2])^);
 end;
 
-(*
-TBoxArray.SymmetricDifference
------------------------------
-```
-function TBoxArray.SymmetricDifference(Other: TBoxArray): TBoxArray;
-```
-*)
-procedure _Lape_Box_SymmetricDifference(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoxArray(Result)^ := PBoxArray(Params^[0])^.SymmetricDifference(PBoxArray(Params^[1])^);
-end;
-
-(*
-TBoxArray.Difference
---------------------
-```
-function TBoxArray.Difference(Other: TBoxArray): TBoxArray;
-```
-*)
-procedure _Lape_Box_Difference(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoxArray(Result)^ := PBoxArray(Params^[0])^.Difference(PBoxArray(Params^[1])^);
-end;
-
-(*
-TBoxArray.Intersection
-----------------------
-```
-function TBoxArray.Intersection(Other: TBoxArray): TBoxArray;
-```
-*)
-procedure _Lape_Box_Intersection(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoxArray(Result)^ := PBoxArray(Params^[0])^.Intersection(PBoxArray(Params^[1])^);
-end;
-
 procedure ImportBoxArray(Compiler: TSimbaScript_Compiler);
 begin
   with Compiler do
@@ -290,10 +254,6 @@ begin
 
     addGlobalFunc('function TBoxArray.ContainsPoint(P: TPoint; out Index: Integer): Boolean; overload;', @_LapeBoxArray_ContainsPoint1);
     addGlobalFunc('function TBoxArray.ContainsPoint(P: TPoint): Boolean; overload;', @_LapeBoxArray_ContainsPoint2);
-
-    addGlobalFunc('function TBoxArray.Difference(Other: TBoxArray): TBoxArray', @_Lape_Box_Difference);
-    addGlobalFunc('function TBoxArray.SymmetricDifference(Other: TBoxArray): TBoxArray', @_Lape_Box_SymmetricDifference);
-    addGlobalFunc('function TBoxArray.Intersection(Other: TBoxArray): TBoxArray', @_Lape_Box_Intersection);
 
     ImportingSection := '';
   end;

@@ -359,18 +359,6 @@ begin
 end;
 
 (*
-T2DPointArray.Mean
-------------------
-```
-function T2DPointArray.Mean: TPoint;
-```
-*)
-procedure _LapeATPA_Mean(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PPoint(Result)^ := P2DPointArray(Params^[0])^.Mean();
-end;
-
-(*
 T2DPointArray.Means
 -------------------
 ```
@@ -452,10 +440,9 @@ begin
     addGlobalFunc('function T2DPointArray.Bounds: TBox', @_LapeATPA_Bounds);
     addGlobalFunc('function T2DPointArray.BoundsArray: TBoxArray', @_LapeATPA_BoundsArray);
 
-    addGlobalFunc('function T2DPointArray.Mean: TPoint; overload', @_LapeATPA_Mean);
     addGlobalFunc('function T2DPointArray.Means: TPointArray', @_LapeATPA_Means);
     addGlobalFunc('function T2DPointArray.Merge: TPointArray;', @_LapeATPA_Merge);
-    addGlobalFunc('function T2DPointArray.Intersection: TPointArray', @_LapeATPA_Intersection);
+    addGlobalFunc('function T2DPointArray.Intersection: TPointArray; overload;', @_LapeATPA_Intersection);
 
     ImportingSection := '';
   end;

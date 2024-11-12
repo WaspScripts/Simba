@@ -106,7 +106,7 @@ begin
 
   // Only difference should be the box we just drawn
   Assert(img1.PixelDifference(img2) = 5*5);
-  Assert(img1.PixelDifferenceTPA(img2).Length() = 5*5);
+  Assert(img1.PixelDifferenceTPA(img2).Length = 5*5);
   Assert(img1.PixelDifferenceTPA(img2).Bounds() = [20,20,24,24]);
 
   img2.Free();
