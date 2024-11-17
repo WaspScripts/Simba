@@ -948,7 +948,6 @@ end;
 
 function TSimbaStringHelper.Join(const Values: TStringArray): String;
 var
-  Builder: TSimbaStringBuilder;
   I, Current, Total: Integer;
 begin
   if (Length(Values) = 0) then Exit('');
