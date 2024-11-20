@@ -10,18 +10,28 @@ unit simba.script_imports;
 interface
 
 uses
-  simba.script_compiler;
+  simba.script;
 
-procedure AddSimbaImports(Compiler: TSimbaScript_Compiler);
+procedure AddSimbaInternalMethods(Script: TSimbaScript);
+procedure AddSimbaImports(Script: TSimbaScript);
 
 implementation
 
 uses
+  lpffi,
+  // Lape Internal methods
+  simba.script_compiler_sleepuntil,
+  simba.script_compiler_rtti,
+  simba.script_compiler_imagefromstring,
+  simba.script_genericmap,
+  simba.script_genericstringmap,
+  simba.script_genericheap,
+
   // Simba
   simba.import_base, simba.import_colormath,simba.import_matrix, simba.import_windowhandle,
   simba.import_quad, simba.import_box, simba.import_boxarray, simba.import_point,
   simba.import_circle, simba.import_datetime, simba.import_tpa, simba.import_atpa,
-  simba.import_encoding, simba.import_file, simba.import_process, simba.import_internal,
+  simba.import_encoding, simba.import_file, simba.import_process,
   simba.import_target, simba.import_math, simba.import_misc, simba.import_slacktree, simba.import_string,
   simba.import_random, simba.import_debugimage, simba.import_web, simba.import_threading,
   simba.import_pointbuffer, simba.import_async,
@@ -35,54 +45,64 @@ uses
   simba.import_lcl_form, simba.import_lcl_stdctrls, simba.import_lcl_extctrls,
   simba.import_lcl_comctrls, simba.import_lcl_misc;
 
-procedure AddSimbaImports(Compiler: TSimbaScript_Compiler);
+procedure AddSimbaInternalMethods(Script: TSimbaScript);
 begin
-  ImportBase(Compiler);
-  ImportColorMath(Compiler);
-  ImportMatrix(Compiler);
-  ImportWindowHandle(Compiler);
-  ImportQuad(Compiler);
-  ImportCircle(Compiler);
-  ImportBox(Compiler);
-  ImportBoxArray(Compiler);
-  ImportPoint(Compiler);
+  InitializeImageFromString(Script.Compiler);
+  InitializeSleepUntil(Script.Compiler);
+  InitializeFFI(Script.Compiler);
+  InitializeRTTI(Script.Compiler);
+  InitializeMap(Script.Compiler);
+  InitializeStringMap(Script.Compiler);
+  InitializeHeap(Script.Compiler);
+end;
 
-  ImportLCLSystem(Compiler);
-  ImportLCLGraphics(Compiler);
-  ImportLCLControls(Compiler);
-  ImportLCLForm(Compiler);
-  ImportLCLStdCtrls(Compiler);
-  ImportLCLExtCtrls(Compiler);
-  ImportLCLComCtrls(Compiler);
-  ImportLCLMisc(Compiler);
+procedure AddSimbaImports(Script: TSimbaScript);
+begin
+  ImportBase(Script);
+  ImportColorMath(Script);
+  ImportMatrix(Script);
+  ImportWindowHandle(Script);
+  ImportQuad(Script);
+  ImportCircle(Script);
+  ImportBox(Script);
+  ImportBoxArray(Script);
+  ImportPoint(Script);
 
-  ImportDTM(Compiler);
-  ImportSimbaImage(Compiler);
-  ImportExternalCanvas(Compiler);
-  ImportMatchTemplate(Compiler);
-  ImportJSON(Compiler);
+  ImportLCLSystem(Script);
+  ImportLCLGraphics(Script);
+  ImportLCLControls(Script);
+  ImportLCLForm(Script);
+  ImportLCLStdCtrls(Script);
+  ImportLCLExtCtrls(Script);
+  ImportLCLComCtrls(Script);
+  ImportLCLMisc(Script);
 
-  ImportDateTime(Compiler);
-  ImportTPA(Compiler);
-  ImportATPA(Compiler);
-  ImportEncoding(Compiler);
-  ImportFile(Compiler);
-  ImportProcess(Compiler);
-  ImportInternal(Compiler);
-  ImportTarget(Compiler);
-  ImportMath(Compiler);
-  ImportSlackTree(Compiler);
-  ImportString(Compiler);
-  ImportRandom(Compiler);
-  ImportDebugImage(Compiler);
-  ImportWeb(Compiler);
-  ImportMisc(Compiler);
-  ImportThreading(Compiler);
-  ImportASync(Compiler);
-  ImportPointBuffer(Compiler);
+  ImportDTM(Script);
+  ImportSimbaImage(Script);
+  ImportExternalCanvas(Script);
+  ImportMatchTemplate(Script);
+  ImportJSON(Script);
 
-  ImportSimbaImageBox(Compiler);
-  ImportSimbaShapeBox(Compiler);
+  ImportDateTime(Script);
+  ImportTPA(Script);
+  ImportATPA(Script);
+  ImportEncoding(Script);
+  ImportFile(Script);
+  ImportProcess(Script);
+  ImportTarget(Script);
+  ImportMath(Script);
+  ImportSlackTree(Script);
+  ImportString(Script);
+  ImportRandom(Script);
+  ImportDebugImage(Script);
+  ImportWeb(Script);
+  ImportMisc(Script);
+  ImportThreading(Script);
+  ImportASync(Script);
+  ImportPointBuffer(Script);
+
+  ImportSimbaImageBox(Script);
+  ImportSimbaShapeBox(Script);
 end;
 
 end.

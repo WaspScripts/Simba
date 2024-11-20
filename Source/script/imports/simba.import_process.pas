@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils, Forms,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportProcess(Compiler: TSimbaScript_Compiler);
+procedure ImportProcess(Script: TSimbaScript);
 
 implementation
 
@@ -452,11 +452,11 @@ begin
   PRunningProcessPiped(Result)^ := StartScriptPiped(PString(Params^[0])^, PStringArray(Params^[1])^);
 end;
 
-procedure ImportProcess(Compiler: TSimbaScript_Compiler);
+procedure ImportProcess(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Process';
+    DumpSection := 'Process';
 
     addGlobalType('type Integer', 'TProcessID');
     addGlobalType('type Integer', 'TProcessExitCode');
@@ -506,7 +506,7 @@ begin
     addGlobalFunc('function StartSimbaScript(Script: String; Params: TStringArray): TRunningProcess', @_LapeStartSimbaScript);
     addGlobalFunc('function StartSimbaScriptPiped(Script: String; Params: TStringArray): TRunningProcessPiped', @_LapeStartSimbaScriptPiped);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

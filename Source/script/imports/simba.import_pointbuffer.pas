@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportPointBuffer(Compiler: TSimbaScript_Compiler);
+procedure ImportPointBuffer(Script: TSimbaScript);
 
 implementation
 
@@ -84,9 +84,9 @@ begin
   PPoint(Result)^ := PSimbaPointBuffer(Params^[0])^.Item[PInteger(Params^[1])^];
 end;
 
-procedure ImportPointBuffer(Compiler: TSimbaScript_Compiler);
+procedure ImportPointBuffer(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
     addGlobalType([
       'record',

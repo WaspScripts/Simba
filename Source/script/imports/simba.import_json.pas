@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportJson(Compiler: TSimbaScript_Compiler);
+procedure ImportJson(Script: TSimbaScript);
 
 implementation
 
@@ -647,11 +647,11 @@ begin
   PStringArray(Result)^ := PSimbaJSONParser(Params^[0])^.Keys;
 end;
 
-procedure ImportJSON(Compiler: TSimbaScript_Compiler);
+procedure ImportJSON(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'JSON';
+    DumpSection := 'JSON';
 
     addGlobalType('enum(UNKNOWN, NULL, INT, FLOAT, STR, BOOL)', 'EJSONValueType');
     with addGlobalType('record {%CODETOOLS OFF}InternalData: Pointer;{%CODETOOLS ON} end', 'TJSONElement') do
@@ -717,7 +717,7 @@ begin
     addProperty('TJSONParser', 'Count', 'Integer', @_LapeJSONParser_Count_Read);
     addProperty('TJSONParser', 'AsString', 'String', @_LapeJSONParser_AsString_Read);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

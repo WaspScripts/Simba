@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils, Controls, Graphics,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportSimbaImageBox(Compiler: TSimbaScript_Compiler);
+procedure ImportSimbaImageBox(Script: TSimbaScript);
 
 implementation
 
@@ -383,9 +383,9 @@ begin
   PSimbaImageBoxCanvas(Params^[0])^.DrawHeatmap(PSingleMatrix(Params^[1])^);
 end;
 
-procedure ImportSimbaImageBox(Compiler: TSimbaScript_Compiler);
+procedure ImportSimbaImageBox(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
     addClass('TImageBoxCanvas');
 

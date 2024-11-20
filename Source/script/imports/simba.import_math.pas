@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportMath(Compiler: TSimbaScript_Compiler);
+procedure ImportMath(Script: TSimbaScript);
 
 implementation
 
@@ -461,11 +461,11 @@ begin
   PBoolean(Result)^ := IsNumber(PDouble(Params^[0])^);
 end;
 
-procedure ImportMath(Compiler: TSimbaScript_Compiler);
+procedure ImportMath(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Math';
+    DumpSection := 'Math';
 
     addGlobalVar(HALF_PI, 'HALF_PI').isConstant := True;
     addGlobalVar(SQRT_2, 'SQRT_2').isConstant := True;
@@ -520,7 +520,7 @@ begin
     addGlobalFunc('function PointInCircle(const P, Center: TPoint; Radius: Double): Boolean; static', @_LapePointInCircle);
     addGlobalFunc('function PointInEllipse(const P, Center: TPoint; const YRadius, XRadius: Double): Boolean', @_LapePointInEllipse);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

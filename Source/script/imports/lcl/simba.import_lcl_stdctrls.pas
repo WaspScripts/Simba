@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportLCLStdCtrls(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLStdCtrls(Script: TSimbaScript);
 
 implementation
 
@@ -1082,9 +1082,9 @@ begin
   PRadioButton(Result)^ := TRadioButton.Create(PComponent(Params^[0])^);
 end;
 
-procedure ImportLCLStdCtrls(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLStdCtrls(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
     addGlobalType('enum(ssNone, ssHorizontal, ssVertical, ssBoth, ssAutoHorizontal, ssAutoVertical, ssAutoBoth)', 'ELazScrollStyle');
     addGlobalType('set of enum(odSelected, odGrayed, odDisabled, odChecked, odFocused, odDefault, odHotLight, odInactive, odNoAccel, odNoFocusRect, odReserved1, odReserved2, odComboBoxEdit, odBackgroundPainted)', 'ELazOwnerDrawStates');

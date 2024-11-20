@@ -15,7 +15,7 @@ uses
   Classes, SysUtils,
   simba.base, simba.script_compiler;
 
-procedure ImportVariant(Compiler: TSimbaScript_Compiler);
+procedure ImportVariant(Script: TSimbaScript);
 
 implementation
 
@@ -190,11 +190,11 @@ begin
   PVariant(Result)^ := Null;
 end;
 
-procedure ImportVariant(Compiler: TSimbaScript_Compiler);
+procedure ImportVariant(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Variant';
+    DumpSection := 'Variant';
 
     addGlobalType('enum(Unknown, Unassigned, Null, Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64, Single, Double, DateTime, Currency, Boolean, Variant, AString, UString, WString)', 'EVariantVarType');
 
@@ -211,7 +211,7 @@ begin
 
     addGlobalFunc('function Variant.NULL: Variant; static;', @_LapeVariantNULL);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportDateTime(Compiler: TSimbaScript_Compiler);
+procedure ImportDateTime(Script: TSimbaScript);
 
 implementation
 
@@ -619,11 +619,11 @@ begin
   PString(Result)^ := FormatMilliseconds(PDouble(Params^[0])^, PBoolean(Params^[1])^);
 end;
 
-procedure ImportDateTime(Compiler: TSimbaScript_Compiler);
+procedure ImportDateTime(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Date & Time';
+    DumpSection := 'Date & Time';
 
     addGlobalFunc('function TDateTime.Create(AYear, AMonth, ADay, AHour, AMinute, ASecond, AMillisecond: Integer): TDateTime; static; overload', @_LapeDateTime_Create1);
     addGlobalFunc('function TDateTime.Create(AYear, AMonth, ADay: Integer): TDateTime; static; overload', @_LapeDateTime_Create2);
@@ -714,7 +714,7 @@ begin
       'end;'
     ]);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

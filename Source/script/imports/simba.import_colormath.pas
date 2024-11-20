@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportColorMath(Compiler: TSimbaScript_Compiler);
+procedure ImportColorMath(Script: TSimbaScript);
 
 implementation
 
@@ -667,11 +667,11 @@ Colors.YELLOWGREEN
 ```
 *)
 
-procedure ImportColorMath(Compiler: TSimbaScript_Compiler);
+procedure ImportColorMath(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Color Math';
+    DumpSection := 'Color Math';
 
     addGlobalType('enum(RGB, HSV, HSL, XYZ, LAB, LCH, DELTAE)', 'EColorSpace');
     addGlobalType('array [0..2] of Single', 'TChannelMultipliers');
@@ -972,7 +972,7 @@ begin
       'end;'
     ], 'Colors');
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

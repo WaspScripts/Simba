@@ -57,6 +57,7 @@ type
 
     function Compile: Boolean;
     function Run: Boolean;
+    procedure Dump(FileName: String);
 
     property State: ESimbaScriptState read GetState write SetState;
     property Script: String read FScript write FScript;
@@ -73,7 +74,8 @@ implementation
 uses
   simba.env, simba.fs, simba.datetime, simba.target, simba.vartype_windowhandle,
   simba.vartype_string,
-  simba.script_pluginloader;
+  simba.script_pluginloader,
+  simba.script_imports;
 
 function TSimbaScript.DoCompilerPreprocessorFunc(Sender: TLapeCompiler; Name, Argument: lpString; out Value: lpString): Boolean;
 begin
@@ -197,7 +199,10 @@ begin
   if (FSimbaCommunication = nil) then
     FCompiler.addBaseDefine('SIMBAHEADLESS');
 
-  FCompiler.Import();
+  FCompiler.Options := FCompiler.Options + [lcoAutoInvoke, lcoExplicitSelf, lcoAutoObjectify, lcoRelativeFileNames] - [lcoInheritableRecords];
+
+  AddSimbaInternalMethods(Self);
+  AddSimbaImports(Self);
 
   FCompileTime := HighResolutionTime();
   FCompiler.Compile();
@@ -213,11 +218,7 @@ begin
   if (FTargetWindow = 0) or (not FTargetWindow.IsValid()) then
     FTargetWindow := GetDesktopWindow();
 
-  PString(FCompiler['SCRIPT_FILE'].Ptr)^ := FScriptFileName;
-  PUInt64(FCompiler['SCRIPT_START_TIME'].Ptr)^ := GetTickCount64();
-
   PSimbaTarget(FCompiler['Target'].Ptr)^.SetWindow(FTargetWindow);
-  PPointer(FCompiler['_SimbaScript'].Ptr)^ := Self;
 
   FRunningTime := HighResolutionTime();
   try
@@ -235,6 +236,29 @@ begin
   end;
 
   Result := True;
+end;
+
+procedure TSimbaScript.Dump(FileName: String);
+var
+  I: Integer;
+  Decl: TLapeDeclaration;
+  Str: String;
+begin
+  FCompiler := TSimbaScript_Compiler.CreateDump(FileName);
+
+  AddSimbaInternalMethods(Self);
+  AddSimbaImports(Self);
+
+  with TStringList.Create() do
+  try
+    LineBreak := #0;
+    for I := 0 to FCompiler.Dump.Count - 1 do
+      Values[FCompiler.Dump[I].Name] := Values[FCompiler.Dump[I].Name] + FCompiler.Dump[I].Value + LineEnding;
+
+    SaveToFile(FileName);
+  finally
+    Free();
+  end;
 end;
 
 constructor TSimbaScript.Create;

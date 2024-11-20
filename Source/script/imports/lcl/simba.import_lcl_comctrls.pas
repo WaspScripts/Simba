@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportLCLComCtrls(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLComCtrls(Script: TSimbaScript);
 
 implementation
 
@@ -633,9 +633,9 @@ begin
   PStatusBar(Result)^ := TStatusBar.Create(PComponent(Params^[0])^);
 end;
 
-procedure ImportLCLComCtrls(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLComCtrls(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
     addGlobalType('enum(BottomRight, TopLeft, Both)', 'ELazTickMark');
     addGlobalType('enum(None, Auto, Manual)', 'ELazStickStyle');

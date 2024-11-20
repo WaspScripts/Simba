@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportBox(Compiler: TSimbaScript_Compiler);
+procedure ImportBox(Script: TSimbaScript);
 
 implementation
 
@@ -445,11 +445,11 @@ begin
   PPoint(Result)^ := PBox(Params^[0])^.BottomRight;
 end;
 
-procedure ImportBox(Compiler: TSimbaScript_Compiler);
+procedure ImportBox(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'TBox';
+    DumpSection := 'TBox';
 
     addGlobalFunc('function Box(X1, Y1, X2, Y2: Integer): TBox; overload', @_LapeBox1);
     addGlobalFunc('function Box(Mid: TPoint; XRad, YRad: Integer): TBox; overload', @_LapeBox2);
@@ -493,7 +493,7 @@ begin
     addGlobalFunc('property TBox.BottomLeft: TPoint;', @_LapeBox_BottomLeft);
     addGlobalFunc('property TBox.BottomRight: TPoint;', @_LapeBox_BottomRight);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

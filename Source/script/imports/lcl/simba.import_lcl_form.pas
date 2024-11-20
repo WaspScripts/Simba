@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.threading, simba.script_compiler;
+  simba.base, simba.threading, simba.script;
 
-procedure ImportLCLForm(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLForm(Script: TSimbaScript);
 
 implementation
 
@@ -955,9 +955,9 @@ begin
   PColorDialog(Result)^ := TColorDialog.Create(PComponent(Params^[0])^);
 end;
 
-procedure ImportLCLForm(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLForm(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
     addGlobalType('enum(Default, Always, Never)', 'ELazFormShowInTaskbar');
     addGlobalType('enum(None, Single, Sizeable, Dialog, ToolWindow, SizeToolWin)', 'ELazFormBorderStyle');

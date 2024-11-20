@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportSimbaImage(Compiler: TSimbaScript_Compiler);
+procedure ImportSimbaImage(Script: TSimbaScript);
 
 implementation
 
@@ -1826,17 +1826,17 @@ procedure TImage.DrawTarget(P: TPoint; Bounds: TBox = [-1,-1,-1,-1]); overload;
 TImage.Show
 -----------
 ```
-procedure TImage.Show;
+procedure TImage.Show(EnsureVisible: Boolean = True);
 ```
 
 Show a image on the debug image.
 *)
 
-procedure ImportSimbaImage(Compiler: TSimbaScript_Compiler);
+procedure ImportSimbaImage(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Image';
+    DumpSection := 'Image';
 
     addClass('TImage', 'TBaseClass');
 
@@ -2018,7 +2018,7 @@ begin
     addGlobalFunc('function TImage.FindEdges(MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray; overload;', @_LapeImage_FindEdges1);
     addGlobalFunc('function TImage.FindEdges(MinDiff: Single): TPointArray; overload;', @_LapeImage_FindEdges2);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

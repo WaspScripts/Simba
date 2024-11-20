@@ -7,9 +7,9 @@ interface
 uses
   Classes, SysUtils,
   lptypes, lpvartypes, lpparser, ffi,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportBase(Compiler: TSimbaScript_Compiler);
+procedure ImportBase(Script: TSimbaScript);
 
 implementation
 
@@ -729,11 +729,11 @@ begin
   PPointArray(Result)^ := PPointArray(Params^[0])^.SymmetricDifference(PPointArray(Params^[1])^);
 end;
 
-procedure ImportBase(Compiler: TSimbaScript_Compiler);
+procedure ImportBase(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Base';
+    DumpSection := 'Base';
 
     addBaseDefine('SIMBA' + Format('%d', [SIMBA_VERSION]));
     addBaseDefine('SIMBAMAJOR' + Format('%d', [SIMBA_MAJOR]));
@@ -795,7 +795,7 @@ begin
     addGlobalFunc('function TByteArray.ToString: String;', @_LapeByteArray_ToString);
     addGlobalFunc('procedure TByteArray.FromString(Str: String);', @_LapeByteArray_FromString);
 
-    ImportingSection := '';
+    DumpSection := '';
 
     addClass('TBaseClass', 'Pointer');
     addProperty('TBaseClass', 'Name', 'String', @_LapeBaseClass_Name_Read, @_LapeBaseClass_Name_Write);

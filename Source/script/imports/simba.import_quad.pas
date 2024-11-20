@@ -11,9 +11,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportQuad(Compiler: TSimbaScript_Compiler);
+procedure ImportQuad(Script: TSimbaScript);
 
 implementation
 
@@ -282,11 +282,11 @@ begin
   PBoolean(Result)^ := PPoint(Params^[0])^ in PQuad(Params^[1])^;
 end;
 
-procedure ImportQuad(Compiler: TSimbaScript_Compiler);
+procedure ImportQuad(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'TQuad';
+    DumpSection := 'TQuad';
 
     addGlobalFunc('function TQuad.Create(ATop, ARight, ABottom, ALeft: TPoint): TQuad; static; overload', @_LapeQuad_Create);
     addGlobalFunc('function TQuad.CreateFromBox(Box: TBox): TQuad; static; overload', @_LapeQuad_CreateFromBox);
@@ -312,7 +312,7 @@ begin
 
     addGlobalFunc('operator in(Left: TPoint; Right: TQuad): Boolean;', @_LapeQuad_IN_Quad);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

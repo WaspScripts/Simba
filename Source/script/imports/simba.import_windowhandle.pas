@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportWindowHandle(Compiler: TSimbaScript_Compiler);
+procedure ImportWindowHandle(Script: TSimbaScript);
 
 implementation
 
@@ -324,11 +324,11 @@ begin
   PWindowHandleArray(Result)^ := FindChildWindows(PString(Params^[0])^, PString(Params^[1])^);
 end;
 
-procedure ImportWindowHandle(Compiler: TSimbaScript_Compiler);
+procedure ImportWindowHandle(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'TWindowHandle';
+    DumpSection := 'TWindowHandle';
 
     addGlobalType('type UInt64', 'TWindowHandle');
     addGlobalType('array of TWindowHandle', 'TWindowHandleArray');
@@ -358,7 +358,7 @@ begin
     addGlobalFunc('function FindChildWindow(Title: String; ClassName: String; out Child: TWindowHandle): Boolean; overload', @_LapeFindChildWindow);
     addGlobalFunc('function FindChildWindows(Title: String; ClassName: String): TWindowHandleArray; overload', @_LapeFindChildWindows);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

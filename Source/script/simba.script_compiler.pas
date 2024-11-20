@@ -11,19 +11,23 @@ interface
 
 uses
   Classes, SysUtils,
-  ffi, lpffi, lpcompiler, lptypes, lpvartypes, lpparser, lptree, lpffiwrappers, lpinterpreter,
-  simba.base;
+  lpcompiler, lptypes, lpvartypes, lptree, lpffiwrappers, ffi,
+  simba.base, simba.containers, simba.vartype_string;
 
 type
-  TManagedImportClosure = class(TLapeDeclaration)
-    Closure: TImportClosure;
-  end;
-
   TSimbaScript_Compiler = class(TLapeCompiler)
+  protected type
+    TManagedImportClosure = class(TLapeDeclaration)
+      Closure: TImportClosure;
+    end;
   protected
-    FImportingSection: String;
+    FDumpSection: String;
+    FDump: TSimbaStringPairList;
 
-    function GetImportingSection: String;
+    procedure DumpAdd(const Section, Str: String);
+    procedure DumpMethod(Str: String);
+    procedure DumpType(Name, Str: String);
+    procedure DumpVar(Name, Typ: String);
 
     procedure InitBaseFile; override;
     procedure InitBaseVariant; override;
@@ -31,205 +35,103 @@ type
     procedure InitBaseMath; override;
     procedure InitBaseString; override;
     procedure InitBaseDateTime; override;
+
+    function GetDumpSection: String;
   public
+    constructor CreateDump(FileName: String); overload;
+    destructor Destroy; override;
+
+    // Overrides for dumping
+    function addGlobalVar(Typ: lpString; Value: Pointer; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalVar(Typ: lpString; Value: lpString; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalVar(Typ: ELapeBaseType; Value: Pointer; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalVar(Value: Int32; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalVar(Value: UInt32; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalVar(Value: Int64; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalVar(Value: UInt64; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalVar(Value: Single; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalVar(Value: Double; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalVar(Value: AnsiString; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalVar(Value: UnicodeString; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalVar(Value: Variant; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalVar(Value: Pointer; AName: lpString): TLapeGlobalVar; override;
+    function addGlobalFunc(Header: lpString; Value: Pointer): TLapeGlobalVar; override;
+    function addGlobalType(Str: lpString; AName: lpString): TLapeType; override;
+
+    // Compiler addons
     procedure pushCode(Code: String);
-
-    procedure addDelayedCode(Code: TStringArray; AFileName: lpString = ''); virtual; overload;
-
-    function addGlobalFunc(Header: lpString; Body: TStringArray): TLapeTree_Method; virtual; overload;
-    function addGlobalFunc(Header: lpString; Value: Pointer; ABI: TFFIABI): TLapeGlobalVar; virtual; overload;
-
-    function addGlobalType(Str: lpString; AName: lpString; ABI: TFFIABI): TLapeType; virtual; overload;
-    function addGlobalType(Str: TStringArray; Name: String): TLapeType; virtual; overload;
-
-    function addClassConstructor(Obj, Params: lpString; Func: Pointer; IsOverload: Boolean = False): TLapeGlobalVar; virtual;
-    procedure addClass(Name: lpString; Parent: lpString = 'TObject'); virtual;
-
+    procedure addDelayedCode(Code: TStringArray; AFileName: lpString = ''); overload;
+    function addGlobalFunc(Header: lpString; Body: TStringArray): TLapeTree_Method;overload;
+    function addGlobalFunc(Header: lpString; Value: Pointer; ABI: TFFIABI): TLapeGlobalVar; overload;
+    function addGlobalType(Str: lpString; AName: lpString; ABI: TFFIABI): TLapeType; overload;
+    function addGlobalType(Str: TStringArray; Name: String): TLapeType;  overload;
+    function addClassConstructor(Obj, Params: lpString; Func: Pointer; IsOverload: Boolean = False): TLapeGlobalVar;
+    procedure addClass(Name: lpString; Parent: lpString = 'TObject');
     procedure addProperty(Obj, Name, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer = nil);
     procedure addPropertyIndexed(Obj, Name, Params, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer = nil);
-
     procedure addMagic(Name: String; Params: array of lpString; ParamTypes: array of ELapeParameterType; Res: String; Func: Pointer);
-
-    procedure Import; virtual;
     function Compile: Boolean; override;
-
     procedure CallProc(ProcName: String);
-    property ImportingSection: String read GetImportingSection write FImportingSection;
+
+    property DumpSection: String read GetDumpSection write FDumpSection;
+    property Dump: TSimbaStringPairList read FDump;
   end;
 
 implementation
 
 uses
-  lpeval,
-  simba.vartype_string,
-  simba.script_imports,
-  simba.script_compiler_sleepuntil,
-  simba.script_compiler_rtti,
-  simba.script_compiler_imagefromstring,
-  simba.script_genericmap,
-  simba.script_genericstringmap,
-  simba.script_genericheap;
+  lpeval, lpparser, lpinterpreter;
 
-procedure TSimbaScript_Compiler.addProperty(Obj, Name, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer);
-begin
-  if (ReadFunc <> nil) then
-    addGlobalFunc('property ' + Obj + '.' + Name + ': ' + Typ + ';', ReadFunc);
-  if (WriteFunc <> nil) then
-    addGlobalFunc('property ' + Obj + '.' + Name + '(Value: ' + Typ + ');', WriteFunc);
-end;
-
-procedure TSimbaScript_Compiler.addPropertyIndexed(Obj, Name, Params, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer);
-begin
-  if (ReadFunc <> nil) then
-    addGlobalFunc('property ' + Obj + '.' + Name + '(' + Params + '):' + Typ + ';', ReadFunc);
-  if (WriteFunc <> nil) then
-    addGlobalFunc('property ' + Obj + '.' + Name + '(' + Params + '; Value: ' + Typ + ');', WriteFunc);
-end;
-
-procedure TSimbaScript_Compiler.addMagic(Name: String; Params: array of lpString; ParamTypes: array of ELapeParameterType; Res: String; Func: Pointer);
-
-  function getType(Name: lpString): TLapeType;
-  begin
-    if (Name <> '') then
-    begin
-      Result := getGlobalType(Name);
-      if (Result = nil) then
-      begin
-        Result := getBaseType(Name);
-        if (Result = nil) then
-          SimbaException('Type "%s" not found', [Name]);
-      end;
-    end else
-      Result := nil;
-  end;
-
+procedure TSimbaScript_Compiler.DumpAdd(const Section, Str: String);
 var
-  ParamVarTypes: array of TLapeType;
-  ParamDefaults: array of TLapeGlobalVar;
-  i: Integer;
-  Header: TLapeType_Method;
+  Item: TSimbaStringPair;
 begin
-  if (Globals[Name] = nil) or (not (Globals[Name].VarType is TLapeType_OverloadedMethod)) then
-    SimbaException('addNativeMagic "%s" is incorrect', [Name]);
+  Item.Name := Section;
+  Item.Value := Str;
 
-  SetLength(ParamVarTypes, Length(Params));
-  SetLength(ParamDefaults, Length(Params));
-  for i := 0 to High(ParamVarTypes) do
-    ParamVarTypes[i] := getType(Params[i]);
-
-  Header := addManagedType(TLapeType_Method.Create(Self, ParamVarTypes, ParamTypes, ParamDefaults, getType(Res))) as TLapeType_Method;
-  TLapeType_OverloadedMethod(Globals[Name].VarType).addMethod(Header.NewGlobalVar(Func));
+  FDump.Add(Item);
 end;
 
-function TSimbaScript_Compiler.addGlobalFunc(Header: lpString; Body: TStringArray): TLapeTree_Method;
+procedure TSimbaScript_Compiler.DumpMethod(Str: String);
+begin
+  Str := Str.Trim();
+  if not Str.EndsWith(';') then
+    Str := Str + ';';
+  Str := Str + ' external;';
+
+  DumpAdd(DumpSection, Str);
+end;
+
+procedure TSimbaScript_Compiler.DumpType(Name, Str: String);
+begin
+  if Name.StartsWith('!') then
+    Exit;
+  Str := 'type ' + Name + ' = ' + Str;
+  if not Str.EndsWith(';') then
+    Str := Str + ';';
+
+  DumpAdd(DumpSection, Str);
+end;
+
+procedure TSimbaScript_Compiler.DumpVar(Name, Typ: String);
 var
-  OldState: Pointer;
+  Str: String;
 begin
-  OldState := getTempTokenizerState(LapeDelayedFlags + Header + LineEnding.Join(Body), '!' + Header);
-  try
-    Expect([tk_kw_Function, tk_kw_Procedure, tk_kw_Operator, tk_kw_Property]);
-    Result := ParseMethod(nil, False);
-    CheckAfterCompile();
-    addDelayedExpression(Result, True, True);
-  finally
-    resetTokenizerState(OldState);
-  end;
+  if Name.StartsWith('!') then
+    Exit;
+  Str := 'var ' + Name + ': ' + Typ;
+  if not Str.EndsWith(';') then
+    Str := Str + ';';
+
+  DumpAdd(DumpSection, Str);
 end;
 
-function TSimbaScript_Compiler.addGlobalFunc(Header: lpString; Value: Pointer; ABI: TFFIABI): TLapeGlobalVar;
-var
-  Closure: TManagedImportClosure;
+function TSimbaScript_Compiler.GetDumpSection: String;
 begin
-  Closure := TManagedImportClosure.Create();
-  Closure.Closure := LapeImportWrapper(Value, Self, Header, ABI);
+  if (FDumpSection = '') then
+    FDumpSection := '!Simba';
 
-  with TManagedImportClosure(addManagedDecl(Closure)) do
-    Result := addGlobalFunc(Header, Closure.Func);
-end;
-
-function TSimbaScript_Compiler.addGlobalType(Str: lpString; AName: lpString; ABI: TFFIABI): TLapeType;
-begin
-  Result := addGlobalType('native(type ' + Str + ', ffi_' + ABIToStr(ABI) + ')', AName);
-end;
-
-function TSimbaScript_Compiler.addGlobalType(Str: TStringArray; Name: String): TLapeType;
-begin
-  Result := addGlobalType(LineEnding.Join(Str), Name);
-end;
-
-function TSimbaScript_Compiler.addClassConstructor(Obj, Params: lpString; Func: Pointer; IsOverload: Boolean): TLapeGlobalVar;
-var
-  Directives: String;
-begin
-  Directives := 'static;';
-  if IsOverload then
-    Directives := Directives + ' overload;';
-
-  Result := addGlobalFunc('function ' + Obj + '.Create' + Params + ': ' + Obj + ';' + Directives, Func);
-end;
-
-procedure TSimbaScript_Compiler.addClass(Name: lpString; Parent: lpString);
-begin
-  addGlobalType('strict ' + Parent, Name);
-end;
-
-procedure TSimbaScript_Compiler.Import;
-begin
-  StartImporting();
-
-  try
-    Options := Options + [lcoAutoInvoke, lcoExplicitSelf, lcoAutoObjectify, lcoRelativeFileNames] - [lcoInheritableRecords];
-
-    InitializeImageFromString(Self);
-    InitializeSleepUntil(Self);
-    InitializeFFI(Self);
-    InitializeRTTI(Self);
-    InitializeMap(Self);
-    InitializeStringMap(Self);
-    InitializeHeap(Self);
-
-    AddSimbaImports(Self);
-  finally
-    EndImporting();
-  end;
-end;
-
-function TSimbaScript_Compiler.Compile: Boolean;
-begin
-  {$IF DEFINED(DARWIN) and DECLARED(LoadFFI)}
-  if not FFILoaded then
-    LoadFFI('/usr/local/opt/libffi/lib/');
-  {$ENDIF}
-
-  if not FFILoaded then
-    raise Exception.Create('ERROR: libffi is missing or incompatible');
-
-  Result := inherited Compile();
-end;
-
-procedure TSimbaScript_Compiler.CallProc(ProcName: String);
-var
-  Method: TLapeGlobalVar;
-begin
-  Method := Globals[ProcName];
-  if (Method = nil) or (Method.BaseType <> ltScriptMethod) or
-     (TLapeType_Method(Method.VarType).Res <> nil) or (TLapeType_Method(Method.VarType).Params.Count <> 0) then
-    SimbaException('CallProc: Invalid procedure "%s"', [ProcName]);
-
-  with TLapeCodeRunner.Create(Emitter) do
-  try
-    Run(PCodePos(Method.Ptr)^);
-  finally
-    Free();
-  end;
-end;
-
-function TSimbaScript_Compiler.GetImportingSection: String;
-begin
-  if (FImportingSection = '') then
-    FImportingSection := '!Simba';
-
-  Result := FImportingSection;
+  Result := FDumpSection;
 end;
 
 procedure TSimbaScript_Compiler.InitBaseFile;
@@ -244,17 +146,17 @@ end;
 
 procedure TSimbaScript_Compiler.InitBaseDefinitions;
 begin
-  ImportingSection := 'Base';
+  DumpSection := 'Base';
 
   inherited InitBaseDefinitions();
 
-  ImportingSection := '';
+  DumpSection := '';
 end;
 
 // lpeval_import_math.inc but moved Random functions under Random section
 procedure TSimbaScript_Compiler.InitBaseMath;
 begin
-  ImportingSection := 'Math';
+  DumpSection := 'Math';
 
   addGlobalVar(Pi, 'Pi').isConstant := True;
 
@@ -305,7 +207,7 @@ begin
   addGlobalFunc('procedure SinCos(theta: Double; out sinus, cosinus: Double);', @_LapeSinCos);
   addGlobalFunc('procedure DivMod(Dividend: UInt32; Divisor: UInt16; var Result, Remainder: UInt16);', @_LapeDivMod);
 
-  ImportingSection := 'Random';
+  DumpSection := 'Random';
 
   addGlobalVar(ltUInt32, @RandSeed, 'RandSeed');
 
@@ -315,13 +217,13 @@ begin
   addGlobalFunc('function Random: Double; overload;', @_LapeRandomF);
   addGlobalFunc('procedure Randomize;', @_LapeRandomize);
 
-  ImportingSection := '';
+  DumpSection := '';
 end;
 
 // lpeval_import_string.inc but removed a few things
 procedure TSimbaScript_Compiler.InitBaseString;
 begin
-  ImportingSection := 'Base';
+  DumpSection := 'Base';
 
   addGlobalType('set of (rfReplaceAll, rfIgnoreCase)', 'TReplaceFlags');
 
@@ -399,13 +301,13 @@ begin
 
   addGlobalFunc('function StringOfChar(c: Char; l: SizeInt): string;', @_LapeStringOfChar);
 
-  ImportingSection := '';
+  DumpSection := '';
 end;
 
 // Import our own methods later (import_datetime.pas)
 procedure TSimbaScript_Compiler.InitBaseDateTime;
 begin
-  ImportingSection := 'Date & Time';
+  DumpSection := 'Date & Time';
 
   addGlobalType(getBaseType(ltDouble).createCopy(True), 'TDateTime', False);
 
@@ -424,7 +326,142 @@ begin
   addGlobalFunc('function GetTickCount: UInt64;', @_LapeGetTickCount);
   addGlobalFunc('procedure Sleep(MilliSeconds: UInt32);', @_LapeSleep);
 
-  ImportingSection := '';
+  DumpSection := '';
+end;
+
+constructor TSimbaScript_Compiler.CreateDump(FileName: String);
+begin
+  FDump := TSimbaStringPairList.Create();
+
+  Create(TLapeTokenizerString.Create('begin end;'));
+end;
+
+destructor TSimbaScript_Compiler.Destroy;
+begin
+  if (FDump <> nil) then
+    FreeAndNil(FDump);
+
+  inherited Destroy;
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Typ: lpString; Value: Pointer; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, Typ);
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Typ: lpString; Value: lpString; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, Typ);
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Typ: ELapeBaseType; Value: Pointer; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, LapeTypeToString(Typ));
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Value: Int32; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, 'Int32');
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Value: UInt32; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, 'UInt32');
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Value: Int64; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, 'Int64');
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Value: UInt64; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, 'UInt64');
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Value: Single; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, 'Single');
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Value: Double; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, 'Double');
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Value: AnsiString; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, 'String');
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Value: UnicodeString; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, 'UnicodeString');
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Value: Variant; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, 'Variant');
+end;
+
+function TSimbaScript_Compiler.addGlobalVar(Value: Pointer; AName: lpString): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpVar(AName, 'Pointer');
+end;
+
+function TSimbaScript_Compiler.addGlobalFunc(Header: lpString; Value: Pointer): TLapeGlobalVar;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpMethod(Header);
+end;
+
+function TSimbaScript_Compiler.addGlobalType(Str: lpString; AName: lpString): TLapeType;
+begin
+  Result := inherited;
+
+  if (FDump <> nil) then
+    DumpType(AName, Str);
 end;
 
 procedure TSimbaScript_Compiler.pushCode(Code: String);
@@ -435,6 +472,145 @@ end;
 procedure TSimbaScript_Compiler.addDelayedCode(Code: TStringArray; AFileName: lpString);
 begin
   addDelayedCode(LapeDelayedFlags + LineEnding.Join(Code), AFileName);
+end;
+
+procedure TSimbaScript_Compiler.addProperty(Obj, Name, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer);
+begin
+  if (ReadFunc <> nil) then
+    addGlobalFunc('property ' + Obj + '.' + Name + ': ' + Typ + ';', ReadFunc);
+  if (WriteFunc <> nil) then
+    addGlobalFunc('property ' + Obj + '.' + Name + '(Value: ' + Typ + ');', WriteFunc);
+end;
+
+procedure TSimbaScript_Compiler.addPropertyIndexed(Obj, Name, Params, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer);
+begin
+  if (ReadFunc <> nil) then
+    addGlobalFunc('property ' + Obj + '.' + Name + '(' + Params + '):' + Typ + ';', ReadFunc);
+  if (WriteFunc <> nil) then
+    addGlobalFunc('property ' + Obj + '.' + Name + '(' + Params + '; Value: ' + Typ + ');', WriteFunc);
+end;
+
+procedure TSimbaScript_Compiler.addMagic(Name: String; Params: array of lpString; ParamTypes: array of ELapeParameterType; Res: String; Func: Pointer);
+
+  function getType(Name: lpString): TLapeType;
+  begin
+    if (Name <> '') then
+    begin
+      Result := getGlobalType(Name);
+      if (Result = nil) then
+      begin
+        Result := getBaseType(Name);
+        if (Result = nil) then
+          SimbaException('Type "%s" not found', [Name]);
+      end;
+    end else
+      Result := nil;
+  end;
+
+var
+  ParamVarTypes: array of TLapeType;
+  ParamDefaults: array of TLapeGlobalVar;
+  i: Integer;
+  Header: TLapeType_Method;
+begin
+  if (Globals[Name] = nil) or (not (Globals[Name].VarType is TLapeType_OverloadedMethod)) then
+    SimbaException('addNativeMagic "%s" is incorrect', [Name]);
+
+  SetLength(ParamVarTypes, Length(Params));
+  SetLength(ParamDefaults, Length(Params));
+  for i := 0 to High(ParamVarTypes) do
+    ParamVarTypes[i] := getType(Params[i]);
+
+  Header := addManagedType(TLapeType_Method.Create(Self, ParamVarTypes, ParamTypes, ParamDefaults, getType(Res))) as TLapeType_Method;
+  with TLapeType_OverloadedMethod(Globals[Name].VarType) do
+    addMethod(Header.NewGlobalVar(Func));
+end;
+
+function TSimbaScript_Compiler.addGlobalFunc(Header: lpString; Body: TStringArray): TLapeTree_Method;
+var
+  Decl: lpString;
+  OldState: Pointer;
+begin
+  Decl := Header + LineEnding + LineEnding.Join(Body);
+  OldState := getTempTokenizerState(LapeDelayedFlags + Decl, '!' + Header);
+  try
+    Expect([tk_kw_Function, tk_kw_Procedure, tk_kw_Operator, tk_kw_Property]);
+    Result := ParseMethod(nil, False);
+    CheckAfterCompile();
+    addDelayedExpression(Result, True, True);
+  finally
+    resetTokenizerState(OldState);
+  end;
+
+  if (FDump <> nil) then
+    DumpAdd(DumpSection, Decl);
+end;
+
+function TSimbaScript_Compiler.addGlobalFunc(Header: lpString; Value: Pointer; ABI: TFFIABI): TLapeGlobalVar;
+var
+  Closure: TManagedImportClosure;
+begin
+  Closure := TManagedImportClosure.Create();
+  Closure.Closure := LapeImportWrapper(Value, Self, Header, ABI);
+
+  with TManagedImportClosure(addManagedDecl(Closure)) do
+    Result := addGlobalFunc(Header, Closure.Func);
+end;
+
+function TSimbaScript_Compiler.addGlobalType(Str: lpString; AName: lpString; ABI: TFFIABI): TLapeType;
+begin
+  Result := addGlobalType('native(type ' + Str + ', ffi_' + ABIToStr(ABI) + ')', AName);
+end;
+
+function TSimbaScript_Compiler.addGlobalType(Str: TStringArray; Name: String): TLapeType;
+begin
+  Result := addGlobalType(LineEnding.Join(Str), Name);
+end;
+
+function TSimbaScript_Compiler.addClassConstructor(Obj, Params: lpString; Func: Pointer; IsOverload: Boolean): TLapeGlobalVar;
+var
+  Directives: String;
+begin
+  Directives := 'static;';
+  if IsOverload then
+    Directives := Directives + ' overload;';
+
+  Result := addGlobalFunc('function ' + Obj + '.Create' + Params + ': ' + Obj + ';' + Directives, Func);
+end;
+
+procedure TSimbaScript_Compiler.addClass(Name: lpString; Parent: lpString);
+begin
+  addGlobalType('strict ' + Parent, Name);
+end;
+
+function TSimbaScript_Compiler.Compile: Boolean;
+begin
+  {$IF DEFINED(DARWIN) and DECLARED(LoadFFI)}
+  if not FFILoaded then
+    LoadFFI('/usr/local/opt/libffi/lib/');
+  {$ENDIF}
+
+  if not FFILoaded then
+    raise Exception.Create('ERROR: libffi is missing or incompatible');
+
+  Result := inherited Compile();
+end;
+
+procedure TSimbaScript_Compiler.CallProc(ProcName: String);
+var
+  Method: TLapeGlobalVar;
+begin
+  Method := Globals[ProcName];
+  if (Method = nil) or (Method.BaseType <> ltScriptMethod) or
+     (TLapeType_Method(Method.VarType).Res <> nil) or (TLapeType_Method(Method.VarType).Params.Count <> 0) then
+    SimbaException('CallProc: Invalid procedure "%s"', [ProcName]);
+
+  with TLapeCodeRunner.Create(Emitter) do
+  try
+    Run(PCodePos(Method.Ptr)^);
+  finally
+    Free();
+  end;
 end;
 
 end.

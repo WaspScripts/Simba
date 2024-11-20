@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportASync(Compiler: TSimbaScript_Compiler);
+procedure ImportASync(Script: TSimbaScript);
 
 implementation
 
@@ -202,11 +202,11 @@ procedure ASync.ScheduleStop(Name: String); static;
 Stop a scheduled method.
 *)
 
-procedure ImportASync(Compiler: TSimbaScript_Compiler);
+procedure ImportASync(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'ASync';
+    DumpSection := 'ASync';
 
     // namespace
     addGlobalType('record end;', 'ASync');
@@ -283,7 +283,7 @@ begin
       'end;'
     ]);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

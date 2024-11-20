@@ -16,8 +16,8 @@ uses
   simba.form_functionlist, simba.form_output, simba.form_colorpickhistory, simba.form_filebrowser,
   simba.form_notes, simba.form_settings, simba.form_openexample, simba.form_shapebox,
   simba.form_backups, simba.form_findinfiles, simba.form_downloadsimba, simba.form_package,
-  simba.compiler_dump, simba.plugin_dump, simba.script_runner,
-  simba.ide_initialization, simba.ide_analytics;
+  simba.plugin_dump, simba.script_runner,
+  simba.ide_initialization, simba.ide_analytics, simba.script;
 
 begin
   {$IF DECLARED(SetHeapTraceOutput)}
@@ -53,7 +53,12 @@ begin
 
   if Application.HasOption('dumpcompiler') then
   begin
-    DumpCompiler(Application.Params[Application.ParamCount]);
+    with TSimbaScript.Create() do
+    try
+      Dump(Application.Params[Application.ParamCount]);
+    finally
+      Free();
+    end;
 
     Halt();
   end;

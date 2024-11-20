@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportTarget(Compiler: TSimbaScript_Compiler);
+procedure ImportTarget(Script: TSimbaScript);
 
 implementation
 
@@ -1095,11 +1095,11 @@ begin
   PInteger(Result)^ := PSimbaTarget(Params^[0])^.PeakBrightness(PBox(Params^[1])^);
 end;
 
-procedure ImportTarget(Compiler: TSimbaScript_Compiler);
+procedure ImportTarget(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Target';
+    DumpSection := 'Target';
 
     addGlobalType([
       'record',
@@ -1271,7 +1271,7 @@ begin
       'end;'
     ]);
 
-    ImportingSection := 'Image';
+    DumpSection := 'Image';
 
     addGlobalFunc(
       'function TImage.CreateFromTarget(Target: TTarget; Bounds: TBox = [-1,-1,-1,-1]): TImage; static; overload;', [
@@ -1303,7 +1303,7 @@ begin
       'end;'
     ]);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

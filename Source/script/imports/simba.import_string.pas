@@ -7,9 +7,9 @@ interface
 uses
   Classes, SysUtils,
   lptypes, lpvartypes,
-  simba.base, simba.script_compiler, simba.vartype_string, simba.vartype_stringarray;
+  simba.base, simba.script, simba.vartype_string, simba.vartype_stringarray;
 
-procedure ImportString(Compiler: TSimbaScript_Compiler);
+procedure ImportString(Script: TSimbaScript);
 
 implementation
 
@@ -1122,11 +1122,11 @@ begin
   PString(Result)^ := PStringArray(Params^[0])^.ToString(PString(Params^[1])^);
 end;
 
-procedure ImportString(Compiler: TSimbaScript_Compiler);
+procedure ImportString(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'String';
+    DumpSection := 'String';
 
     addGlobalType(
       'record'               + LineEnding +
@@ -1269,7 +1269,7 @@ begin
     addGlobalFunc('operator in(Left: Char; Right: String): Boolean', @_LapeChar_IN_String);
     addGlobalFunc('operator in(Left: Char; Right: TStringArray): Boolean', @_LapeChar_IN_StringArray);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

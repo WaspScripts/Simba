@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportLCLControls(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLControls(Script: TSimbaScript);
 
 implementation
 
@@ -788,9 +788,9 @@ begin
   PGraphicControl(Params^[0])^.Update();
 end;
 
-procedure ImportLCLControls(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLControls(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
     addGlobalType('set of enum(Shift, Alt, Ctrl, Left, Right, Middle, Double, Meta, Super, Hyper, AltGr, Caps, Num, Scroll, Triple, Quad, Extra1, Extra2)', 'ELazShiftStates');
     addGlobalType('enum(Left, Right, Middle, Extra1, Extra2)', 'ELazMouseButton');

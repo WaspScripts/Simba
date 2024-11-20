@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportLCLGraphics(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLGraphics(Script: TSimbaScript);
 
 implementation
 
@@ -758,9 +758,9 @@ begin
   PPicture(Params^[0])^.OnChange := PNotifyEvent(Params^[1])^;
 end;
 
-procedure ImportLCLGraphics(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLGraphics(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
     addGlobalType('record Left, Top ,Right, Bottom: Integer; end', 'TLazRect');
     addGlobalType('enum(fqDefault, fqDraft, fqProof, fqNonAntialiased, fqAntialiased, fqCleartype, fqCleartypeNatural)', 'ELazFontQuality');

@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportLCLExtCtrls(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLExtCtrls(Script: TSimbaScript);
 
 implementation
 
@@ -245,9 +245,9 @@ begin
   PPanel(Result)^ := TPanel.Create(PComponent(Params^[0])^);
 end;
 
-procedure ImportLCLExtCtrls(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLExtCtrls(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
     addGlobalType('enum(None, Lowered, Raised, Space)', 'ELazPanelBevel');
 

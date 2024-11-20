@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportLCLSystem(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLSystem(Script: TSimbaScript);
 
 implementation
 
@@ -593,9 +593,9 @@ begin
   PComponent(Params^[0])^.Tag := PPtrInt(Params^[1])^;
 end;
 
-procedure ImportLCLSystem(Compiler: TSimbaScript_Compiler);
+procedure ImportLCLSystem(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
     addClass('TObject', 'Pointer');
 

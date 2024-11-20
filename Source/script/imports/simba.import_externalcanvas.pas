@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils, Graphics,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportExternalCanvas(Compiler: TSimbaScript_Compiler);
+procedure ImportExternalCanvas(Script: TSimbaScript);
 
 implementation
 
@@ -549,9 +549,9 @@ begin
   PSimbaExternalCanvas(Params^[0])^.EndUpdate();
 end;
 
-procedure ImportExternalCanvas(Compiler: TSimbaScript_Compiler);
+procedure ImportExternalCanvas(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
     addClass('TExternalCanvas', 'TBaseClass');
 

@@ -6,18 +6,22 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportMisc(Compiler: TSimbaScript_Compiler);
+procedure ImportMisc(Script: TSimbaScript);
 
 implementation
 
 uses
   clipbrd, dialogs,
   lptypes,
+  simba.process,
   simba.nativeinterface, simba.settings, simba.compress, simba.env,
   simba.aca, simba.dtmeditor, simba.dialog, simba.threading, simba.target, simba.colormath,
   simba.finder_color, simba.finder_image, simba.matchtemplate;
+
+type
+  PProcessID = ^TProcessID;
 
 (*
 Misc
@@ -325,6 +329,15 @@ ShowTrayNotification
 procedure ShowTrayNotification(Title, Message: String; Timeout: Integer = 3000);
 ```
 *)
+procedure _LapeShowTrayNotfication(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  with TSimbaScript(Params^[0]) do
+  begin
+    if (SimbaCommunication = nil) then
+      SimbaException('ShowTrayNotification requires Simba communication');
+    SimbaCommunication.ShowTrayNotification(PString(Params^[1])^, PString(Params^[2])^, PInteger(Params^[3])^);
+  end;
+end;
 
 (*
 SetSimbaTitle
@@ -333,6 +346,15 @@ SetSimbaTitle
 procedure SetSimbaTitle(S: String);
 ```
 *)
+procedure _LapeSetSimbaTitle(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  with TSimbaScript(Params^[0]) do
+  begin
+    if (SimbaCommunication = nil) then
+      SimbaException('SetSimbaTitle requires Simba communication');
+    SimbaCommunication.SetSimbaTitle(PString(Params^[1])^);
+  end;
+end;
 
 (*
 GetSimbaPID
@@ -343,6 +365,15 @@ function GetSimbaPID: TProcessID;
 
 Returns the Simba's PID this script is running in.
 *)
+procedure _LapeGetSimbaPID(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  with TSimbaScript(Params^[0]) do
+  begin
+    if (SimbaCommunication = nil) then
+      SimbaException('GetSimbaPID requires Simba communication');
+    PProcessID(Result)^ := SimbaCommunication.GetSimbaTargetPID();
+  end;
+end;
 
 (*
 GetSimbaTargetPID
@@ -353,6 +384,15 @@ function GetSimbaTargetPID: TProcessID;
 
 Returns the current Simba target PID (what is selected with the crosshair)
 *)
+procedure _LapeGetSimbaTargetPID(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  with TSimbaScript(Params^[0]) do
+  begin
+    if (SimbaCommunication = nil) then
+      SimbaException('GetSimbaTargetPID requires Simba communication');
+    PProcessID(Result)^ := SimbaCommunication.GetSimbaTargetPID();
+  end;
+end;
 
 (*
 GetSimbaTargetWindow
@@ -363,6 +403,15 @@ function GetSimbaTargetWindow: TWindowHandle;
 
 Returns the current Simba target window (what is selected with the crosshair)
 *)
+procedure _LapeGetSimbaTargetWindow(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  with TSimbaScript(Params^[0]) do
+  begin
+    if (SimbaCommunication = nil) then
+      SimbaException('GetSimbaTargetWindow requires Simba communication');
+    PWindowHandle(Result)^ := SimbaCommunication.GetSimbaTargetWindow();
+  end;
+end;
 
 (*
 SaveScreenshot
@@ -390,8 +439,6 @@ AddOnTerminate
 --------------
 ```
 procedure AddOnTerminate(Proc: procedure);
-```
-```
 procedure AddOnTerminate(Proc: procedure of object);
 ```
 
@@ -403,8 +450,6 @@ AddOnUserTerminate
 ------------------
 ```
 procedure AddOnUserTerminate(Proc: procedure);
-```
-```
 procedure AddOnUserTerminate(Proc: procedure of object);
 ```
 
@@ -416,8 +461,6 @@ AddOnPause
 ----------
 ```
 procedure AddOnPause(Proc: procedure);
-```
-```
 procedure AddOnPause(Proc: procedure of object);
 ```
 
@@ -429,8 +472,6 @@ AddOnResume
 -----------
 ```
 procedure AddOnResume(Proc: procedure);
-```
-```
 procedure AddOnResume(Proc: procedure of object);
 ```
 
@@ -442,8 +483,6 @@ AddOnResume
 -----------
 ```
 procedure AddOnResume(Proc: procedure);
-```
-```
 procedure AddOnResume(Proc: procedure of object);
 ```
 
@@ -455,12 +494,10 @@ TerminateScript
 ---------------
 ```
 procedure TerminateScript;
-```
-```
 procedure TerminateScript(Reason: String);
 ```
 
-Instantly terminates the script!
+Terminates the script on the next operation.
 *)
 
 (*
@@ -472,12 +509,16 @@ procedure PauseScript;
 
 Programmatically pauses the script. The only way for the script to resumed is by the user clicking the play button.
 *)
-
-procedure ImportMisc(Compiler: TSimbaScript_Compiler);
+procedure _LapePauseScript(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  with Compiler do
+  TSimbaScript(Params^[0]).State := ESimbaScriptState.STATE_PAUSED;
+end;
+
+procedure ImportMisc(Script: TSimbaScript);
+begin
+  with Script.Compiler do
   begin
-    ImportingSection := 'Misc';
+    DumpSection := 'Misc';
 
     addGlobalVar('record Enabled: Boolean; SliceWidth, SliceHeight: Integer; end;', @ColorFinderMultithreadOpts, 'ColorFinderMultithreadOpts');
     addGlobalVar('record Enabled: Boolean; SliceWidth, SliceHeight: Integer; end;', @ImageFinderMultithreadOpts, 'ImageFinderMultithreadOpts');
@@ -495,9 +536,9 @@ begin
       'end;'
     ], 'SimbaEnv');
 
-    // Assigned later in `TSimbaScript.Run`
-    addGlobalVar('String', '', 'SCRIPT_FILE').isConstant := True;
-    addGlobalVar('UInt64', '0', 'SCRIPT_START_TIME').isConstant := True;
+
+    addGlobalVar(Script.ScriptFileName, 'SCRIPT_FILE').isConstant := True;
+    addGlobalVar(GetTickCount64(), 'SCRIPT_START_TIME').isConstant := True;
 
     addGlobalFunc(
       'function GetTimeRunning: UInt64;', [
@@ -506,58 +547,28 @@ begin
       'end;'
     ]);
 
-    addGlobalFunc(
-      'procedure PauseScript;', [
-      'begin',
-      '  _SimbaScript.Pause();',
-      'end;'
-    ]);
+    addGlobalMethod('procedure PauseScript;', @_LapePauseScript, Script);
+    addGlobalMethod('function GetSimbaPID: TProcessID;', @_LapeGetSimbaPID, Script);
+    addGlobalMethod('function GetSimbaTargetPID: TProcessID;', @_LapeGetSimbaTargetPID, Script);
+    addGlobalMethod('function GetSimbaTargetWindow: TWindowHandle;', @_LapeGetSimbaTargetWindow, Script);
+    addGlobalMethod('procedure SetSimbaTitle(S: String);', @_LapeSetSimbaTitle, Script);
+    addGlobalMethod('procedure ShowTrayNotification(Title, Message: String; Timeout: Integer = 3000);', @_LapeShowTrayNotfication, Script);
 
     addGlobalFunc(
-      'procedure TerminateScript(WriteCallStack: Boolean = False); overload;', [
+      'procedure TerminateScript; overload;', [
       'begin',
-      '  WriteLn("Script Terminated");',
-      '  if WriteCallStack then',
-      '    WriteLn(DumpCallStack(1));',
       '  Halt();',
       'end;'
     ]);
 
     addGlobalFunc(
-      'procedure TerminateScript(Reason: String; WriteCallStack: Boolean = False); overload;', [
+      'procedure TerminateScript(Reason: String); overload;', [
       'begin',
       '  WriteLn("Script Terminated: " + Reason);',
-      '  if WriteCallStack then',
-      '    WriteLn(DumpCallStack(1));',
-      '  Halt();',
+      '  TerminateScript();',
       'end;'
     ]);
 
-    addGlobalFunc(
-      'procedure SetSimbaTitle(S: String);', [
-      'begin',
-      '  _SimbaScript.SetSimbaTitle(S);',
-      'end;'
-    ]);
-
-    addGlobalFunc(
-      'function GetSimbaPID: TProcessID;', [
-      'begin',
-      '  Result := _SimbaScript.GetSimbaPID();',
-      'end;'
-    ]);
-    addGlobalFunc(
-      'function GetSimbaTargetPID: TProcessID;', [
-      'begin',
-      '  Result := _SimbaScript.GetSimbaTargetPID();',
-      'end;'
-    ]);
-    addGlobalFunc(
-      'function GetSimbaTargetWindow: TWindowHandle;', [
-      'begin',
-      '  Result := _SimbaScript.GetSimbaTargetWindow();',
-      'end;'
-    ]);
     addGlobalFunc('procedure ClearSimbaOutput', @ClearSimbaOutput);
     addGlobalFunc('function SetSimbaSetting(Name: String; DefValue: String = ""): String', @_LapeGetSimpleSetting);
     addGlobalFunc('procedure GetSimbaSetting(Name, Value: String);', @_LapeSetSimpleSetting);
@@ -586,13 +597,6 @@ begin
       'function ShowACA(Title: String): TColorTolerance; overload;', [
       'begin',
       '  Result := ShowACA(Target, Title);',
-      'end;'
-    ]);
-
-    addGlobalFunc(
-      'procedure ShowTrayNotification(Title, Message: String; Timeout: Integer = 3000);', [
-      'begin',
-      '  _SimbaScript.ShowTrayNotification(Title, Message, Timeout);',
       'end;'
     ]);
 
@@ -730,7 +734,7 @@ begin
       'end;'
     ]);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

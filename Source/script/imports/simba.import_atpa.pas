@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportATPA(Compiler: TSimbaScript_Compiler);
+procedure ImportATPA(Script: TSimbaScript);
 
 implementation
 
@@ -396,11 +396,11 @@ begin
   PPointArray(Result)^ := P2DPointArray(Params^[0])^.Intersection();
 end;
 
-procedure ImportATPA(Compiler: TSimbaScript_Compiler);
+procedure ImportATPA(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'T2DPointArray';
+    DumpSection := 'T2DPointArray';
 
     addGlobalFunc('function T2DPointArray.Offset(P: TPoint): T2DPointArray', @_LapeATPA_Offset1);
 
@@ -444,7 +444,7 @@ begin
     addGlobalFunc('function T2DPointArray.Merge: TPointArray;', @_LapeATPA_Merge);
     addGlobalFunc('function T2DPointArray.Intersection: TPointArray; overload;', @_LapeATPA_Intersection);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

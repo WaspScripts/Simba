@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportSlackTree(Compiler: TSimbaScript_Compiler);
+procedure ImportSlackTree(Script: TSimbaScript);
 
 implementation
 
@@ -86,9 +86,9 @@ begin
   TNodeRefArray(Result^) := PSlackTree(Params^[0])^.RefArray;
 end;
 
-procedure ImportSlackTree(Compiler: TSimbaScript_Compiler);
+procedure ImportSlackTree(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
     addGlobalType('record Split: TPoint; L, R: Integer; hidden: Boolean; end;', 'TSlackNode');
     addGlobalType('^TSlackNode', 'PSlackNode');

@@ -20,9 +20,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportRandom(Compiler: TSimbaScript_Compiler);
+procedure ImportRandom(Script: TSimbaScript);
 
 implementation
 
@@ -245,11 +245,11 @@ begin
   BetterRandomize();
 end;
 
-procedure ImportRandom(Compiler: TSimbaScript_Compiler);
+procedure ImportRandom(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Random';
+    DumpSection := 'Random';
 
     addGlobalVar(ltDouble, @RandCutoff, 'RandCutoff');
 
@@ -273,7 +273,7 @@ begin
 
     addGlobalFunc('function GaussRand(Mean, Dev: Double): Double;', @_LapeGaussRand);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

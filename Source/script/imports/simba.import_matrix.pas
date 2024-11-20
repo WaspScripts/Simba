@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportMatrix(Compiler: TSimbaScript_Compiler);
+procedure ImportMatrix(Script: TSimbaScript);
 
 implementation
 
@@ -611,11 +611,11 @@ begin
   PBoolean(Result)^ := PDoubleMatrix(Params^[0])^.GetSize(PInteger(Params^[1])^, PInteger(Params^[2])^);
 end;
 
-procedure ImportMatrix(Compiler: TSimbaScript_Compiler);
+procedure ImportMatrix(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Matrix';
+    DumpSection := 'Matrix';
 
     //addGlobalType('array of TSingleArray', 'TSingleMatrix');
     //addGlobalType('array of TDoubleArray', 'TDoubleMatrix');
@@ -680,7 +680,7 @@ begin
     addGlobalFunc('function TBooleanMatrix.Area: Integer;', @_LapeBooleanMatrix_Area);
     addGlobalFunc('function TBooleanMatrix.GetSize(out Width, Height: Integer): Boolean;', @_LapeBooleanMatrix_GetSize);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

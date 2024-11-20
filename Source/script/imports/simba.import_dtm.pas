@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportDTM(Compiler: TSimbaScript_Compiler);
+procedure ImportDTM(Script: TSimbaScript);
 
 implementation
 
@@ -132,11 +132,11 @@ begin
   PDTM(Params^[0])^.Normalize();
 end;
 
-procedure ImportDTM(Compiler: TSimbaScript_Compiler);
+procedure ImportDTM(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'DTM';
+    DumpSection := 'DTM';
 
     addGlobalType([
       'record',
@@ -162,7 +162,7 @@ begin
     addGlobalFunc('procedure TDTM.Normalize;', @_LapeDTM_Normalize);
     addGlobalFunc('function TDTM.Valid: Boolean;', @_LapeDTM_Normalize);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

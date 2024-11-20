@@ -11,9 +11,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.vartype_string, simba.script_compiler, simba.script_threading;
+  simba.base, simba.script, simba.vartype_string, simba.script_threading;
 
-procedure ImportThreading(Compiler: TSimbaScript_Compiler);
+procedure ImportThreading(Script: TSimbaScript);
 
 implementation
 
@@ -314,11 +314,11 @@ procedure RunInThreadEx(Method: procedure(Params: TPointerArray) of object; OnTe
 ```
 *)
 
-procedure ImportThreading(Compiler: TSimbaScript_Compiler);
+procedure ImportThreading(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Threading';
+    DumpSection := 'Threading';
 
     addGlobalVar(
       'record'                    + LineEnding +
@@ -351,7 +351,7 @@ begin
 
     addGlobalFunc('function CurrentThread: TThread', @_LapeCurrentThread);
 
-    ImportingSection := '!Hidden';
+    DumpSection := '!Hidden';
 
     addGlobalVar(Emitter, '_CodeEmitter').isConstant := True;
     addGlobalFunc('function _CreateThread(Emitter: Pointer; Method: procedure of object; OnTerminate: procedure(Thread: TThread) of object): TThread;', @_LapeCreateThread);
@@ -427,7 +427,7 @@ begin
       'end;'
     ]);
 
-    ImportingSection := 'Threading';
+    DumpSection := 'Threading';
 
     addGlobalFunc(
       'function TThread.Create(Method: procedure of object): TThread; static; overload;', [
@@ -491,7 +491,7 @@ begin
       'end;'
     ]);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

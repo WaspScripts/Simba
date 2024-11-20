@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportBoxArray(Compiler: TSimbaScript_Compiler);
+procedure ImportBoxArray(Script: TSimbaScript);
 
 implementation
 
@@ -226,11 +226,11 @@ begin
   PBoxArray(Result)^ := PBoxArray(Params^[0])^.Sort(PDoubleArray(Params^[1])^, PBoolean(Params^[2])^);
 end;
 
-procedure ImportBoxArray(Compiler: TSimbaScript_Compiler);
+procedure ImportBoxArray(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'TBoxArray';
+    DumpSection := 'TBoxArray';
 
     addGlobalFunc('function TBoxArray.Create(Start: TPoint; Columns, Rows, Width, Height: Integer; Spacing: TPoint): TBoxArray; static;', @_LapeBoxArray_Create);
     addGlobalFunc('function TBoxArray.Pack: TBoxArray;', @_LapeBoxArray_Pack);
@@ -255,7 +255,7 @@ begin
     addGlobalFunc('function TBoxArray.ContainsPoint(P: TPoint; out Index: Integer): Boolean; overload;', @_LapeBoxArray_ContainsPoint1);
     addGlobalFunc('function TBoxArray.ContainsPoint(P: TPoint): Boolean; overload;', @_LapeBoxArray_ContainsPoint2);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script, simba.image;
 
-procedure ImportDebugImage(Compiler: TSimbaScript_Compiler);
+procedure ImportDebugImage(Script: TSimbaScript);
 
 implementation
 
@@ -134,45 +134,23 @@ procedure ShowOnClient(ATPA: T2DPointArray);
 ```
 *)
 
-(*
-DebugImageUpdate
-----------------
-```
-procedure DebugImageUpdate(Bitmap: TSimbaImage);
-```
-*)
 
 (*
-DebugImageDisplay
+DebugImageMaxSize
 -----------------
 ```
-procedure DebugImageDisplay(Width, Height: Integer);
+procedure DebugImageMaxSize(MaxWidth, MaxHeight: Integer);
 ```
 *)
-
-(*
-DebugImageDisplay
------------------
-```
-procedure DebugImageDisplay(X, Y,Width, Height: Integer);
-```
-*)
-
-(*
-DebugImageClose
----------------
-```
-procedure DebugImageClose;
-```
-*)
-
-(*
-DebugImageSetMaxSize
---------------------
-```
-procedure DebugImageSetMaxSize(MaxWidth, MaxHeight: Integer);
-```
-*)
+procedure _LapeDebugImage_MaxSize(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  with TSimbaScript(Params^[0]) do
+  begin
+    if (SimbaCommunication = nil) then
+      SimbaException('DebugImage requires Simba communication');
+    SimbaCommunication.DebugImage_SetMaxSize(PInteger(Params^[1])^, PInteger(Params^[2])^);
+  end;
+end;
 
 (*
 DebugImageShow
@@ -181,65 +159,107 @@ DebugImageShow
 procedure DebugImageShow(Image: TImage; EnsureVisible: Boolean = True);
 ```
 *)
-
-procedure ImportDebugImage(Compiler: TSimbaScript_Compiler);
+procedure _LapeDebugImage_Show(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  with Compiler do
+  with TSimbaScript(Params^[0]) do
   begin
-    ImportingSection := 'Debug Image';
+    if (SimbaCommunication = nil) then
+      SimbaException('DebugImage requires Simba communication');
+    SimbaCommunication.DebugImage_Show(PSimbaImage(Params^[1])^, PBoolean(Params^[2])^);
+  end;
+end;
 
-    addGlobalFunc(
-      'procedure DebugImageSetMaxSize(MaxWidth, MaxHeight: Integer);', [
-      'begin',
-      '  _SimbaScript.DebugImage_SetMaxSize(MaxWidth, MaxHeight);',
-      'end;'
-    ]);
+(*
+DebugImageUpdate
+----------------
+```
+procedure DebugImageUpdate(Bitmap: TSimbaImage);
+```
+*)
+procedure _LapeDebugImage_Update(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  with TSimbaScript(Params^[0]) do
+  begin
+    if (SimbaCommunication = nil) then
+      SimbaException('DebugImage requires Simba communication');
+    SimbaCommunication.DebugImage_Update(PSimbaImage(Params^[1])^);
+  end;
+end;
 
-    addGlobalFunc(
-      'procedure DebugImageDisplay(Width, Height: Integer); overload;', [
-      'begin',
-      '  _SimbaScript.DebugImage_Display(Width, Height);',
-      'end;'
-    ]);
+(*
+DebugImageClose
+---------------
+```
+procedure DebugImageClose;
+```
+*)
+procedure _LapeDebugImage_Close(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  with TSimbaScript(Params^[0]) do
+  begin
+    if (SimbaCommunication = nil) then
+      SimbaException('DebugImage requires Simba communication');
+    SimbaCommunication.DebugImage_Hide();
+  end;
+end;
 
-    addGlobalFunc(
-      'procedure DebugImageDisplay(X, Y, Width, Height: Integer); overload;', [
-      'begin',
-      '  _SimbaScript.DebugImage_Display(X, Y, Width, Height);',
-      'end;'
-    ]);
+(*
+DebugImageDisplay
+-----------------
+```
+procedure DebugImageDisplay(Width, Height: Integer);
+```
+*)
+procedure _LapeDebugImage_Display1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  with TSimbaScript(Params^[0]) do
+  begin
+    if (SimbaCommunication = nil) then
+      SimbaException('DebugImage requires Simba communication');
+    SimbaCommunication.DebugImage_Display(PInteger(Params^[1])^, PInteger(Params^[2])^);
+  end;
+end;
 
-    addGlobalFunc(
-      'procedure DebugImageClose;', [
-      'begin',
-      '  _SimbaScript.DebugImage_Hide();',
-      'end;'
-    ]);
+(*
+DebugImageDisplay
+-----------------
+```
+procedure DebugImageDisplay(X, Y,Width, Height: Integer);
+```
+*)
+procedure _LapeDebugImage_Display2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  with TSimbaScript(Params^[0]) do
+  begin
+    if (SimbaCommunication = nil) then
+      SimbaException('DebugImage requires Simba communication');
+    SimbaCommunication.DebugImage_Display(PInteger(Params^[1])^, PInteger(Params^[2])^, PInteger(Params^[3])^, PInteger(Params^[4])^);
+  end;
+end;
 
-    addGlobalFunc(
-      'procedure DebugImageUpdate(Image: TImage);', [
-      'begin',
-      '  _SimbaScript.DebugImage_Update(Image);',
-      'end;'
-    ]);
+procedure ImportDebugImage(Script: TSimbaScript);
+begin
+  with Script.Compiler do
+  begin
+    DumpSection := 'Debug Image';
 
-    addGlobalFunc(
-      'procedure DebugImageShow(Image: TImage; EnsureVisible: Boolean = True);', [
-      'begin',
-      '  _SimbaScript.DebugImage_Show(Image, EnsureVisible);',
-      'end;'
-    ]);
+    addGlobalMethod('procedure DebugImageSetMaxSize(MaxWidth, MaxHeight: Integer);', @_LapeDebugImage_MaxSize, Script);
+    addGlobalMethod('procedure DebugImageDisplay(Width, Height: Integer); overload', @_LapeDebugImage_Display1, Script);
+    addGlobalMethod('procedure DebugImageDisplay(X, Y, Width, Height: Integer); overload', @_LapeDebugImage_Display2, Script);
+    addGlobalMethod('procedure DebugImageClose', @_LapeDebugImage_Close, Script);
+    addGlobalMethod('procedure DebugImageUpdate(Image: TImage)', @_LapeDebugImage_Update, Script);
+    addGlobalMethod('procedure DebugImageShow(Image: TImage; EnsureVisible: Boolean = True)', @_LapeDebugImage_Show, Script);
 
-    ImportingSection := 'Image';
+    DumpSection := 'Image';
 
     addGlobalFunc(
       'procedure TImage.Show(EnsureVisible: Boolean = True);', [
       'begin',
-      '  _SimbaScript.DebugImage_Show(Self, EnsureVisible);',
+      '  DebugImageShow(Self, EnsureVisible);',
       'end;'
     ]);
 
-    ImportingSection := 'Debug Image';
+    DumpSection := 'Debug Image';
 
     addGlobalFunc(
       'procedure Show(Matrix: TIntegerMatrix); overload;', [
@@ -407,7 +427,7 @@ begin
       'end;'
     ]);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

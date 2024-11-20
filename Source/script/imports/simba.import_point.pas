@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportPoint(Compiler: TSimbaScript_Compiler);
+procedure ImportPoint(Script: TSimbaScript);
 
 implementation
 
@@ -300,11 +300,11 @@ begin
   PBoolean(Result)^ := PPoint(Params^[0])^ in PBox(Params^[1])^;
 end;
 
-procedure ImportPoint(Compiler: TSimbaScript_Compiler);
+procedure ImportPoint(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'TPoint';
+    DumpSection := 'TPoint';
 
     addGlobalFunc('function Point(X, Y: Integer): TPoint', @_LapePoint);
 
@@ -333,7 +333,7 @@ begin
     addGlobalFunc('operator *= (var L: TPoint; R: Double): TPoint;', @_LapePoint_MultiplyAssign_Double);
     addGlobalFunc('operator in(Left: TPoint; Right: TBox): Boolean;', @_LapePoint_IN_Box);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

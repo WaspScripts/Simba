@@ -11,9 +11,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportTPA(Compiler: TSimbaScript_Compiler);
+procedure ImportTPA(Script: TSimbaScript);
 
 implementation
 
@@ -907,11 +907,11 @@ begin
   PPointArray(Params^[0])^.ToAxes(PIntegerArray(Params^[1])^, PIntegerArray(Params^[2])^);
 end;
 
-procedure ImportTPA(Compiler: TSimbaScript_Compiler);
+procedure ImportTPA(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'TPointArray';
+    DumpSection := 'TPointArray';
 
     addGlobalFunc('function TPointArray.CreateFromBox(Box: TBox; Filled: Boolean): TPointArray; static;', @_LapeTPACreateFromBox);
     addGlobalFunc('function TPointArray.CreateFromEllipse(Center: TPoint; RadiusX, RadiusY: Integer; Filled: Boolean): TPointArray; static;', @_LapeTPACreateFromEllipse);
@@ -1008,7 +1008,7 @@ begin
 
     addGlobalFunc('procedure TPointArray.ToAxes(out X, Y: TIntegerArray);', @_LapeTPAToAxes);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

@@ -11,9 +11,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportCircle(Compiler: TSimbaScript_Compiler);
+procedure ImportCircle(Script: TSimbaScript);
 
 implementation
 
@@ -262,11 +262,11 @@ begin
   PBoolean(Result)^ := PPoint(Params^[0])^ in PCircle(Params^[1])^;
 end;
 
-procedure ImportCircle(Compiler: TSimbaScript_Compiler);
+procedure ImportCircle(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'TCircle';
+    DumpSection := 'TCircle';
 
     addGlobalType('record X, Y, Radius: Integer; end;', 'TCircle');
     addGlobalType('array of TCircle;', 'TCircleArray');
@@ -293,7 +293,7 @@ begin
 
     addGlobalFunc('operator in(Left: TPoint; Right: TCircle): Boolean;', @_LapePoint_IN_Cicle);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

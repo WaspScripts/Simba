@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportWeb(Compiler: TSimbaScript_Compiler);
+procedure ImportWeb(Script: TSimbaScript);
 
 implementation
 
@@ -900,11 +900,11 @@ begin
   PBoolean(Result)^ := LoadSSL(PBoolean(Params^[0])^);
 end;
 
-procedure ImportWeb(Compiler: TSimbaScript_Compiler);
+procedure ImportWeb(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Web';
+    DumpSection := 'Web';
 
     addGlobalType(specialize GetEnumDecl<EHTTPStatus>(True, True), 'EHTTPStatus');
     addGlobalFunc('property EHTTPStatus.AsInteger: Integer', @_LapeHTTPStatus_AsInteger_Read);
@@ -959,7 +959,7 @@ begin
       TSimbaHTTPClient(Ptr^).FreeOnTerminate := True
     end;
 
-    ImportingSection := '';
+    DumpSection := '';
 
     addClass('TInternetSocket');
     addGlobalFunc('function TInternetSocket.Create(AHost: String; APort: UInt16; UseSSL: Boolean = False): TInternetSocket; static;', @_LapeSimbaInternetSocket_Create);

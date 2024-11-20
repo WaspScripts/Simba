@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils, SynLZ,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportEncoding(Compiler: TSimbaScript_Compiler);
+procedure ImportEncoding(Script: TSimbaScript);
 
 implementation
 
@@ -314,11 +314,11 @@ begin
   TSimbaImageArray(Result^) := SimbaImage_FastDecompress(PPointer(Params^[0])^, PSizeUInt(Params^[1])^);
 end;
 
-procedure ImportEncoding(Compiler: TSimbaScript_Compiler);
+procedure ImportEncoding(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Encoding';
+    DumpSection := 'Encoding';
 
     addGlobalType('enum(SHA1, SHA256, SHA384, SHA512, MD5)', 'EHashAlgo');
     addGlobalType('enum(b64URL, b64, b32, b32Hex, b16)', 'EBaseEncoding');
@@ -352,7 +352,7 @@ begin
     addGlobalFunc('procedure FastCompressImages(Images: TImageArray; var Data: Pointer; out DataSize: SizeUInt);', @_LapeFastCompressImages);
     addGlobalFunc('function FastDecompressImages(Data: Pointer; out DataLen: SizeUInt): TImageArray', @_LapeFastDecompressImages);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

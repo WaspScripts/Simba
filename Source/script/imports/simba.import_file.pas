@@ -11,9 +11,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportFile(Compiler: TSimbaScript_Compiler);
+procedure ImportFile(Script: TSimbaScript);
 
 implementation
 
@@ -711,11 +711,11 @@ begin
   PString(Result)^ := GetTempFileName();
 end;
 
-procedure ImportFile(Compiler: TSimbaScript_Compiler);
+procedure ImportFile(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'File';
+    DumpSection := 'File';
 
     addGlobalVar(PATH_SEP, 'PATH_SEP').isConstant := True;
     addGlobalVar(LINE_SEP, 'LINE_SEP').isConstant := True;
@@ -785,7 +785,7 @@ begin
     addGlobalFunc('function DirSize(Path: String): Int64', @_LapeDirSize);
     addGlobalFunc('function DirSizeInMegaBytes(Path: String): Single', @_LapeDirSizeInMegaBytes);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 

@@ -11,9 +11,9 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script_compiler;
+  simba.base, simba.script;
 
-procedure ImportMatchTemplate(Compiler: TSimbaScript_Compiler);
+procedure ImportMatchTemplate(Script: TSimbaScript);
 
 implementation
 
@@ -137,11 +137,11 @@ begin
   PSingleMatrix(Result)^ := MatchTemplateMask(PSimbaImage(Params^[0])^, PSimbaImage(Params^[1])^, PTMFormula(Params^[2])^);
 end;
 
-procedure ImportMatchTemplate(Compiler: TSimbaScript_Compiler);
+procedure ImportMatchTemplate(Script: TSimbaScript);
 begin
-  with Compiler do
+  with Script.Compiler do
   begin
-    ImportingSection := 'Match Template';
+    DumpSection := 'Match Template';
 
     addClass('TMatchTemplateCache', 'TBaseClass');
     addGlobalType('(TM_CCORR, TM_CCORR_NORMED, TM_CCOEFF, TM_CCOEFF_NORMED, TM_SQDIFF, TM_SQDIFF_NORMED)', 'ETMFormula');
@@ -160,7 +160,7 @@ begin
     addGlobalFunc('function MatchTemplateMask(Image, Template: TImage; Formula: ETMFormula): TSingleMatrix; overload', @_LapeMatchTemplateMask2);
     addGlobalFunc('function MatchTemplate(Image, Template: TImage; Formula: ETMFormula): TSingleMatrix; overload', @_LapeMatchTemplate2);
 
-    ImportingSection := '';
+    DumpSection := '';
   end;
 end;
 
