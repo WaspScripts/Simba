@@ -13,6 +13,7 @@ uses
   Classes, SysUtils,
   lptypes, lpvartypes, lpcompiler, lpparser, lpinterpreter, lpmessages,
   simba.base,
+  simba.target,
   simba.script_compiler,
   simba.script_communication,
   simba.script_plugin;
@@ -22,12 +23,13 @@ type
   protected
     FUserTerminated: Boolean;
     FTargetWindow: TWindowHandle;
+    FTarget: TSimbaTarget;
     FHints: Boolean;
 
     FScript: String;
     FScriptFileName: String;
 
-    FCompiler: TSimbaScript_Compiler;
+    FCompiler: TScriptCompiler;
     FCodeRunner: TLapeCodeRunner;
     FCompileTime: Double;
     FRunningTime: Double;
@@ -45,10 +47,12 @@ type
     procedure SetTargetWindow(Value: String);
     procedure SetState(Value: ESimbaScriptState);
   public
+    property Target: TSimbaTarget read FTarget;
+
     property CompileTime: Double read FCompileTime;
     property RunningTime: Double read FRunningTime;
 
-    property Compiler: TSimbaScript_Compiler read FCompiler;
+    property Compiler: TScriptCompiler read FCompiler;
 
     property SimbaCommunication: TSimbaScriptCommunication read FSimbaCommunication;
 
@@ -72,7 +76,7 @@ type
 implementation
 
 uses
-  simba.env, simba.fs, simba.datetime, simba.target, simba.vartype_windowhandle,
+  simba.env, simba.fs, simba.datetime, simba.vartype_windowhandle,
   simba.vartype_string,
   simba.script_pluginloader,
   simba.script_imports;
@@ -83,7 +87,7 @@ begin
 
   case Name of
     'LOADEDLIB': Value := BoolToStr(FindLoadedPlugin(Argument) <> '', True);
-    'FINDLIB': Value := BoolToStr(SimbaEnv.HasPlugin(Argument, [Sender.Tokenizer.FileName]), True);
+    'FINDLIB':   Value := BoolToStr(SimbaEnv.HasPlugin(Argument, [Sender.Tokenizer.FileName]), True);
   end;
 end;
 
@@ -179,7 +183,7 @@ end;
 
 function TSimbaScript.Compile: Boolean;
 begin
-  FCompiler := TSimbaScript_Compiler.Create(TLapeTokenizerString.Create(FScript, FScriptFileName));
+  FCompiler := TScriptCompiler.Create(FScript, FScriptFileName);
   if FHints then
     FCompiler.Options := FCompiler.Options + [lcoHints]
   else
@@ -217,8 +221,7 @@ var
 begin
   if (FTargetWindow = 0) or (not FTargetWindow.IsValid()) then
     FTargetWindow := GetDesktopWindow();
-
-  PSimbaTarget(FCompiler['Target'].Ptr)^.SetWindow(FTargetWindow);
+  FTarget.SetWindow(FTargetWindow);
 
   FRunningTime := HighResolutionTime();
   try
@@ -241,10 +244,8 @@ end;
 procedure TSimbaScript.Dump(FileName: String);
 var
   I: Integer;
-  Decl: TLapeDeclaration;
-  Str: String;
 begin
-  FCompiler := TSimbaScript_Compiler.CreateDump(FileName);
+  FCompiler := TScriptCompiler.CreateDump();
 
   AddSimbaInternalMethods(Self);
   AddSimbaImports(Self);

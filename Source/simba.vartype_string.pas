@@ -170,6 +170,15 @@ type
     function ParseJSON: TJSONData;
   end;
 
+  TStringArrayHelper = type helper for TStringArray
+    function Equals(Other: TStringArray): Boolean;
+    function IndexOf(Value: String): Integer;
+    function IndicesOf(Value: String): TIntegerArray;
+    function Unique: TStringArray;
+    procedure Sort;
+    function ToString(Sep: String): String;
+  end;
+
   operator * (const Left: String; Right: Int32): String;
   operator in(const Left: String; const Right: String): Boolean;
   operator in(const Left: String; const Right: TStringArray): Boolean;
@@ -178,7 +187,7 @@ implementation
 
 uses
   RegExpr, StrUtils, DateUtils,
-  simba.containers, simba.hash;
+  simba.containers, simba.hash, simba.array_algorithm;
 
 function TSimbaCharHelper.IsUpper(): Boolean;
 begin
@@ -1302,6 +1311,42 @@ begin
   end;
 end;
 
+function TStringArrayHelper.Equals(Other: TStringArray): Boolean;
+begin
+  Result := specialize TArrayEquals<String>.Equals(Self, Other);
+end;
+
+function TStringArrayHelper.IndexOf(Value: String): Integer;
+begin
+  Result := specialize TArrayIndexOf<String>.IndexOf(Value, Self);
+end;
+
+function TStringArrayHelper.IndicesOf(Value: String): TIntegerArray;
+begin
+  Result := specialize TArrayIndicesOf<String>.IndicesOf(Value, Self);
+end;
+
+function TStringArrayHelper.Unique: TStringArray;
+begin
+  Result := specialize TArrayUnique<String>.Unique(Self);
+end;
+
+procedure TStringArrayHelper.Sort;
+
+  function Compare(const L, R: String): Integer;
+  begin
+    Result := NaturalCompareText(L, R);
+  end;
+
+begin
+  specialize TArraySortFunc<String>.QuickSort(Self, Low(Self), High(Self), @Compare);
+end;
+
+function TStringArrayHelper.ToString(Sep: String): String;
+begin
+  Result := Sep.Join(Self);
+end;
+
 operator *(const Left: String; Right: Int32): String;
 var
   I, Len: Integer;
@@ -1323,34 +1368,6 @@ begin
 end;
 
 operator in(const Left: String; const Right: TStringArray): Boolean;
-var
-  I: Integer;
-begin
-  for I := 0 to High(Right) do
-    if Pos(Left, Right[I]) > 0 then
-    begin
-      Result := True;
-      Exit;
-    end;
-
-  Result := False;
-end;
-
-operator *(const Left: Char; Right: Int32): String;
-var
-  I: Integer;
-begin
-  Result := '';
-  for I:=0 to Right-1 do
-    Result += Left;
-end;
-
-operator in(const Left: Char; const Right: String): Boolean;
-begin
-  Result := Pos(Left, Right) > 0;
-end;
-
-operator in(const Left: Char; const Right: TStringArray): Boolean;
 var
   I: Integer;
 begin

@@ -72,7 +72,7 @@ type
   public
     function Dump: TStringList;
 
-    procedure Import(Compiler: TSimbaScript_Compiler);
+    procedure Import(Compiler: TScriptCompiler);
     procedure Load;
 
     procedure CallOnPause;
@@ -233,7 +233,7 @@ begin
     Result.Add(FCode);
 end;
 
-procedure TSimbaScriptPlugin.Import(Compiler: TSimbaScript_Compiler);
+procedure TSimbaScriptPlugin.Import(Compiler: TScriptCompiler);
 var
   I: Int32;
 begin

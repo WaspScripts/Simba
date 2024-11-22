@@ -263,17 +263,6 @@ type
     procedure FromLazBitmap(LazBitmap: TBitmap);
 
     // Finders
-    function MatchColor(Color: TColor; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TSingleMatrix;
-
-    function FindColor(Color: TColor; Tolerance: Single): TPointArray; overload;
-    function FindColor(Color: TColor; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray; overload;
-    function FindColor(Color: TColorTolerance): TPointArray; overload;
-
-    function FindImage(Image: TSimbaImage; Tolerance: Single; MaxToFind: Integer): TPointArray; overload;
-    function FindImage(Image: TSimbaImage; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; MaxToFind: Integer): TPointArray; overload;
-    function FindDTM(DTM: TDTM; MaxToFind: Integer): TPointArray;
-    function FindDTMRotated(DTM: TDTM; StartDegrees, EndDegrees: Double; Step: Double; out FoundDegrees: TDoubleArray; MaxToFind: Integer): TPointArray;
-
     function FindEdges(MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray; overload;
     function FindEdges(MinDiff: Single): TPointArray; overload;
 
@@ -288,8 +277,7 @@ implementation
 
 uses
   Math, FPImage, BMPcomn,
-  simba.vartype_floatmatrix,
-  simba.vartype_ordmatrix,
+  simba.vartype_matrix,
   simba.vartype_pointarray,
   simba.vartype_box,
   simba.vartype_quad,
@@ -862,78 +850,6 @@ begin
 
   TempBitmap.FData := nil; // data is now ours
   TempBitmap.Free();
-end;
-
-function TSimbaImage.MatchColor(Color: TColor; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TSingleMatrix;
-var
-  Target: TSimbaTarget;
-begin
-  Target.SetImage(Self);
-
-  Result := Target.MatchColor(Color, ColorSpace, Multipliers, TBox.Create(-1,-1,-1,-1));
-end;
-
-function TSimbaImage.FindColor(Color: TColor; Tolerance: Single): TPointArray;
-var
-  Target: TSimbaTarget;
-begin
-  Target.SetImage(Self);
-
-  Result := Target.FindColor(Color, Tolerance, DefaultColorSpace, DefaultMultipliers, TBox.Create(-1,-1,-1,-1));
-end;
-
-function TSimbaImage.FindColor(Color: TColor; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray;
-var
-  Target: TSimbaTarget;
-begin
-  Target.SetImage(Self);
-
-  Result := Target.FindColor(Color, Tolerance, ColorSpace, Multipliers, TBox.Create(-1,-1,-1,-1));
-end;
-
-function TSimbaImage.FindColor(Color: TColorTolerance): TPointArray;
-var
-  Target: TSimbaTarget;
-begin
-  Target.SetImage(Self);
-
-  Result := Target.FindColor(Color.Color, Color.Tolerance, Color.ColorSpace, Color.Multipliers, TBox.Create(-1,-1,-1,-1));
-end;
-
-function TSimbaImage.FindImage(Image: TSimbaImage; Tolerance: Single; MaxToFind: Integer): TPointArray;
-var
-  Target: TSimbaTarget;
-begin
-  Target.SetImage(Self);
-
-  Result := Target.FindImageEx(Image, Tolerance, DefaultColorSpace, DefaultMultipliers, MaxToFind, TBox.Create(-1,-1,-1,-1));
-end;
-
-function TSimbaImage.FindImage(Image: TSimbaImage; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; MaxToFind: Integer): TPointArray;
-var
-  Target: TSimbaTarget;
-begin
-  Target.SetImage(Self);
-
-  Result := Target.FindImageEx(Image, Tolerance, ColorSpace, Multipliers, MaxToFind, TBox.Create(-1,-1,-1,-1));
-end;
-
-function TSimbaImage.FindDTM(DTM: TDTM; MaxToFind: Integer): TPointArray;
-var
-  Target: TSimbaTarget;
-begin
-  Target.SetImage(Self);
-
-  Result := Target.FindDTMEx(DTM, MaxToFind, TBox.Create(-1,-1,-1,-1));
-end;
-
-function TSimbaImage.FindDTMRotated(DTM: TDTM; StartDegrees, EndDegrees: Double; Step: Double; out FoundDegrees: TDoubleArray; MaxToFind: Integer): TPointArray;
-var
-  Target: TSimbaTarget;
-begin
-  Target.SetImage(Self);
-
-  Result := Target.FindDTMRotatedEx(DTM, StartDegrees, EndDegrees, Step, FoundDegrees, MaxToFind, TBox.Create(-1,-1,-1,-1));
 end;
 
 function TSimbaImage.FindEdges(MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray;

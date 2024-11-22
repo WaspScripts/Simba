@@ -156,7 +156,7 @@ implementation
 
 uses
   Math,
-  simba.vartype_box, simba.vartype_quad, simba.vartype_pointarray, simba.vartype_boxarray;
+  simba.vartype_box, simba.vartype_quad, simba.vartype_pointarray;
 
 procedure TSimbaExternalCanvas.Invalidate(b: TBox);
 begin

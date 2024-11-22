@@ -1139,12 +1139,14 @@ begin
       'TTarget'
     );
 
-    with addGlobalVar('TTarget', '[]', 'Target') do
-    begin
-      Used := duTrue;
-      if (Size <> SizeOf(TSimbaTarget)) then
-        SimbaException('SizeOf(TTarget)=%d should be %d', [Size, SizeOf(TSimbaTarget)]);
-    end;
+    addGlobalVar('TTarget', @Script.Target, 'Target');
+
+    //with addGlobalVar('TTarget', '[]', 'Target') do
+    //begin
+    //  Used := duTrue;
+    //  if (Size <> SizeOf(TSimbaTarget)) then
+    //    SimbaException('SizeOf(TTarget)=%d should be %d', [Size, SizeOf(TSimbaTarget)]);
+    //end;
 
     addGlobalType(specialize GetEnumDecl<ESimbaTargetKind>(True, False), 'ETargetKind');
     addGlobalType(specialize GetEnumDecl<EMouseButton>(True, False), 'EMouseButton');
@@ -1253,13 +1255,13 @@ begin
     addGlobalFunc('function TTarget.FindDTMRotated(DTM: TDTM; StartDegrees, EndDegrees: Double; Step: Double; out FoundDegrees: TDoubleArray; Bounds: TBox = [-1,-1,-1,-1]): TPoint', @_LapeTarget_FindDTMRotated);
     addGlobalFunc('function TTarget.FindDTMRotatedEx(DTM: TDTM; StartDegrees, EndDegrees: Double; Step: Double; out FoundDegrees: TDoubleArray; MaxToFind: Integer = -1; Bounds: TBox = [-1,-1,-1,-1]): TPointArray', @_LapeTarget_FindDTMRotatedEx);
 
-    addGlobalFunc('function TTarget.FindEdges(MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; Bounds: TBox = [-1,-1,-1,-1]): TPointArray; overload;', @_LapeFinder_FindEdges1);
-    addGlobalFunc('function TTarget.FindEdges(MinDiff: Single; Bounds: TBox = [-1,-1,-1,-1]): TPointArray; overload;', @_LapeFinder_FindEdges2);
-
     addGlobalFunc('function TTarget.GetPixelDifference(WaitTime: Integer; Area: TBox): Integer; overload;', @_LapeFinder_GetPixelDifference1);
     addGlobalFunc('function TTarget.GetPixelDifference(WaitTime: Integer; Tolerance: Single; Area: TBox): Integer; overload;', @_LapeFinder_GetPixelDifference2);
     addGlobalFunc('function TTarget.GetPixelDifferenceTPA(WaitTime: Integer; Area: TBox): TPointArray; overload;', @_LapeFinder_GetPixelDifferenceTPA1);
     addGlobalFunc('function TTarget.GetPixelDifferenceTPA(WaitTime: Integer; Tolerance: Single; Area: TBox): TPointArray; overload;', @_LapeFinder_GetPixelDifferenceTPA2);
+
+    addGlobalFunc('function TTarget.FindEdges(MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; Bounds: TBox = [-1,-1,-1,-1]): TPointArray; overload;', @_LapeFinder_FindEdges1);
+    addGlobalFunc('function TTarget.FindEdges(MinDiff: Single; Bounds: TBox = [-1,-1,-1,-1]): TPointArray; overload;', @_LapeFinder_FindEdges2);
 
     addGlobalFunc('function TTarget.AverageBrightness(Area: TBox = [-1,-1,-1,-1]): Integer;', @_LapeFinder_AverageBrightness);
     addGlobalFunc('function TTarget.PeakBrightness(Area: TBox = [-1,-1,-1,-1]): Integer;', @_LapeFinder_PeakBrightness);
@@ -1300,6 +1302,13 @@ begin
       'procedure TImage.DrawTarget(P: TPoint; Bounds: TBox = [-1,-1,-1,-1]); overload;', [
       'begin',
       '  Self.DrawTarget(System.Target, P, Bounds);',
+      'end;'
+    ]);
+
+    addGlobalFunc(
+      'property TImage.Target: TTarget;', [
+      'begin',
+      '  Result.SetImage(Self);',
       'end;'
     ]);
 

@@ -30,7 +30,7 @@ implementation
 
 uses
   Math,
-  simba.image_utils, simba.vartype_ordmatrix;
+  simba.image_utils, simba.vartype_matrix;
 
 function SimbaImage_GreyScale(Image: TSimbaImage): TSimbaImage;
 var

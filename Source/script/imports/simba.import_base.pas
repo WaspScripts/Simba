@@ -16,8 +16,7 @@ implementation
 uses
   Graphics, Variants,
   simba.nativeinterface, simba.env, simba.baseclass, simba.vartype_ordarray,
-  simba.vartype_string, simba.vartype_stringarray, simba.vartype_pointarray,
-  simba.vartype_floatmatrix;
+  simba.vartype_string, simba.vartype_pointarray, simba.vartype_matrix;
 
 (*
 Base

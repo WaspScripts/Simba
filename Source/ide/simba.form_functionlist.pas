@@ -98,7 +98,7 @@ type
     procedure SetSimbaNodeShouldBeHidden(S: String; Hidden: Boolean);
 
     procedure AddSimbaNodes;
-    procedure ArrangeSimbaNodes;
+    //procedure ArrangeSimbaNodes;
 
     function CompareNodes(A, B: TTreeNode): Integer;
   public
@@ -769,63 +769,61 @@ begin
       ParentNode.Visible := False;
   end;
 
-  //FSimbaNode.AlphaSort();
+  FSimbaNode.AlphaSort();
   FSimbaNode.Expanded := True; // This needs to be on main thread it seems?
-
-  ArrangeSimbaNodes();
 
   FTreeView.Loading := False;
   FTreeView.EndUpdate();
 end;
 
-procedure TSimbaFunctionListForm.ArrangeSimbaNodes;
-var
-  Cur: Integer = 0;
-
-  procedure MoveToTop(const NodeText: String);
-  var
-    Node: TTreeNode;
-  begin
-    Node := FSimbaNode.FindNode(NodeText);
-    if not Assigned(Node) then
-    begin
-      DebugLn('ArrangeSimbaNodes: Not found: ' + NodeText);
-      Exit;
-    end;
-
-    Node.Index := Cur;
-    Inc(Cur);
-  end;
-
-begin
-  MoveToTop('Base');
-  MoveToTop('Math');
-  MoveToTop('Color Math');
-  MoveToTop('File');
-  MoveToTop('String');
-  MoveToTop('Random');
-  MoveToTop('Date & Time');
-  MoveToTop('TBox');
-  MoveToTop('TBoxArray');
-  MoveToTop('TPoint');
-  MoveToTop('TPointArray');
-  MoveToTop('T2DPointArray');
-  MoveToTop('TCircle');
-  MoveToTop('TQuad');
-  MoveToTop('Target');
-  MoveToTop('Image');
-  MoveToTop('Debug Image');
-  MoveToTop('Match Template');
-  MoveToTop('Matrix');
-  MoveToTop('DTM');
-  MoveToTop('TWindowHandle');
-  MoveToTop('Process');
-  MoveToTop('JSON');
-  MoveToTop('Encoding');
-  MoveToTop('Web');
-  MoveToTop('ASync');
-  MoveToTop('Misc');
-end;
+//procedure TSimbaFunctionListForm.ArrangeSimbaNodes;
+//var
+//  Cur: Integer = 0;
+//
+//  procedure MoveToTop(const NodeText: String);
+//  var
+//    Node: TTreeNode;
+//  begin
+//    Node := FSimbaNode.FindNode(NodeText);
+//    if not Assigned(Node) then
+//    begin
+//      DebugLn('ArrangeSimbaNodes: Not found: ' + NodeText);
+//      Exit;
+//    end;
+//
+//    Node.Index := Cur;
+//    Inc(Cur);
+//  end;
+//
+//begin
+//  MoveToTop('Base');
+//  MoveToTop('Math');
+//  MoveToTop('Color Math');
+//  MoveToTop('File');
+//  MoveToTop('String');
+//  MoveToTop('Random');
+//  MoveToTop('Date & Time');
+//  MoveToTop('TBox');
+//  MoveToTop('TBoxArray');
+//  MoveToTop('TPoint');
+//  MoveToTop('TPointArray');
+//  MoveToTop('T2DPointArray');
+//  MoveToTop('TCircle');
+//  MoveToTop('TQuad');
+//  MoveToTop('Target');
+//  MoveToTop('Image');
+//  MoveToTop('Debug Image');
+//  MoveToTop('Match Template');
+//  MoveToTop('Matrix');
+//  MoveToTop('DTM');
+//  MoveToTop('TWindowHandle');
+//  MoveToTop('Process');
+//  MoveToTop('JSON');
+//  MoveToTop('Encoding');
+//  MoveToTop('Web');
+//  MoveToTop('ASync');
+//  MoveToTop('Misc');
+//end;
 
 function TSimbaFunctionListForm.CompareNodes(A, B: TTreeNode): Integer;
 begin

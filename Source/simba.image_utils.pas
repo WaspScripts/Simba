@@ -61,7 +61,7 @@ procedure FillData(const Data: PColorBGRA; const Count: SizeInt; const Value: TC
 implementation
 
 uses
-  simba.vartype_ordmatrix, simba.vartype_pointarray, simba.geometry;
+  simba.vartype_matrix, simba.vartype_pointarray, simba.geometry;
 
 class function TSimbaIntegralImageF.Create(const From: TByteMatrix): TSimbaIntegralImageF;
 var

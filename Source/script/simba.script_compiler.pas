@@ -2,6 +2,8 @@
   Author: Raymond van Venetië and Merlijn Wajer
   Project: Simba (https://github.com/MerlijnWajer/Simba)
   License: GNU General Public License (https://www.gnu.org/licenses/gpl-3.0)
+  --------------------------------------------------------------------------
+  Subclasses Lape compiler for Simba script needs.
 }
 unit simba.script_compiler;
 
@@ -15,7 +17,7 @@ uses
   simba.base, simba.containers, simba.vartype_string;
 
 type
-  TSimbaScript_Compiler = class(TLapeCompiler)
+  TScriptCompiler = class(TLapeCompiler)
   protected type
     TManagedImportClosure = class(TLapeDeclaration)
       Closure: TImportClosure;
@@ -24,7 +26,7 @@ type
     FDumpSection: String;
     FDump: TSimbaStringPairList;
 
-    procedure DumpAdd(const Section, Str: String);
+    procedure DumpCode(const Section, Code: String);
     procedure DumpMethod(Str: String);
     procedure DumpType(Name, Str: String);
     procedure DumpVar(Name, Typ: String);
@@ -38,7 +40,8 @@ type
 
     function GetDumpSection: String;
   public
-    constructor CreateDump(FileName: String); overload;
+    constructor Create(Doc: String; FileName: String = ''); reintroduce;
+    constructor CreateDump;
     destructor Destroy; override;
 
     // Overrides for dumping
@@ -82,27 +85,27 @@ implementation
 uses
   lpeval, lpparser, lpinterpreter;
 
-procedure TSimbaScript_Compiler.DumpAdd(const Section, Str: String);
+procedure TScriptCompiler.DumpCode(const Section, Code: String);
 var
   Item: TSimbaStringPair;
 begin
   Item.Name := Section;
-  Item.Value := Str;
+  Item.Value := Code;
 
   FDump.Add(Item);
 end;
 
-procedure TSimbaScript_Compiler.DumpMethod(Str: String);
+procedure TScriptCompiler.DumpMethod(Str: String);
 begin
   Str := Str.Trim();
   if not Str.EndsWith(';') then
     Str := Str + ';';
   Str := Str + ' external;';
 
-  DumpAdd(DumpSection, Str);
+  DumpCode(DumpSection, Str);
 end;
 
-procedure TSimbaScript_Compiler.DumpType(Name, Str: String);
+procedure TScriptCompiler.DumpType(Name, Str: String);
 begin
   if Name.StartsWith('!') then
     Exit;
@@ -110,10 +113,10 @@ begin
   if not Str.EndsWith(';') then
     Str := Str + ';';
 
-  DumpAdd(DumpSection, Str);
+  DumpCode(DumpSection, Str);
 end;
 
-procedure TSimbaScript_Compiler.DumpVar(Name, Typ: String);
+procedure TScriptCompiler.DumpVar(Name, Typ: String);
 var
   Str: String;
 begin
@@ -123,10 +126,10 @@ begin
   if not Str.EndsWith(';') then
     Str := Str + ';';
 
-  DumpAdd(DumpSection, Str);
+  DumpCode(DumpSection, Str);
 end;
 
-function TSimbaScript_Compiler.GetDumpSection: String;
+function TScriptCompiler.GetDumpSection: String;
 begin
   if (FDumpSection = '') then
     FDumpSection := '!Simba';
@@ -134,17 +137,17 @@ begin
   Result := FDumpSection;
 end;
 
-procedure TSimbaScript_Compiler.InitBaseFile;
+procedure TScriptCompiler.InitBaseFile;
 begin
   { nothing, we import our own file later }
 end;
 
-procedure TSimbaScript_Compiler.InitBaseVariant;
+procedure TScriptCompiler.InitBaseVariant;
 begin
   { nothing, we import our own variant later }
 end;
 
-procedure TSimbaScript_Compiler.InitBaseDefinitions;
+procedure TScriptCompiler.InitBaseDefinitions;
 begin
   DumpSection := 'Base';
 
@@ -154,7 +157,7 @@ begin
 end;
 
 // lpeval_import_math.inc but moved Random functions under Random section
-procedure TSimbaScript_Compiler.InitBaseMath;
+procedure TScriptCompiler.InitBaseMath;
 begin
   DumpSection := 'Math';
 
@@ -221,7 +224,7 @@ begin
 end;
 
 // lpeval_import_string.inc but removed a few things
-procedure TSimbaScript_Compiler.InitBaseString;
+procedure TScriptCompiler.InitBaseString;
 begin
   DumpSection := 'Base';
 
@@ -305,7 +308,7 @@ begin
 end;
 
 // Import our own methods later (import_datetime.pas)
-procedure TSimbaScript_Compiler.InitBaseDateTime;
+procedure TScriptCompiler.InitBaseDateTime;
 begin
   DumpSection := 'Date & Time';
 
@@ -329,14 +332,66 @@ begin
   DumpSection := '';
 end;
 
-constructor TSimbaScript_Compiler.CreateDump(FileName: String);
+constructor TScriptCompiler.Create(Doc: String; FileName: String);
+begin
+  inherited Create(TLapeTokenizerString.Create(Doc, FileName));
+end;
+
+constructor TScriptCompiler.CreateDump;
+var
+  BaseType: ELapeBaseType;
 begin
   FDump := TSimbaStringPairList.Create();
 
-  Create(TLapeTokenizerString.Create('begin end;'));
+  // init the dump with things not imported normally
+  for BaseType in ELapeBaseType do
+    if (FBaseTypes[BaseType] <> nil) then
+      DumpCode('Base', 'type %s = %s;'.Format([LapeTypeToString(BaseType), LapeTypeToString(BaseType)]));
+
+  DumpCode('Base', 'procedure Delete(A: array; Index: Int32; Count: Int32 = Length(A)); external;');
+  DumpCode('Base', 'procedure Insert(Item: Anything; A: array; Index: Int32); external;');
+  DumpCode('Base', 'procedure Copy(A: array; Index: Int32 = 0; Count: Int32 = Length(A)); external;');
+  DumpCode('Base', 'procedure SetLength(A: array; Length: Int32); external;');
+  DumpCode('Base', 'function Low(A: array): Int32; external;');
+  DumpCode('Base', 'function High(A: array): Int32; external;');
+  DumpCode('Base', 'function Length(A: array): Int32; external;');
+  DumpCode('Base', 'procedure WriteLn(Args: Anything); external;');
+  DumpCode('Base', 'procedure Write(Args: Anything); external;');
+  DumpCode('Base', 'procedure Swap(var A, B: Anything); external;');
+  DumpCode('Base', 'function SizeOf(A: Anything): Int32; external;');
+  DumpCode('Base', 'function ToString(A: Anything): String; external;');
+  DumpCode('Base', 'function ToStr(A: Anything): String; external;');
+  DumpCode('Base', 'function Inc(var X: Ordinal; Amount: SizeInt = 1): Ordinal; external;');
+  DumpCode('Base', 'function Dec(var X: Ordinal; Amount: SizeInt = 1): Ordinal; external;');
+  DumpCode('Base', 'function Ord(X: Ordinal): Int32; external;');
+  DumpCode('Base', 'function SleepUntil(Condition: BoolExpr; Interval, Timeout: Int32): Boolean; external;');
+  DumpCode('Base', 'function Default(T: AnyType): AnyType; external;');
+  DumpCode('Base', 'procedure Sort(var A: array); overload; external;');
+  DumpCode('Base', 'procedure Sort(var A: array; Weights: array of Ordinal; LowToHigh: Boolean); overload; external;');
+  DumpCode('Base', 'procedure Sort(var A: array; CompareFunc: function(L, R: Anything): Int32); overload; external;');
+  DumpCode('Base', 'function Sorted(const A: array): array; overload; external;');
+  DumpCode('Base', 'function Sorted(const A: array; CompareFunc: function(L, R: Anything): Int32): array; overload; external;');
+  DumpCode('Base', 'function Sorted(const A: array; Weights: array of Ordinal; LowToHigh: Boolean): array; overload; external;');
+  DumpCode('Base', 'function Unique(const A: array): array; external;');
+  DumpCode('Base', 'procedure Reverse(var A: array); external;');
+  DumpCode('Base', 'function Reversed(const A: array): array; external;');
+  DumpCode('Base', 'function IndexOf(const Item: T; const A: array): Integer; external;');
+  DumpCode('Base', 'function IndicesOf(const Item: T; const A: array): TIntegerArray; external;');
+  DumpCode('Base', 'function Contains(const Item: T; const A: array): Boolean; external;');
+  DumpCode('Base', 'function RTTIFields(constref RecordTypeOrVar): TRTTIFields; external;');
+  DumpCode('Base', 'function GetExceptionLocationStr: String; external;');
+  DumpCode('Base', 'function GetExceptionMessage: String; external;');
+  DumpCode('Base', 'function GetScriptMethodName(Address: Pointer): String; external;');
+  DumpCode('Base', 'function DumpCallStack(Start: Integer = 0): String; external;');
+
+  DumpCode('Base', 'function Map(KeyType: T; ValueType: V): Map; external;');
+  DumpCode('Base', 'function StringMap(ValueType: V): StringMap; external;');
+  DumpCode('Base', 'function Heap(ValueType: V): Heap; external;');
+
+  inherited Create(TLapeTokenizerString.Create(''));
 end;
 
-destructor TSimbaScript_Compiler.Destroy;
+destructor TScriptCompiler.Destroy;
 begin
   if (FDump <> nil) then
     FreeAndNil(FDump);
@@ -344,7 +399,7 @@ begin
   inherited Destroy;
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Typ: lpString; Value: Pointer; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Typ: lpString; Value: Pointer; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -352,7 +407,7 @@ begin
     DumpVar(AName, Typ);
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Typ: lpString; Value: lpString; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Typ: lpString; Value: lpString; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -360,7 +415,7 @@ begin
     DumpVar(AName, Typ);
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Typ: ELapeBaseType; Value: Pointer; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Typ: ELapeBaseType; Value: Pointer; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -368,7 +423,7 @@ begin
     DumpVar(AName, LapeTypeToString(Typ));
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Value: Int32; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Value: Int32; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -376,7 +431,7 @@ begin
     DumpVar(AName, 'Int32');
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Value: UInt32; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Value: UInt32; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -384,7 +439,7 @@ begin
     DumpVar(AName, 'UInt32');
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Value: Int64; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Value: Int64; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -392,7 +447,7 @@ begin
     DumpVar(AName, 'Int64');
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Value: UInt64; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Value: UInt64; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -400,7 +455,7 @@ begin
     DumpVar(AName, 'UInt64');
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Value: Single; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Value: Single; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -408,7 +463,7 @@ begin
     DumpVar(AName, 'Single');
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Value: Double; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Value: Double; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -416,7 +471,7 @@ begin
     DumpVar(AName, 'Double');
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Value: AnsiString; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Value: AnsiString; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -424,7 +479,7 @@ begin
     DumpVar(AName, 'String');
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Value: UnicodeString; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Value: UnicodeString; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -432,7 +487,7 @@ begin
     DumpVar(AName, 'UnicodeString');
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Value: Variant; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Value: Variant; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -440,7 +495,7 @@ begin
     DumpVar(AName, 'Variant');
 end;
 
-function TSimbaScript_Compiler.addGlobalVar(Value: Pointer; AName: lpString): TLapeGlobalVar;
+function TScriptCompiler.addGlobalVar(Value: Pointer; AName: lpString): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -448,7 +503,7 @@ begin
     DumpVar(AName, 'Pointer');
 end;
 
-function TSimbaScript_Compiler.addGlobalFunc(Header: lpString; Value: Pointer): TLapeGlobalVar;
+function TScriptCompiler.addGlobalFunc(Header: lpString; Value: Pointer): TLapeGlobalVar;
 begin
   Result := inherited;
 
@@ -456,7 +511,7 @@ begin
     DumpMethod(Header);
 end;
 
-function TSimbaScript_Compiler.addGlobalType(Str: lpString; AName: lpString): TLapeType;
+function TScriptCompiler.addGlobalType(Str: lpString; AName: lpString): TLapeType;
 begin
   Result := inherited;
 
@@ -464,17 +519,17 @@ begin
     DumpType(AName, Str);
 end;
 
-procedure TSimbaScript_Compiler.pushCode(Code: String);
+procedure TScriptCompiler.pushCode(Code: String);
 begin
   pushTokenizer(TLapeTokenizerString.Create(Code));
 end;
 
-procedure TSimbaScript_Compiler.addDelayedCode(Code: TStringArray; AFileName: lpString);
+procedure TScriptCompiler.addDelayedCode(Code: TStringArray; AFileName: lpString);
 begin
   addDelayedCode(LapeDelayedFlags + LineEnding.Join(Code), AFileName);
 end;
 
-procedure TSimbaScript_Compiler.addProperty(Obj, Name, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer);
+procedure TScriptCompiler.addProperty(Obj, Name, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer);
 begin
   if (ReadFunc <> nil) then
     addGlobalFunc('property ' + Obj + '.' + Name + ': ' + Typ + ';', ReadFunc);
@@ -482,7 +537,7 @@ begin
     addGlobalFunc('property ' + Obj + '.' + Name + '(Value: ' + Typ + ');', WriteFunc);
 end;
 
-procedure TSimbaScript_Compiler.addPropertyIndexed(Obj, Name, Params, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer);
+procedure TScriptCompiler.addPropertyIndexed(Obj, Name, Params, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer);
 begin
   if (ReadFunc <> nil) then
     addGlobalFunc('property ' + Obj + '.' + Name + '(' + Params + '):' + Typ + ';', ReadFunc);
@@ -490,7 +545,7 @@ begin
     addGlobalFunc('property ' + Obj + '.' + Name + '(' + Params + '; Value: ' + Typ + ');', WriteFunc);
 end;
 
-procedure TSimbaScript_Compiler.addMagic(Name: String; Params: array of lpString; ParamTypes: array of ELapeParameterType; Res: String; Func: Pointer);
+procedure TScriptCompiler.addMagic(Name: String; Params: array of lpString; ParamTypes: array of ELapeParameterType; Res: String; Func: Pointer);
 
   function getType(Name: lpString): TLapeType;
   begin
@@ -526,7 +581,7 @@ begin
     addMethod(Header.NewGlobalVar(Func));
 end;
 
-function TSimbaScript_Compiler.addGlobalFunc(Header: lpString; Body: TStringArray): TLapeTree_Method;
+function TScriptCompiler.addGlobalFunc(Header: lpString; Body: TStringArray): TLapeTree_Method;
 var
   Decl: lpString;
   OldState: Pointer;
@@ -543,10 +598,10 @@ begin
   end;
 
   if (FDump <> nil) then
-    DumpAdd(DumpSection, Decl);
+    DumpCode(DumpSection, Decl);
 end;
 
-function TSimbaScript_Compiler.addGlobalFunc(Header: lpString; Value: Pointer; ABI: TFFIABI): TLapeGlobalVar;
+function TScriptCompiler.addGlobalFunc(Header: lpString; Value: Pointer; ABI: TFFIABI): TLapeGlobalVar;
 var
   Closure: TManagedImportClosure;
 begin
@@ -557,17 +612,17 @@ begin
     Result := addGlobalFunc(Header, Closure.Func);
 end;
 
-function TSimbaScript_Compiler.addGlobalType(Str: lpString; AName: lpString; ABI: TFFIABI): TLapeType;
+function TScriptCompiler.addGlobalType(Str: lpString; AName: lpString; ABI: TFFIABI): TLapeType;
 begin
   Result := addGlobalType('native(type ' + Str + ', ffi_' + ABIToStr(ABI) + ')', AName);
 end;
 
-function TSimbaScript_Compiler.addGlobalType(Str: TStringArray; Name: String): TLapeType;
+function TScriptCompiler.addGlobalType(Str: TStringArray; Name: String): TLapeType;
 begin
   Result := addGlobalType(LineEnding.Join(Str), Name);
 end;
 
-function TSimbaScript_Compiler.addClassConstructor(Obj, Params: lpString; Func: Pointer; IsOverload: Boolean): TLapeGlobalVar;
+function TScriptCompiler.addClassConstructor(Obj, Params: lpString; Func: Pointer; IsOverload: Boolean): TLapeGlobalVar;
 var
   Directives: String;
 begin
@@ -578,12 +633,12 @@ begin
   Result := addGlobalFunc('function ' + Obj + '.Create' + Params + ': ' + Obj + ';' + Directives, Func);
 end;
 
-procedure TSimbaScript_Compiler.addClass(Name: lpString; Parent: lpString);
+procedure TScriptCompiler.addClass(Name: lpString; Parent: lpString);
 begin
   addGlobalType('strict ' + Parent, Name);
 end;
 
-function TSimbaScript_Compiler.Compile: Boolean;
+function TScriptCompiler.Compile: Boolean;
 begin
   {$IF DEFINED(DARWIN) and DECLARED(LoadFFI)}
   if not FFILoaded then
@@ -591,12 +646,12 @@ begin
   {$ENDIF}
 
   if not FFILoaded then
-    raise Exception.Create('ERROR: libffi is missing or incompatible');
+    SimbaException('ERROR: libffi is missing or incompatible');
 
   Result := inherited Compile();
 end;
 
-procedure TSimbaScript_Compiler.CallProc(ProcName: String);
+procedure TScriptCompiler.CallProc(ProcName: String);
 var
   Method: TLapeGlobalVar;
 begin

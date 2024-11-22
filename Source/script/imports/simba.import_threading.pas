@@ -33,27 +33,27 @@ Multithreading methods.
 
 procedure _LapeCreateThread(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  TSimbaThread(Result^) := TSimbaThread.Create(TLapeCodeEmitter(Params^[0]^), PMethod(Params^[1])^, PMethod(Params^[2])^);
+  TSimbaThread(Result^) := TSimbaThread.Create(TLapeCodeEmitter(Params^[0]), PMethod(Params^[1])^, PMethod(Params^[2])^);
   TSimbaThread(Result^).Start();
 end;
 
 procedure _LapeCreateThreadEx(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  TSimbaThreadEx(Result^) := TSimbaThreadEx.Create(TLapeCodeEmitter(Params^[0]^), PMethod(Params^[1])^, PMethod(Params^[2])^);
+  TSimbaThreadEx(Result^) := TSimbaThreadEx.Create(TLapeCodeEmitter(Params^[0]), PMethod(Params^[1])^, PMethod(Params^[2])^);
   TSimbaThreadEx(Result^).Params := Copy(TPointerArray(Params^[3]^));
   TSimbaThreadEx(Result^).Start();
 end;
 
 procedure _LapeCreateThreadAnon(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  TSimbaThread(Result^) := TSimbaThread.Create(TLapeCodeEmitter(Params^[0]^), PMethod(Params^[1])^, PMethod(Params^[2])^);
+  TSimbaThread(Result^) := TSimbaThread.Create(TLapeCodeEmitter(Params^[0]), PMethod(Params^[1])^, PMethod(Params^[2])^);
   TSimbaThread(Result^).FreeOnTerminate := True;
   TSimbaThread(Result^).Start();
 end;
 
 procedure _LapeCreateThreadAnonEx(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  TSimbaThreadEx(Result^) := TSimbaThreadEx.Create(TLapeCodeEmitter(Params^[0]^), PMethod(Params^[1])^, PMethod(Params^[2])^);
+  TSimbaThreadEx(Result^) := TSimbaThreadEx.Create(TLapeCodeEmitter(Params^[0]), PMethod(Params^[1])^, PMethod(Params^[2])^);
   TSimbaThreadEx(Result^).Params := Copy(TPointerArray(Params^[3]^));
   TSimbaThreadEx(Result^).FreeOnTerminate := True;
   TSimbaThreadEx(Result^).Start();
@@ -61,7 +61,7 @@ end;
 
 procedure _LapeCreateThreadSchedule(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  TSimbaThreadSchedule(Result^) := TSimbaThreadSchedule.Create(TLapeCodeEmitter(Params^[0]^), PMethod(Params^[1])^);
+  TSimbaThreadSchedule(Result^) := TSimbaThreadSchedule.Create(TLapeCodeEmitter(Params^[0]), PMethod(Params^[1])^);
   TSimbaThreadSchedule(Result^).Interval := PInteger(Params^[2])^;
   TSimbaThreadSchedule(Result^).Name := PString(Params^[3])^;
   TSimbaThreadSchedule(Result^).Start();
@@ -69,7 +69,7 @@ end;
 
 procedure _LapeCreateThreadScheduleEx(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  TSimbaThreadScheduleEx(Result^) := TSimbaThreadScheduleEx.Create(TLapeCodeEmitter(Params^[0]^), PMethod(Params^[1])^);
+  TSimbaThreadScheduleEx(Result^) := TSimbaThreadScheduleEx.Create(TLapeCodeEmitter(Params^[0]), PMethod(Params^[1])^);
   TSimbaThreadScheduleEx(Result^).Params := Copy(TPointerArray(Params^[2]^));
   TSimbaThreadScheduleEx(Result^).Interval := PInteger(Params^[3])^;
   TSimbaThreadScheduleEx(Result^).Name := PString(Params^[4])^;
@@ -353,13 +353,12 @@ begin
 
     DumpSection := '!Hidden';
 
-    addGlobalVar(Emitter, '_CodeEmitter').isConstant := True;
-    addGlobalFunc('function _CreateThread(Emitter: Pointer; Method: procedure of object; OnTerminate: procedure(Thread: TThread) of object): TThread;', @_LapeCreateThread);
-    addGlobalFunc('function _CreateThreadEx(Emitter: Pointer; Method: procedure(Params: TPointerArray) of object; OnTerminate: procedure(Thread: TThread; Params: TPointerArray) of object; Params: TPointerArray): TThread;', @_LapeCreateThreadEx);
-    addGlobalFunc('function _CreateThreadAnon(Emitter: Pointer; Method: procedure of object; OnTerminateMethod: procedure(Thread: TThread) of object): TThread;', @_LapeCreateThreadAnon);
-    addGlobalFunc('function _CreateThreadAnonEx(Emitter: Pointer; Method: procedure(Params: TPointerArray) of object; OnTerminateMethod: procedure(Thread: TThread; Params: TPointerArray) of object; Params: TPointerArray): TThread;', @_LapeCreateThreadAnonEx);
-    addGlobalFunc('function _CreateThreadSchedule(Emitter: Pointer; Method: procedure of object; Interval: Integer; Name: String): TThread', @_LapeCreateThreadSchedule);
-    addGlobalFunc('function _CreateThreadScheduleEx(Emitter: Pointer; Method: procedure(Params: TPointerArray) of object; Params: TPointerArray; Interval: Integer; Name: String): TThread', @_LapeCreateThreadScheduleEx);
+    addGlobalMethod('function _CreateThread(Method: procedure of object; OnTerminate: procedure(Thread: TThread) of object): TThread;', @_LapeCreateThread, Script.Compiler.Emitter);
+    addGlobalMethod('function _CreateThreadEx(Method: procedure(Params: TPointerArray) of object; OnTerminate: procedure(Thread: TThread; Params: TPointerArray) of object; Params: TPointerArray): TThread;', @_LapeCreateThreadEx, Script.Compiler.Emitter);
+    addGlobalMethod('function _CreateThreadAnon(Method: procedure of object; OnTerminateMethod: procedure(Thread: TThread) of object): TThread;', @_LapeCreateThreadAnon, Script.Compiler.Emitter);
+    addGlobalMethod('function _CreateThreadAnonEx(Method: procedure(Params: TPointerArray) of object; OnTerminateMethod: procedure(Thread: TThread; Params: TPointerArray) of object; Params: TPointerArray): TThread;', @_LapeCreateThreadAnonEx, Script.Compiler.Emitter);
+    addGlobalMethod('function _CreateThreadSchedule(Method: procedure of object; Interval: Integer; Name: String): TThread', @_LapeCreateThreadSchedule, Script.Compiler.Emitter);
+    addGlobalMethod('function _CreateThreadScheduleEx(Method: procedure(Params: TPointerArray) of object; Params: TPointerArray; Interval: Integer; Name: String): TThread', @_LapeCreateThreadScheduleEx, Script.Compiler.Emitter);
 
     addGlobalVar('array of TThread', nil, '_ScheduleThreads');
     with addGlobalVar('TLock', nil, '_ScheduleLock') do
@@ -372,7 +371,7 @@ begin
       '  try',
       '    if (not IsScriptMethod(Method)) then',
       '      raise "Script method expected";',
-      '    _ScheduleThreads += _CreateThreadSchedule(_CodeEmitter, Method, Interval, Name);',
+      '    _ScheduleThreads += _CreateThreadSchedule(Method, Interval, Name);',
       '  finally',
       '    _ScheduleLock.Leave();',
       '  end;',
@@ -386,7 +385,7 @@ begin
       '  try',
       '    if (not IsScriptMethod(Method)) then',
       '      raise "Script method expected";',
-      '    _ScheduleThreads += _CreateThreadScheduleEx(_CodeEmitter, Method, Params, Interval, Name);',
+      '    _ScheduleThreads += _CreateThreadScheduleEx(Method, Params, Interval, Name);',
       '  finally',
       '    _ScheduleLock.Leave();',
       '  end;',
@@ -434,7 +433,7 @@ begin
       'begin',
       '  if (not IsScriptMethod(Method)) then',
       '    raise "Script method expected";',
-      '  Result := _CreateThread(_CodeEmitter, Method, nil);',
+      '  Result := _CreateThread(Method, nil);',
       'end;'
     ]);
 
@@ -443,7 +442,7 @@ begin
       'begin',
       '  if (not IsScriptMethod(Method)) or (not IsScriptMethod(OnTerminateMethod)) then',
       '    raise "Script method expected";',
-      '  Result := _CreateThread(_CodeEmitter, Method, OnTerminateMethod);',
+      '  Result := _CreateThread(Method, OnTerminateMethod);',
       'end;'
     ]);
 
@@ -452,7 +451,7 @@ begin
       'begin',
       '  if (not IsScriptMethod(Method)) then',
       '    raise "Script method expected";',
-      '  Result := _CreateThreadEx(_CodeEmitter, Method, nil, Params);',
+      '  Result := _CreateThreadEx(Method, nil, Params);',
       'end;'
     ]);
 
@@ -461,33 +460,33 @@ begin
       'begin',
       '  if (not IsScriptMethod(Method)) or (not IsScriptMethod(OnTerminateMethod)) then',
       '    raise "Script method expected";',
-      '  Result := _CreateThreadEx(_CodeEmitter, Method, OnTerminateMethod, Params);',
+      '  Result := _CreateThreadEx(Method, OnTerminateMethod, Params);',
       'end;'
     ]);
 
     addGlobalFunc(
       'procedure RunInThread(Method: procedure of object); overload;', [
       'begin',
-      '  _CreateThreadAnon(_CodeEmitter, Method, nil);',
+      '  _CreateThreadAnon(Method, nil);',
       'end;'
     ]);
     addGlobalFunc(
       'procedure RunInThread(Method: procedure of object; OnTerminateMethod: procedure(Thread: TThread) of object); overload;', [
       'begin',
-      '  _CreateThreadAnon(_CodeEmitter, Method, nil);',
+      '  _CreateThreadAnon(Method, nil);',
       'end;'
     ]);
 
     addGlobalFunc(
       'procedure RunInThreadEx(Method: procedure(Params: TPointerArray) of object; Params: TPointerArray); overload;', [
       'begin',
-      '  _CreateThreadAnonEx(_CodeEmitter, Method, nil, Params);',
+      '  _CreateThreadAnonEx(Method, nil, Params);',
       'end;'
     ]);
     addGlobalFunc(
       'procedure RunInThreadEx(Method: procedure(Params: TPointerArray) of object; OnTerminateMethod: procedure(Thread: TThread; Params: TPointerArray) of object; Params: TPointerArray); overload;', [
       'begin',
-      '  _CreateThreadAnonEx(_CodeEmitter, Method, OnTerminateMethod, Params);',
+      '  _CreateThreadAnonEx(Method, OnTerminateMethod, Params);',
       'end;'
     ]);
 

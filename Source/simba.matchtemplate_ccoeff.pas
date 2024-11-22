@@ -42,7 +42,7 @@ function MatchTemplateMask_CCOEFF_Cache(ACache: TMatchTemplateCacheBase; Templat
 implementation
 
 uses
-  simba.threading, simba.vartype_floatmatrix, simba.vartype_ordmatrix;
+  simba.threading, simba.vartype_matrix;
 
 // MatchTemplate_CCOEFF
 function __MatchTemplate_CCOEFF(Image, Template: TIntegerMatrix; Normed: Boolean): TSingleMatrix;

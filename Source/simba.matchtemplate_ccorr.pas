@@ -42,8 +42,7 @@ function MatchTemplateMask_CCORR_Cache(ACache: TMatchTemplateCacheBase; Template
 implementation
 
 uses
-  simba.threading,
-  simba.vartype_floatmatrix, simba.vartype_ordmatrix;
+  simba.threading, simba.vartype_matrix;
 
 // MatchTemplate_CCORR
 function __MatchTemplate_CCORR(Image, Templ: TIntegerMatrix; Normed: Boolean): TSingleMatrix;

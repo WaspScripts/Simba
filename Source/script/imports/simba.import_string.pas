@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils,
   lptypes, lpvartypes,
-  simba.base, simba.script, simba.vartype_string, simba.vartype_stringarray;
+  simba.base, simba.script, simba.vartype_string;
 
 procedure ImportString(Script: TSimbaScript);
 

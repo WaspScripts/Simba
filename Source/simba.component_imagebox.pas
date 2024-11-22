@@ -784,37 +784,43 @@ end;
 
 function TSimbaImageBox.FindDTM(DTM: TDTM): TPointArray;
 var
-  Img: TSimbaImage;
+  Target: TSimbaTarget;
 begin
-  Img := LazImage_ToSimbaImage(FBackground);
+  with LazImage_ToSimbaImage(FBackground) do
   try
-    Result := Img.FindDTM(DTM, -1);
+    Target.SetImage(GetSelf() as TSimbaImage);
+
+    Result := Target.FindDTMEx(DTM, -1, Target.Bounds);
   finally
-    Img.Free();
+    Free();
   end;
 end;
 
 function TSimbaImageBox.FindColor(AColor: TColor; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray;
 var
-  Img: TSimbaImage;
+  Target: TSimbaTarget;
 begin
-  Img := LazImage_ToSimbaImage(FBackground);
+  with LazImage_ToSimbaImage(FBackground) do
   try
-    Result := Img.FindColor(AColor, Tolerance, ColorSpace, Multipliers);
+    Target.SetImage(GetSelf() as TSimbaImage);
+
+    Result := Target.FindColor(AColor, Tolerance, ColorSPace, Multipliers, Target.Bounds);
   finally
-    Img.Free();
+    Free();
   end;
 end;
 
 function TSimbaImageBox.MatchColor(AColor: TColor; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TSingleMatrix;
 var
-  Img: TSimbaImage;
+  Target: TSimbaTarget;
 begin
-  Img := LazImage_ToSimbaImage(FBackground);
+  with LazImage_ToSimbaImage(FBackground) do
   try
-    Result := Img.MatchColor(AColor, ColorSpace, Multipliers);
+    Target.SetImage(GetSelf() as TSimbaImage);
+
+    Result := Target.MatchColor(Color, ColorSpace, Multipliers, Target.Bounds);
   finally
-    Img.Free();
+    Free();
   end;
 end;
 

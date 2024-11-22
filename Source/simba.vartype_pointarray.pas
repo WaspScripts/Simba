@@ -216,9 +216,9 @@ uses
   Math,
   simba.containers, simba.geometry, simba.math,
   simba.container_slacktree,
-  simba.vartype_ordarray, simba.vartype_ordmatrix,
+  simba.vartype_matrix, simba.vartype_ordarray,
   simba.vartype_box, simba.vartype_point, simba.vartype_quad, simba.vartype_circle,
-  simba.array_algorithm, simba.vartype_floatmatrix;
+  simba.array_algorithm;
 
 procedure GetAdjacent4(var Adj: TPointArray; const P: TPoint); inline;
 begin

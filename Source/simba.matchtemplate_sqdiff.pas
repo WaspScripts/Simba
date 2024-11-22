@@ -42,8 +42,7 @@ function MatchTemplateMask_SQDIFF_Cache(ACache: TMatchTemplateCacheBase; Templat
 implementation
 
 uses
-  simba.threading,
-  simba.vartype_floatmatrix, simba.vartype_ordmatrix;
+  simba.threading, simba.vartype_matrix;
 
 // MatchTemplate_SQDIFF
 function __MatchTemplate_SQDIFF(Image, Templ: TIntegerMatrix; Normed: Boolean): TSingleMatrix;

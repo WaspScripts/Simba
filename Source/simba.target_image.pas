@@ -11,13 +11,16 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.image;
+  simba.base;
 
 procedure ImageTarget_GetDimensions(Target: Pointer; out W, H: Integer);
 function ImageTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
 function ImageTarget_IsValid(Target: Pointer): Boolean;
 
 implementation
+
+uses
+  simba.image;
 
 procedure ImageTarget_GetDimensions(Target: Pointer; out W, H: Integer);
 var

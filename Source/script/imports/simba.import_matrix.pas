@@ -14,7 +14,7 @@ implementation
 
 uses
   lptypes, lpvartypes,
-  simba.vartype_floatmatrix, simba.vartype_ordmatrix;
+  simba.vartype_matrix;
 
 (*
 Matrix

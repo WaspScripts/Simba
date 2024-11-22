@@ -17,7 +17,7 @@ interface
 uses
   Classes, SysUtils, Graphics,
   simba.base, simba.colormath, simba.colormath_distance, simba.target,
-  simba.image, simba.colormath_distance_unrolled, simba.threading, simba.vartype_floatmatrix;
+  simba.image, simba.colormath_distance_unrolled, simba.threading, simba.vartype_matrix;
 
 function FindImageOnTarget(constref Target: TSimbaTarget; Image: TSimbaImage; Bounds: TBox;
                            Formula: EColorSpace; Tolerance: Single; Multipliers: TChannelMultipliers; MaxToFind: Integer = -1): TPointArray;
