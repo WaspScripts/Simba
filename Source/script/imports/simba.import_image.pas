@@ -1711,34 +1711,15 @@ begin
   PStringArray(Result)^ := TSimbaImage.Fonts();
 end;
 
-procedure _LapeImage_FindEdges1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PPointArray(Result)^ := PSimbaImage(Params^[0])^.FindEdges(PSingle(Params^[1])^, PColorSpace(Params^[2])^, PChannelMultipliers(Params^[3])^);
-end;
-
-procedure _LapeImage_FindEdges2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PPointArray(Result)^ := PSimbaImage(Params^[0])^.FindEdges(PSingle(Params^[1])^);
-end;
-
-procedure _LapeImage_PeakBrightness(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PInteger(Result)^ := PSimbaImage(Params^[0])^.PeakBrightness();
-end;
-
-procedure _LapeImage_AverageBrightness(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PInteger(Result)^ := PSimbaImage(Params^[0])^.AverageBrightness();
-end;
-
 (*
-TImage.Finder
+TImage.Target
 -------------
 ```
-function TImage.Finder: TSimbaFinder;
+function TImage.Target: TTarget;
 ```
 
-Returns a TSimbaFinder which is targetted to the image.
+Returns a target which is targetted to the image.
+Use this to find colors and such on a image.
 *)
 
 (*
@@ -1820,12 +1801,9 @@ begin
     addProperty('TImage', 'Width', 'Integer', @_LapeImage_Width_Read);
     addProperty('TImage', 'Height', 'Integer', @_LapeImage_Height_Read);
     addProperty('TImage', 'Center', 'TPoint', @_LapeImage_Center_Read);
-
     addProperty('TImage', 'DefaultPixel', 'TColorBGRA', @_LapeImage_DefaultPixel_Read, @_LapeImage_DefaultPixel_Write);
-
     addProperty('TImage', 'DrawColor', 'TColor', @_LapeImage_DrawColor_Read, @_LapeImage_DrawColor_Write);
     addProperty('TImage', 'DrawAlpha', 'Byte', @_LapeImage_DrawAlpha_Read, @_LapeImage_DrawAlpha_Write);
-
     addProperty('TImage', 'FontName', 'String', @_LapeImage_FontName_Read, @_LapeImage_FontName_Write);
     addProperty('TImage', 'FontSize', 'Single', @_LapeImage_FontSize_Read, @_LapeImage_FontSize_Write);
     addProperty('TImage', 'FontAntialiasing', 'Boolean', @_LapeImage_FontAntialiasing_Read, @_LapeImage_FontAntialiasing_Write);
@@ -1960,9 +1938,6 @@ begin
     addGlobalFunc('function TImage.LoadFontsInDir(Dir: String): Boolean; static;', @_LapeImage_LoadFontsInDir);
 
     addGlobalFunc('procedure TImage.SaveUnfreedImagesInDir(Directory: String); static;', @_LapeImage_SaveUnfreedImagesInDir);
-
-    addGlobalFunc('function TImage.FindEdges(MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray; overload;', @_LapeImage_FindEdges1);
-    addGlobalFunc('function TImage.FindEdges(MinDiff: Single): TPointArray; overload;', @_LapeImage_FindEdges2);
 
     DumpSection := '';
   end;

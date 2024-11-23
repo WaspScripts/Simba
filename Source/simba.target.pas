@@ -689,51 +689,23 @@ begin
 end;
 
 function TSimbaTarget.AverageBrightness(ABounds: TBox): Integer;
-var
-  Image: TSimbaImage;
 begin
-  if GetImageDataAsImage(ABounds, Image) then
-  try
-    Result := Image.AverageBrightness();
-  finally
-    Image.Free();
-  end;
+  Result := AverageBrightnessOnTarget(Self, Bounds);
 end;
 
 function TSimbaTarget.PeakBrightness(ABounds: TBox): Integer;
-var
-  Image: TSimbaImage;
 begin
-  if GetImageDataAsImage(ABounds, Image) then
-  try
-    Result := Image.PeakBrightness();
-  finally
-    Image.Free();
-  end;
+  Result := PeakBrightnessOnTarget(Self, Bounds);
 end;
 
 function TSimbaTarget.FindEdges(MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; ABounds: TBox): TPointArray;
-var
-  Image: TSimbaImage;
 begin
-  if GetImageDataAsImage(ABounds, Image) then
-  try
-    Result := Image.FindEdges(MinDiff, ColorSpace, Multipliers);
-  finally
-    Image.Free();
-  end;
+  Result := FindEdgesOnTarget(Self, ABounds, MinDiff, ColorSpace, Multipliers);
 end;
 
 function TSimbaTarget.FindEdges(MinDiff: Single; ABounds: TBox): TPointArray;
-var
-  Image: TSimbaImage;
 begin
-  if GetImageDataAsImage(ABounds, Image) then
-  try
-    Result := Image.FindEdges(MinDiff);
-  finally
-    Image.Free();
-  end;
+  Result := FindEdgesOnTarget(Self, ABounds, MinDiff, DefaultColorSpace, DefaultMultipliers);
 end;
 
 function TSimbaTarget.AddTargetChangeEvent(Event: TTargetEvent): TTargetEvent;

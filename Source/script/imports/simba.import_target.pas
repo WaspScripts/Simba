@@ -157,7 +157,7 @@ end;
 TTarget.FreezeImage
 -------------------
 ```
-procedure TTarget.FreezeImage(ABounds: TBox);
+procedure TTarget.FreezeImage(Bounds: TBox = [-1,-1,-1,-1]);
 ```
 *)
 procedure _LapeTarget_FreezeImage(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
@@ -1169,7 +1169,7 @@ begin
     addGlobalFunc('procedure TTarget.RemoveTargetChangeEvent(Event: TTargetEvent)', @_Lape_Target_RemoveTargetChangeEvent);
     addGlobalFunc('procedure TTarget.RemoveTargetInvalidEvent(Event: TTargetEvent)', @_Lape_Target_RemoveTargetInvalidEvent);
 
-    addGlobalFunc('procedure TTarget.FreezeImage(ABounds: TBox);', @_LapeTarget_FreezeImage);
+    addGlobalFunc('procedure TTarget.FreezeImage(Bounds: TBox = [-1,-1,-1,-1]);', @_LapeTarget_FreezeImage);
     addGlobalFunc('procedure TTarget.UnFreezeImage;', @_LapeTarget_UnFreezeImage);
     addGlobalFunc('function TTarget.IsImageFrozen: Boolean;', @_LapeTarget_IsImageFrozen);
     addGlobalFunc('function TTarget.GetImage(Bounds: TBox = [-1,-1,-1,-1]): TImage', @_LapeTarget_GetImage);

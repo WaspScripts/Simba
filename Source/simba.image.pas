@@ -261,13 +261,6 @@ type
     // Laz bridge
     function ToLazBitmap: TBitmap;
     procedure FromLazBitmap(LazBitmap: TBitmap);
-
-    // Finders
-    function FindEdges(MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray; overload;
-    function FindEdges(MinDiff: Single): TPointArray; overload;
-
-    function PeakBrightness: Integer;
-    function AverageBrightness: Integer;
   end;
 
   PSimbaImage = ^TSimbaImage;
@@ -850,73 +843,6 @@ begin
 
   TempBitmap.FData := nil; // data is now ours
   TempBitmap.Free();
-end;
-
-function TSimbaImage.FindEdges(MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray;
-var
-  X, Y, W, H: Integer;
-  Buffer: TSimbaPointBuffer;
-  First, Second, Third: TColor;
-begin
-  Buffer.Init();
-
-  W := FWidth - 2;
-  H := FHeight - 2;
-  for Y := 0 to H do
-    for X := 0 to W do
-    begin
-      First  := TSimbaColorConversion.BGRAToColor(FData[Y * FWidth + X]);
-      Second := TSimbaColorConversion.BGRAToColor(FData[Y * FWidth + (X+1)]);
-      Third  := TSimbaColorConversion.BGRAToColor(FData[(Y+1) * FWidth + X]);
-
-      if (not SimilarColors(First, Second, MinDiff, ColorSpace, Multipliers)) or
-         (not SimilarColors(First, Third, MinDiff, ColorSpace, Multipliers)) then
-        Buffer.Add(X, Y);
-    end;
-
-  Result := Buffer.ToArray(False);
-end;
-
-function TSimbaImage.FindEdges(MinDiff: Single): TPointArray;
-begin
-  Result := FindEdges(MinDiff, DefaultColorSpace, DefaultMultipliers);
-end;
-
-function TSimbaImage.PeakBrightness: Integer;
-var
-  X, Y: Integer;
-begin
-  Result := 0;
-
-  for Y := 0 to FHeight - 1 do
-    for X := 0 to FWidth - 1 do
-      with FData[Y * FWidth + X] do
-      begin
-        if (R > Result) then Result := R;
-        if (G > Result) then Result := G;
-        if (B > Result) then Result := B;
-      end;
-
-  Result := Round(Result / 255 * 100);
-end;
-
-function TSimbaImage.AverageBrightness: Integer;
-var
-  X, Y, Sum: Integer;
-begin
-  Result := 0;
-
-  for Y := 0 to FHeight - 1 do
-  begin
-    Sum := 0;
-    for X := 0 to FWidth - 1 do
-      with FData[Y * FWidth + X] do
-        Sum += Round((R + G + B) / 3 * 0.392);
-
-    Result += Sum div FWidth;
-  end;
-
-  Result := Round(Result / FHeight);
 end;
 
 procedure TSimbaImage.DrawTPA(TPA: TPointArray);

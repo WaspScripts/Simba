@@ -50,6 +50,18 @@ function GetColorsMatrixOnBuffer(Buffer: PColorBGRA; BufferWidth: Integer; Searc
 
 function GetColorsMatrixOnTarget(constref Target: TSimbaTarget; Bounds: TBox): TIntegerMatrix;
 
+function FindEdgesOnBuffer(Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer;
+                           MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray;
+
+function FindEdgesOnTarget(constref Target: TSimbaTarget; Bounds: TBox;
+                           MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray;
+
+function PeakBrightnessOnBuffer(Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer): Integer;
+function PeakBrightnessOnTarget(constref Target: TSimbaTarget; Bounds: TBox): Integer;
+
+function AverageBrightnessOnBuffer(Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer): Integer;
+function AverageBrightnessOnTarget(constref Target: TSimbaTarget; Bounds: TBox): Integer;
+
 var
   ColorFinderMultithreadOpts: record
     Enabled: Boolean;
@@ -517,6 +529,102 @@ begin
   if Target.GetImageData(Bounds, Buffer, BufferWidth) then
   try
     Result := GetColorsMatrixOnBuffer(Buffer, BufferWidth, Bounds.Width, Bounds.Height);
+  finally
+    Target.FreeImageData(Buffer);
+  end;
+end;
+
+function FindEdgesOnBuffer(Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer;
+                           MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray;
+var
+  X, Y, W, H: Integer;
+  PointBuffer: TSimbaPointBuffer;
+  First, Second, Third: TColor;
+begin
+  W := SearchWidth - 2;
+  H := SearchHeight - 2;
+  for Y := 0 to H do
+    for X := 0 to W do
+    begin
+      First  := TSimbaColorConversion.BGRAToColor(Buffer[Y * BufferWidth + X]);
+      Second := TSimbaColorConversion.BGRAToColor(Buffer[Y * BufferWidth + (X+1)]);
+      Third  := TSimbaColorConversion.BGRAToColor(Buffer[(Y+1) * BufferWidth + X]);
+
+      if (not SimilarColors(First, Second, MinDiff, ColorSpace, Multipliers)) or
+         (not SimilarColors(First, Third, MinDiff, ColorSpace, Multipliers)) then
+        PointBuffer.Add(X, Y);
+    end;
+
+  Result := PointBuffer.ToArray(False);
+end;
+
+function FindEdgesOnTarget(constref Target: TSimbaTarget; Bounds: TBox;
+                          MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray;
+var
+  Buffer: PColorBGRA;
+  BufferWidth: Integer;
+begin
+  if Target.GetImageData(Bounds, Buffer, BufferWidth) then
+  try
+    Result := FindEdgesOnBuffer(Buffer, BufferWidth, Bounds.Width, Bounds.Height, MinDiff, ColorSpace, Multipliers);
+  finally
+    Target.FreeImageData(Buffer);
+  end;
+end;
+
+function PeakBrightnessOnBuffer(Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer): Integer;
+var
+  X, Y, Grey: Integer;
+begin
+  Result := 0;
+
+  for Y := 0 to SearchHeight - 1 do
+    for X := 0 to SearchWidth - 1 do
+      with Buffer[Y * BufferWidth + X] do
+      begin
+        Grey := Round(R * 0.299 + G * 0.587 + B * 0.114);
+        if (Grey > Result) then
+          Result := Grey;
+      end;
+end;
+
+function PeakBrightnessOnTarget(constref Target: TSimbaTarget; Bounds: TBox): Integer;
+var
+  Buffer: PColorBGRA;
+  BufferWidth: Integer;
+begin
+  if Target.GetImageData(Bounds, Buffer, BufferWidth) then
+  try
+    Result := PeakBrightnessOnBuffer(Buffer, BufferWidth, Bounds.Width, Bounds.Height);
+  finally
+    Target.FreeImageData(Buffer);
+  end;
+end;
+
+function AverageBrightnessOnBuffer(Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer): Integer;
+var
+  X, Y: Integer;
+  Sum: UInt64;
+begin
+  Result := 0;
+  Sum := 0;
+
+  for Y := 0 to SearchHeight - 1 do
+    for X := 0 to SearchWidth - 1 do
+      with Buffer[Y * BufferWidth + X] do
+        Sum += Round(R * 0.299 + G * 0.587 + B * 0.114);
+
+  Result := Sum div (SearchWidth * SearchHeight);
+end;
+
+function AverageBrightnessOnTarget(constref Target: TSimbaTarget; Bounds: TBox): Integer;
+var
+  Buffer: PColorBGRA;
+  BufferWidth: Integer;
+begin
+  if Target.GetImageData(Bounds, Buffer, BufferWidth) then
+  try
+    Result := AverageBrightnessOnBuffer(Buffer, BufferWidth, Bounds.Width, Bounds.Height);
   finally
     Target.FreeImageData(Buffer);
   end;
