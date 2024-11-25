@@ -65,13 +65,38 @@ type
     MouseScroll: procedure(Target: Pointer; Scrolls: Integer);
   end;
 
-  TMouseButtonEvent   = procedure(Target: Pointer; Button: EMouseButton; Down: Boolean) of object;
-  TMouseTeleportEvent = procedure(Target: Pointer; P: TPoint) of object;
-  TMouseMovingEvent   = procedure(Target: Pointer; var X, Y, DestX, DestY: Double; var Stop: Boolean) of object;
-  TTargetEvent        = procedure(Target: Pointer) of object;
+  {$scopedenums on}
+  ETargetEventType = (
+    TARGET_CHANGE, TARGET_INVALID,
+    MOUSE_TELEPORT, MOUSE_BUTTON
+  );
+  {$scopedenums off}
 
-  PSimbaTarget = ^TSimbaTarget;
+  TTargetEventData = record
+    EventType: ETargetEventType;
+
+    TargetChange: record
+      { nothing }
+    end;
+    TargetInvalid: record
+      { nothing }
+    end;
+
+    MouseButton: record
+      Button: EMouseButton;
+      Down: Boolean;
+    end;
+
+    MouseTeleport: record
+      X: Integer;
+      Y: Integer;
+    end;
+  end;
+
   TSimbaTarget = record
+  public
+  type
+    TEvent = procedure(var Target: TSimbaTarget; Data: TTargetEventData) of object;
   private
     FTarget: TSimbaTargetInfo;
     FFrozen: record
@@ -79,10 +104,15 @@ type
       DataWidth: Integer;
       Data: array of TColorBGRA;
     end;
-    FInvalidEvents: array of TMethod;
-    FChangeEvents: array of TMethod;
+    FEvents: array of record
+      EventType: ETargetEventType;
+      Method: TEvent;
+    end;
     FCustomClientArea: TBox;
     FAutoFocus: Boolean;
+
+    function HasEvent(EventType: ETargetEventType): Boolean;
+    procedure CallEvent(var Data: TTargetEventData);
 
     function ValidateBounds(var ABounds: TBox): Boolean;
 
@@ -106,17 +136,12 @@ type
     procedure SetMouseXY(Value: TPoint);
   public
     MouseOptions: record
-      ButtonEvents: array of TMethod;
-      TeleportEvents: array of TMethod;
-      MovingEvents: array of TMethod;
-
       MinClickTime: Integer;
       MaxClickTime: Integer;
 
       Speed: Double;
       Gravity: Double;
       Wind: Double;
-      Accuracy: Double;
       Timeout: Integer;
     end;
 
@@ -125,6 +150,9 @@ type
       MaxPressTime: Integer;
     end;
 
+    function AddEvent(EventType: ETargetEventType; Method: TEvent): TEvent;
+    procedure RemoveEvent(EventType: ETargetEventType; Method: TEvent);
+
     // target
     procedure SetDesktop;
     procedure SetWindow(Window: TWindowHandle);
@@ -132,11 +160,6 @@ type
     procedure SetEIOS(FileName, Args: String);
     procedure SetPlugin(FileName, Args: String); overload;
     procedure SetPlugin(FileName, Args: String; out DebugImage: TSimbaExternalCanvas); overload;
-
-    function AddTargetChangeEvent(Event: TTargetEvent): TTargetEvent;
-    function AddTargetInvalidEvent(Event: TTargetEvent): TTargetEvent;
-    procedure RemoveTargetChangeEvent(Event: TTargetEvent);
-    procedure RemoveTargetInvalidEvent(Event: TTargetEvent);
 
     function GetImageDataAsImage(var ABounds: TBox; out Image: TSimbaImage): Boolean;
     function GetImageData(var ABounds: TBox; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
@@ -152,7 +175,6 @@ type
     function IsFocused: Boolean;
     function Focus: Boolean;
 
-    function Copy: TSimbaTarget;
     function ToString: String;
 
     property TargetKind: ESimbaTargetKind read FTarget.Kind;
@@ -166,15 +188,6 @@ type
 
     property CustomClientArea: TBox read FCustomClientArea write FCustomClientArea;
     property AutoFocus: Boolean read FAutoFocus write FAutoFocus;
-
-    // Mouse
-    function AddMouseEvent(Event: TMouseButtonEvent): TMouseButtonEvent; overload;
-    function AddMouseEvent(Event: TMouseTeleportEvent): TMouseTeleportEvent; overload;
-    function AddMouseEvent(Event: TMouseMovingEvent): TMouseMovingEvent; overload;
-
-    procedure RemoveMouseEvent(Event: TMouseButtonEvent); overload;
-    procedure RemoveMouseEvent(Event: TMouseTeleportEvent); overload;
-    procedure RemoveMouseEvent(Event: TMouseMovingEvent); overload;
 
     procedure MouseMove(Dest: TPoint); overload;
     procedure MouseMove(Box: TBox; ForcedMove: Boolean = False); overload;
@@ -256,31 +269,6 @@ uses
   simba.nativeinterface, simba.vartype_box, simba.vartype_quad, simba.target_movemouse, simba.random,
   simba.finder_color, simba.finder_image, simba.finder_dtm;
 
-type
-  TEventArray = array of TMethod;
-
-function AppendEvent(var Arr: TEventArray; Event: TMethod): TMethod;
-var
-  I: Integer;
-begin
-  Result := Event;
-
-  // check duplicate
-  for I := 0 to High(Arr) do
-    if (Arr[I].Code = Event.Code) and (Arr[I].Data = Event.Data) then
-      Exit;
-  Arr += [Event];
-end;
-
-procedure DeleteEvent(var Arr: TEventArray; Event: TMethod);
-var
-  I: Integer;
-begin
-  for I := High(Arr) downto 0 do
-    if (Arr[I].Code = Event.Code) and (Arr[I].Data = Event.Data) then
-      Delete(Arr, I, 1);
-end;
-
 function TSimbaTarget.MousePressed(Button: EMouseButton): Boolean;
 begin
   CheckMethod(FTarget.MousePressed, 'MousePressed');
@@ -321,35 +309,49 @@ end;
 
 procedure TSimbaTarget.MouseTeleport(P: TPoint);
 var
-  I: Integer;
+  EventData: TTargetEventData;
 begin
   CheckMethod(FTarget.MouseTeleport, 'MouseTeleport');
-  for I := 0 to High(MouseOptions.TeleportEvents) do
-    TMouseTeleportEvent(MouseOptions.TeleportEvents[I])(@Self, P);
+
+  EventData := Default(TTargetEventData);
+  EventData.EventType := ETargetEventType.MOUSE_TELEPORT;
+  EventData.MouseTeleport.X := P.X;
+  EventData.MouseTeleport.Y := P.Y;
+  CallEvent(EventData);
 
   FTarget.MouseTeleport(FTarget.Target, P);
 end;
 
 procedure TSimbaTarget.MouseDown(Button: EMouseButton);
 var
-  I: Integer;
+  EventData: TTargetEventData;
 begin
   CheckMethod(FTarget.MouseDown, 'MouseDown');
   CheckAutoFocus();
-  for I := 0 to High(MouseOptions.ButtonEvents) do
-    TMouseButtonEvent(MouseOptions.ButtonEvents[I])(@Self, Button, True);
+
+  EventData := Default(TTargetEventData);
+  EventData.EventType := ETargetEventType.MOUSE_BUTTON;
+  EventData.MouseButton.Button := Button;
+  EventData.MouseButton.Down := True;
+
+  CallEvent(EventData);
 
   FTarget.MouseDown(FTarget.Target, Button);
 end;
 
 procedure TSimbaTarget.MouseUp(Button: EMouseButton);
 var
-  I: Integer;
+  EventData: TTargetEventData;
 begin
   CheckMethod(FTarget.MouseUp, 'MouseUp');
   CheckAutoFocus();
-  for I := 0 to High(MouseOptions.ButtonEvents) do
-    TMouseButtonEvent(MouseOptions.ButtonEvents[I])(@Self, Button, False);
+
+  EventData := Default(TTargetEventData);
+  EventData.EventType := ETargetEventType.MOUSE_BUTTON;
+  EventData.MouseButton.Button := Button;
+  EventData.MouseButton.Down := False;
+
+  CallEvent(EventData);
 
   FTarget.MouseUp(FTarget.Target, Button);
 end;
@@ -708,26 +710,6 @@ begin
   Result := FindEdgesOnTarget(Self, ABounds, MinDiff, DefaultColorSpace, DefaultMultipliers);
 end;
 
-function TSimbaTarget.AddTargetChangeEvent(Event: TTargetEvent): TTargetEvent;
-begin
-  Result := TTargetEvent(AppendEvent(FChangeEvents, TMethod(Event)));
-end;
-
-function TSimbaTarget.AddTargetInvalidEvent(Event: TTargetEvent): TTargetEvent;
-begin
-  Result := TTargetEvent(AppendEvent(FInvalidEvents, TMethod(Event)));
-end;
-
-procedure TSimbaTarget.RemoveTargetChangeEvent(Event: TTargetEvent);
-begin
-  DeleteEvent(FChangeEvents, TMethod(Event));
-end;
-
-procedure TSimbaTarget.RemoveTargetInvalidEvent(Event: TTargetEvent);
-begin
-  DeleteEvent(FInvalidEvents, TMethod(Event));
-end;
-
 procedure TSimbaTarget.CheckMethod(Method: Pointer; Name: String);
 begin
   if (Method = nil) then
@@ -766,34 +748,41 @@ begin
   MouseTeleport(Value);
 end;
 
-function TSimbaTarget.AddMouseEvent(Event: TMouseButtonEvent): TMouseButtonEvent;
+function TSimbaTarget.HasEvent(EventType: ETargetEventType): Boolean;
+var
+  I: Integer;
 begin
-  Result := TMouseButtonEvent(AppendEvent(MouseOptions.ButtonEvents, TMethod(Event)));
+  for I := 0 to High(FEvents) do
+    if (FEvents[I].EventType = EventType) then
+      Exit(True);
+  Result := False;
 end;
 
-function TSimbaTarget.AddMouseEvent(Event: TMouseTeleportEvent): TMouseTeleportEvent;
+procedure TSimbaTarget.CallEvent(var Data: TTargetEventData);
+var
+  I: Integer;
 begin
-  Result := TMouseTeleportEvent(AppendEvent(MouseOptions.TeleportEvents, TMethod(Event)));
+  for I := 0 to High(FEvents) do
+    if (FEvents[I].EventType = Data.EventType) then
+      FEvents[I].Method(Self, Data);
 end;
 
-function TSimbaTarget.AddMouseEvent(Event: TMouseMovingEvent): TMouseMovingEvent;
+function TSimbaTarget.AddEvent(EventType: ETargetEventType; Method: TEvent): TEvent;
 begin
-  Result := TMouseMovingEvent(AppendEvent(MouseOptions.MovingEvents, TMethod(Event)));
+  SetLength(FEvents, Length(FEvents) + 1);
+  FEvents[High(FEvents)].EventType := EventType;
+  FEvents[High(FEvents)].Method := Method;
+
+  Result := Method;
 end;
 
-procedure TSimbaTarget.RemoveMouseEvent(Event: TMouseButtonEvent);
+procedure TSimbaTarget.RemoveEvent(EventType: ETargetEventType; Method: TEvent);
+var
+  I: Integer;
 begin
-  DeleteEvent(MouseOptions.ButtonEvents, TMethod(Event));
-end;
-
-procedure TSimbaTarget.RemoveMouseEvent(Event: TMouseTeleportEvent);
-begin
-  DeleteEvent(MouseOptions.TeleportEvents, TMethod(Event));
-end;
-
-procedure TSimbaTarget.RemoveMouseEvent(Event: TMouseMovingEvent);
-begin
-  DeleteEvent(MouseOptions.MovingEvents, TMethod(Event));
+  for I := High(FEvents) downto 0 do
+    if (FEvents[I].EventType = EventType) and (FEvents[I].Method = Method) then
+      Delete(FEvents, I, 1);
 end;
 
 procedure TSimbaTarget.ChangeTarget(Kind: ESimbaTargetKind);
@@ -804,31 +793,36 @@ end;
 
 procedure TSimbaTarget.TargetChanged;
 var
-  I: Integer;
+  EventData: TTargetEventData;
 begin
-  for I := 0 to High(FChangeEvents) do
-    TTargetEvent(FChangeEvents[I])(@Self);
+  EventData := Default(TTargetEventData);
+  EventData.EventType := ETargetEventType.TARGET_CHANGE;
+
+  CallEvent(EventData);
 end;
 
 procedure TSimbaTarget.CheckInvalidTarget;
 var
   Attempt, I: Integer;
+  EventData: TTargetEventData;
 begin
   if IsValid() then
     Exit;
 
-  if (Length(FInvalidEvents) > 0) then
+  if HasEvent(ETargetEventType.TARGET_INVALID) then
+  begin
+    EventData := Default(TTargetEventData);
+    EventData.EventType := ETargetEventType.TARGET_INVALID;
+
     for Attempt := 1 to 5 do
     begin
       Sleep(100);
 
-      for I := 0 to High(FInvalidEvents) do
-      begin
-        TTargetEvent(FInvalidEvents[I])(@Self);
-        if IsValid() then
-          Exit;
-      end;
+      CallEvent(EventData);
+      if IsValid() then
+        Exit;
     end;
+  end;
 
   SimbaException('Target is invalid: %s', [ToString()]);
 end;
@@ -1146,24 +1140,6 @@ end;
 procedure TSimbaTarget.UnFreezeImage;
 begin
   FFrozen.Data := [];
-end;
-
-function TSimbaTarget.Copy: TSimbaTarget;
-
-  procedure MakeUnique(var Arr: TEventArray);
-  begin
-    if (Pointer(Arr) <> nil) then
-      Arr := System.Copy(Arr);
-  end;
-
-begin
-  Result := Self;
-
-  MakeUnique(Result.FInvalidEvents);
-  MakeUnique(Result.FChangeEvents);
-  MakeUnique(Result.MouseOptions.ButtonEvents);
-  MakeUnique(Result.MouseOptions.TeleportEvents);
-  MakeUnique(Result.MouseOptions.MovingEvents);
 end;
 
 function TSimbaTarget.ToString: String;

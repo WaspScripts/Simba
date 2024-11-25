@@ -16,6 +16,9 @@ uses
   lptypes, ffi,
   simba.target, simba.http_async, simba.input_async, simba.fs_async;
 
+type
+  PSimbaTarget = ^TSimbaTarget;
+
 (*
 ASync
 =====
@@ -96,14 +99,14 @@ end;
 ASync.MouseMove
 ---------------
 ```
-procedure ASync.MouseMove(Target: TTarget; Dest: TPoint; Accuracy: Double = 1);
-procedure ASync.MouseMove(Dest: TPoint; Accuracy: Double = 1);
+procedure ASync.MouseMove(Target: TTarget; Dest: TPoint; Accuracy: Single = 1);
+procedure ASync.MouseMove(Dest: TPoint; Accuracy: Single = 1);
 ```
 Moves the mouse on another thread, so the script can do other things such as updating the destination.
 *)
 procedure _LapeASyncMouse_Move(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  ASyncMouse.Move(PSimbaTarget(Params^[0])^, PPoint(Params^[1])^, PDouble(Params^[2])^);
+  ASyncMouse.Move(PSimbaTarget(Params^[0])^, PPoint(Params^[1])^, PSingle(Params^[2])^);
 end;
 
 (*
@@ -211,8 +214,8 @@ begin
     // namespace
     addGlobalType('record end;', 'ASync');
 
-    addGlobalFunc('procedure ASync.MouseMove(constref Target: TTarget; Dest: TPoint; Accuracy: Double = 1); static; overload;', @_LapeASyncMouse_Move);
-    addGlobalFunc('procedure ASync.MouseMove(Dest: TPoint; Accuracy: Double = 1); static; overload;', [
+    addGlobalFunc('procedure ASync.MouseMove(constref Target: TTarget; Dest: TPoint; Accuracy: Single = 0.5); static; overload;', @_LapeASyncMouse_Move);
+    addGlobalFunc('procedure ASync.MouseMove(Dest: TPoint; Accuracy: Single = 0.5); static; overload;', [
                   'begin',
                   '  ASync.MouseMove(System.Target, Dest, Accuracy);',
                   'end;'

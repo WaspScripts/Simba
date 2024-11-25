@@ -33,8 +33,9 @@ type
     FTarget: TSimbaTarget;
     FDest: TPoint;
     FStop: Boolean;
+    FAccuracy: Single;
 
-    procedure DoMouseMoving(Target: Pointer; var X, Y, DestX, DestY: Double; var Stop: Boolean);
+    procedure DoMouseMoving(var X, Y, DestX, DestY: Double; out Stop: Boolean);
     procedure Execute;
   public
     constructor Create;
@@ -45,13 +46,17 @@ type
     procedure WaitMoving;
     procedure Stop;
 
-    procedure Move(constref Target: TSimbaTarget; Dest: TPoint; Accuracy: Double = 1);
+    procedure Move(constref Target: TSimbaTarget; Dest: TPoint; Accuracy: Single = 0.5);
   end;
 
 var
   ASyncMouse: TSimbaASyncMouse;
 
 implementation
+
+uses
+  Math,
+  simba.target_movemouse;
 
 procedure TSimbaASyncMouseThread.Execute;
 begin
@@ -87,17 +92,18 @@ begin
   FLock.Unlock();
 end;
 
-procedure TSimbaASyncMouse.DoMouseMoving(Target: Pointer; var X, Y, DestX, DestY: Double; var Stop: Boolean);
+procedure TSimbaASyncMouse.DoMouseMoving(var X, Y, DestX, DestY: Double; out Stop: Boolean);
 begin
   DestX := FDest.X;
   DestY := FDest.Y;
-
-  Stop := FStop;
+  if (Hypot(X - DestX, Y - DestY) <= FAccuracy) then
+    FStop := True;
+  Stop  := FStop;
 end;
 
 procedure TSimbaASyncMouse.Execute;
 begin
-  FTarget.MouseMove(FDest);
+  MoveMouseOnTarget(FTarget, FDest, @DoMouseMoving);
 end;
 
 constructor TSimbaASyncMouse.Create;
@@ -136,14 +142,12 @@ begin
     Sleep(15);
 end;
 
-procedure TSimbaASyncMouse.Move(constref Target: TSimbaTarget; Dest: TPoint; Accuracy: Double);
+procedure TSimbaASyncMouse.Move(constref Target: TSimbaTarget; Dest: TPoint; Accuracy: Single);
 begin
+  FTarget := Target;
   FStop := False;
   FDest := Dest;
-
-  FTarget := Target.Copy(); // ensure arrays are copies
-  FTarget.MouseOptions.Accuracy := Accuracy;
-  FTarget.AddMouseEvent(@DoMouseMoving);
+  FAccuracy := Max(0.5, Accuracy);
 
   FThread.Wake();
 end;

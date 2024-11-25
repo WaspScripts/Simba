@@ -290,14 +290,7 @@ end;
 destructor TSimbaScript.Destroy;
 begin
   if (FCompiler <> nil) then
-  begin
-    if (FCompiler.Globals['HTTPClient'] <> nil) then
-      TObject(FCompiler.Globals['HTTPClient'].Ptr^).Free();
-    if (FCompiler.Globals['ASyncMouse'] <> nil) then
-      TObject(FCompiler.Globals['ASyncMouse'].Ptr^).Free();
-
     FreeAndNil(FCompiler);
-  end;
   FreeAndNil(FPlugins);
   FreeAndNil(FSimbaCommunication);
   FreeAndNil(FCodeRunner);

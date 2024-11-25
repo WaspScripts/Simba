@@ -20,7 +20,10 @@ uses
   Classes, SysUtils,
   simba.base, simba.target;
 
-procedure MoveMouseOnTarget(constref Target: TSimbaTarget; Dest: TPoint);
+type
+  TMoveMouseEvent = procedure(var X, Y, DestX, DestY: Double; out Stop: Boolean) of object;
+
+procedure MoveMouseOnTarget(constref Target: TSimbaTarget; Dest: TPoint; MouseMoveEvent: TMoveMouseEvent = nil);
 
 implementation
 
@@ -28,7 +31,7 @@ uses
   Math,
   simba.math, simba.random, simba.nativeinterface;
 
-procedure MoveMouseOnTarget(constref Target: TSimbaTarget; Dest: TPoint);
+procedure MoveMouseOnTarget(constref Target: TSimbaTarget; Dest: TPoint; MouseMoveEvent: TMoveMouseEvent);
 
   procedure Move(const X, Y, Idle: Double);
   var
@@ -41,25 +44,11 @@ procedure MoveMouseOnTarget(constref Target: TSimbaTarget; Dest: TPoint);
     SimbaNativeInterface.PreciseSleep(Round(Idle));
   end;
 
-  procedure DoMovingEvent(var X, Y, DestX, DestY: Double; out Stop: Boolean);
-  var
-    I: Integer;
-  begin
-    Stop := False;
-
-    for I := 0 to High(Target.MouseOptions.MovingEvents) do
-    begin
-      TMouseMovingEvent(Target.MouseOptions.MovingEvents[I])(@Target, X, Y, DestX, DestY, Stop);
-      if Stop then
-        Exit;
-    end;
-  end;
-
   procedure WindMouse(X1, Y1, X2, Y2, Gravity, Wind, MinWait, MaxWait, MaxStep, TargetArea: Double; Timeout: Integer);
   var
     X, Y, DestX, DestY: Double;
     VeloX, VeloY, WindX, WindY, VeloMag, RandomDist, Idle: Double;
-    RemainingDist, Acc, Step: Double;
+    RemainingDist, Step: Double;
     T: UInt64;
     Stop: Boolean;
   begin
@@ -71,18 +60,20 @@ procedure MoveMouseOnTarget(constref Target: TSimbaTarget; Dest: TPoint);
     DestX := X2;
     DestY := Y2;
 
-    Acc := Target.MouseOptions.Accuracy + 0.5;
     Step := MaxStep;
 
     T := GetTickCount64() + Timeout;
     while (T > GetTickCount64()) do
     begin
-      DoMovingEvent(X, Y, X2, Y2, Stop);
-      if Stop then
-        Exit;
+      if Assigned(MouseMoveEvent) then
+      begin
+        MouseMoveEvent(X, Y, X2, Y2, Stop);
+        if Stop then
+          Exit;
+      end;
 
       RemainingDist := Hypot(X - X2, Y - Y2);
-      if (RemainingDist <= Acc) then
+      if (RemainingDist <= 0.5) then
         Break;
 
       // If destination changed ensure Step is appropriate

@@ -21,6 +21,7 @@ uses
   simba.finder_color, simba.finder_image, simba.matchtemplate;
 
 type
+  PSimbaTarget = ^TSimbaTarget;
   PProcessID = ^TProcessID;
 
 (*

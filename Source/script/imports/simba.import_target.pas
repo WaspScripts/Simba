@@ -19,6 +19,7 @@ uses
   simba.image, simba.target, simba.externalcanvas, simba.finder_image, simba.finder_color;
 
 type
+  PSimbaTarget = ^TSimbaTarget;
   PMouseButton = ^EMouseButton;
   PKeyCode = ^EKeyCode;
 
@@ -107,7 +108,7 @@ end;
 TTarget.SetPlugin
 -----------------
 ```
-procedure TTarget.SetPlugin(FileName, Args: String; out DebugImage: TExternalCanvas);
+procedure TTarget.SetPlugin(FileName, Args: String; out Canvas: TExternalCanvas);
 ```
 
 Overloaded version that returns a "external canvas" to draw on.
@@ -115,42 +116,6 @@ Overloaded version that returns a "external canvas" to draw on.
 procedure _LapeTarget_SetPlugin2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaTarget(Params^[0])^.SetPlugin(PString(Params^[1])^, PString(Params^[2])^, TSimbaExternalCanvas(Params^[3]^));
-end;
-
-(*
-TTarget.RemoveTargetInvalidEvent
---------------------------------
-```
-procedure TTarget.RemoveTargetInvalidEvent(Event: TTargetEvent);
-```
-*)
-procedure _Lape_Target_RemoveTargetInvalidEvent(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaTarget(Params^[0])^.RemoveTargetInvalidEvent(TTargetEvent(Params^[1]^));
-end;
-
-(*
-TTarget.AddTargetChangeEvent
-----------------------------
-```
-function TTarget.AddTargetChangeEvent(Event: TTargetEvent): TTargetEvent;
-```
-*)
-procedure _Lape_Target_AddTargetChangeEvent(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  TTargetEvent(Result^) := PSimbaTarget(Params^[0])^.AddTargetChangeEvent(TTargetEvent(Params^[1]^));
-end;
-
-(*
-TTarget.RemoveTargetChangeEvent
--------------------------------
-```
-procedure TTarget.RemoveTargetChangeEvent(Event: TTargetEvent);
-```
-*)
-procedure _Lape_Target_RemoveTargetChangeEvent(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaTarget(Params^[0])^.RemoveTargetChangeEvent(TTargetEvent(Params^[1]^));
 end;
 
 (*
@@ -290,8 +255,6 @@ TTarget.CustomClientArea
 ------------------------
 ```
 property TTarget.CustomClientArea: TBox;
-```
-```
 property TTarget.CustomClientArea(Value: TBox);
 ```
 
@@ -317,8 +280,6 @@ TTarget.AutoFocus
 -----------------
 ```
 property TTarget.AutoFocus(Value: Boolean);
-```
-```
 property TTarget.AutoFocus: Boolean;
 ```
 *)
@@ -383,59 +344,27 @@ begin
 end;
 
 (*
-TTarget.AddMouseEvent
----------------------
+TTarget.AddEvent
+----------------
 ```
-function TTarget.AddMouseEvent(Event: TMouseButtonEvent): TMouseButtonEvent;
-```
-```
-function TTarget.AddMouseEvent(Event: TMouseTeleportEvent): TMouseTeleportEvent;
-```
-```
-function TTarget.AddMouseEvent(Event: TMouseMovingEvent): TMouseMovingEvent;
+function TTarget.AddEvent(EventType: ETargetEventType; Event: TMouseEvent): TMouseEvent;
 ```
 *)
-procedure _LapeTarget_AddMouseEvent1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeTarget_AddEvent(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  TMouseTeleportEvent(Result^) := PSimbaTarget(Params^[0])^.AddMouseEvent(TMouseTeleportEvent(Params^[1]^));
-end;
-
-procedure _LapeTarget_AddMouseEvent2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  TMouseButtonEvent(Result^) := PSimbaTarget(Params^[0])^.AddMouseEvent(TMouseButtonEvent(Params^[1]^));
-end;
-
-procedure _LapeTarget_AddMouseEvent3(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  TMouseMovingEvent(Result^) := PSimbaTarget(Params^[0])^.AddMouseEvent(TMouseMovingEvent(Params^[1]^));
+  TSimbaTarget.TEvent(Result^) := PSimbaTarget(Params^[0])^.AddEvent(ETargetEventType(Params^[1]^), TSimbaTarget.TEvent(Params^[2]^));
 end;
 
 (*
-TTarget.RemoveMouseEvent
-------------------------
+TTarget.RemoveEvent
+-------------------
 ```
-procedure TTarget.RemoveMouseEvent(Event: TMouseButtonEvent); overload;
-```
-```
-procedure TTarget.RemoveMouseEvent(Event: TMouseTeleportEvent); overload;
-```
-```
-procedure TTarget.RemoveMouseEvent(Event: TMouseMovingEvent); overload;
+procedure TTarget.RemoveEvent(EventType: ETargetEventType; Event: TMouseEvent);
 ```
 *)
-procedure _LapeTarget_RemoveMouseEvent1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeTarget_RemoveEvent(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(Params^[0])^.RemoveMouseEvent(TMouseTeleportEvent(Params^[1]^));
-end;
-
-procedure _LapeTarget_RemoveMouseEvent2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaTarget(Params^[0])^.RemoveMouseEvent(TMouseButtonEvent(Params^[1]^));
-end;
-
-procedure _LapeTarget_RemoveMouseEvent3(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaTarget(Params^[0])^.RemoveMouseEvent(TMouseMovingEvent(Params^[1]^));
+  PSimbaTarget(Params^[0])^.RemoveEvent(ETargetEventType(Params^[1]^), TSimbaTarget.TEvent(Params^[2]^));
 end;
 
 (*
@@ -537,8 +466,6 @@ TTarget.MouseMove
 -----------------
 ```
 procedure MouseMove(Box: TBox; ForcedMove: Boolean = False); overload;
-```
-```
 procedure MouseMove(Quad: TQuad; ForcedMove: Boolean = False); overload;
 ```
 
@@ -560,8 +487,6 @@ TTarget.MouseXY
 ---------------
 ```
 property TTarget.MouseXY: TPoint;
-```
-```
 property TTarget.MouseXY(Value: TPoint);
 ```
 *)
@@ -580,8 +505,6 @@ TTarget.MouseX
 --------------
 ```
 property TTarget.MouseX: Integer;
-```
-```
 property TTarget.MouseX(Value: Integer);
 ```
 *)
@@ -600,8 +523,6 @@ TTarget.MouseY
 --------------
 ```
 property TTarget.MouseY: Integer;
-```
-```
 property TTarget.MouseY(Value: Integer);
 ```
 *)
@@ -613,18 +534,6 @@ end;
 procedure _LapeTarget_MouseY_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaTarget(Params^[0])^.MouseY := PInteger(Params^[1])^;
-end;
-
-(*
-TTarget.AddTargetInvalidEvent
------------------------------
-```
-function TTarget.AddTargetInvalidEvent(Event: TTargetEvent): TTargetEvent;
-```
-*)
-procedure _Lape_Target_AddTargetInvalidEvent(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  TTargetEvent(Result^) := PSimbaTarget(Params^[0])^.AddTargetInvalidEvent(TTargetEvent(Params^[1]^));
 end;
 
 (*
@@ -1110,24 +1019,20 @@ begin
       '    DataWidth: Integer;',
       '    Data: array of TColorBGRA;',
       '  end;',
-      '  FInvalidEvents: array of TMethod;',
-      '  FChangeEvents: array of TMethod;',
+      '  FEvents: array of record',
+      '    EventType: Integer;',
+      '    Method: TMethod;',
+      '  end;',
       '  FCustomClientArea: TBox;',
       '  FAutoFocus: Boolean;',
       '  {%CODETOOLS ON}',
       '',
       '  MouseOptions: record',
-      '    {%CODETOOLS OFF}',
-      '    MouseButtonEvents: array of TMethod;',
-      '    MouseTeleportEvents: array of TMethod;',
-      '    MouseMovingEvents: array of TMethod;',
-      '    {%CODETOOLS ON}',
       '    MinClickTime: Integer;',
       '    MaxClickTime: Integer;',
       '    Speed: Double;',
       '    Gravity: Double;',
       '    Wind: Double;',
-      '    Accuracy: Double;',
       '    Timeout: Integer;',
       '  end;',
       '',
@@ -1139,35 +1044,54 @@ begin
       'TTarget'
     );
 
-    addGlobalVar('TTarget', @Script.Target, 'Target');
-
-    //with addGlobalVar('TTarget', '[]', 'Target') do
-    //begin
-    //  Used := duTrue;
-    //  if (Size <> SizeOf(TSimbaTarget)) then
-    //    SimbaException('SizeOf(TTarget)=%d should be %d', [Size, SizeOf(TSimbaTarget)]);
-    //end;
+    with addGlobalVar('TTarget', @Script.Target, 'Target') do
+    begin
+      Used := duTrue;
+      if (Size <> SizeOf(TSimbaTarget)) then
+        SimbaException('SizeOf(TTarget)=%d should be %d', [Size, SizeOf(TSimbaTarget)]);
+    end;
 
     addGlobalType(specialize GetEnumDecl<ESimbaTargetKind>(True, False), 'ETargetKind');
+    addGlobalType(specialize GetEnumDecl<ETargetEventType>(True, False), 'ETargetEventType');
     addGlobalType(specialize GetEnumDecl<EMouseButton>(True, False), 'EMouseButton');
     addGlobalType(specialize GetEnumDecl<EKeyCode>(True, True), 'EKeyCode');
 
-    addGlobalType('procedure(var Input: TTarget; P: TPoint) of object', 'TMouseTeleportEvent', FFI_DEFAULT_ABI);
-    addGlobalType('procedure(var Input: TTarget; Button: EMouseButton; Down: Boolean) of object', 'TMouseButtonEvent', FFI_DEFAULT_ABI);
-    addGlobalType('procedure(var Input: TTarget; var X, Y, DestX, DestY: Double; var Stop: Boolean) of object', 'TMouseMovingEvent', FFI_DEFAULT_ABI);
-    addGlobalType('procedure(var Target: TTarget) of object', 'TTargetEvent', FFI_DEFAULT_ABI);
+    addGlobalType([
+      'record',
+      '  EventType: ETargetEventType;',
+      '',
+      '  TargetChange: record',
+      '    { nothing }',
+      '  end;',
+      '',
+      '  TargetInvalid: record',
+      '    { nothing }',
+      '  end;',
+      '',
+      '  MouseButton: record',
+      '    Button: EMouseButton;',
+      '    Down: Boolean;',
+      '  end;',
+      '',
+      '  MouseTeleport: record',
+      '    X: Integer;',
+      '    Y: Integer;',
+      '  end;',
+      'end;'],
+      'TTargetEventData'
+    );
+
+    addGlobalType('procedure(var Target: TTarget; Data: TTargetEventData) of object', 'TTargetEvent', FFI_DEFAULT_ABI);
+
+    addGlobalFunc('function TTarget.AddEvent(EventType: ETargetEventType; Event: TTargetEvent): TTargetEvent', @_LapeTarget_AddEvent);
+    addGlobalFunc('procedure TTarget.RemoveEvent(EventType: ETargetEventType; Event: TTargetEvent)', @_LapeTarget_RemoveEvent);
 
     addGlobalFunc('procedure TTarget.SetDesktop', @_LapeTarget_SetDesktop);
     addGlobalFunc('procedure TTarget.SetImage(TImage: TImage)', @_LapeTarget_SetImage);
     addGlobalFunc('procedure TTarget.SetWindow(Window: TWindowHandle)', @_LapeTarget_SetWindow);
     addGlobalFunc('procedure TTarget.SetEIOS(Plugin, Args: String)', @_LapeTarget_SetEIOS);
     addGlobalFunc('procedure TTarget.SetPlugin(Plugin, Args: String); overload', @_LapeTarget_SetPlugin1);
-    addGlobalFunc('procedure TTarget.SetPlugin(Plugin, Args: String; out DebugImage: TExternalCanvas); overload', @_LapeTarget_SetPlugin2);
-
-    addGlobalFunc('function TTarget.AddTargetChangeEvent(Event: TTargetEvent): TTargetEvent', @_Lape_Target_AddTargetChangeEvent);
-    addGlobalFunc('function TTarget.AddTargetInvalidEvent(Event: TTargetEvent): TTargetEvent', @_Lape_Target_AddTargetInvalidEvent);
-    addGlobalFunc('procedure TTarget.RemoveTargetChangeEvent(Event: TTargetEvent)', @_Lape_Target_RemoveTargetChangeEvent);
-    addGlobalFunc('procedure TTarget.RemoveTargetInvalidEvent(Event: TTargetEvent)', @_Lape_Target_RemoveTargetInvalidEvent);
+    addGlobalFunc('procedure TTarget.SetPlugin(Plugin, Args: String; out Canvas: TExternalCanvas); overload', @_LapeTarget_SetPlugin2);
 
     addGlobalFunc('procedure TTarget.FreezeImage(Bounds: TBox = [-1,-1,-1,-1]);', @_LapeTarget_FreezeImage);
     addGlobalFunc('procedure TTarget.UnFreezeImage;', @_LapeTarget_UnFreezeImage);
@@ -1192,14 +1116,7 @@ begin
     addProperty('TTarget', 'TargetWindow', 'TWindowHandle', @_LapeTarget_GetTargetWindow);
     addProperty('TTarget', 'TargetImage', 'TImage', @_LapeTarget_GetTargetImage);
 
-    addGlobalFunc('function TTarget.AddMouseEvent(Event: TMouseTeleportEvent): TMouseTeleportEvent; overload', @_LapeTarget_AddMouseEvent1);
-    addGlobalFunc('function TTarget.AddMouseEvent(Event: TMouseButtonEvent): TMouseButtonEvent; overload', @_LapeTarget_AddMouseEvent2);
-    addGlobalFunc('function TTarget.AddMouseEvent(Event: TMouseMovingEvent): TMouseMovingEvent; overload', @_LapeTarget_AddMouseEvent3);
-
-    addGlobalFunc('procedure TTarget.RemoveMouseEvent(Event: TMouseTeleportEvent); overload', @_LapeTarget_RemoveMouseEvent1);
-    addGlobalFunc('procedure TTarget.RemoveMouseEvent(Event: TMouseButtonEvent); overload', @_LapeTarget_RemoveMouseEvent2);
-    addGlobalFunc('procedure TTarget.RemoveMouseEvent(Event: TMouseMovingEvent); overload', @_LapeTarget_RemoveMouseEvent3);
-
+    // MOUSE
     addGlobalFunc('procedure TTarget.MouseTeleport(P: TPoint)', @_LapeTarget_MouseTeleport);
     addGlobalFunc('procedure TTarget.MouseClick(Button: EMouseButton)', @_LapeTarget_MouseClick);
     addGlobalFunc('procedure TTarget.MouseDown(Button: EMouseButton)', @_LapeTarget_MouseDown);
@@ -1222,6 +1139,7 @@ begin
     addGlobalFunc('function TTarget.KeyPressed(Key: EKeyCode): Boolean', @_LapeTarget_KeyPressed);
     addGlobalFunc('function TTarget.KeyCodeFromChar(C: Char): EKeyCode', @_LapeTarget_KeyCodeFromChar);
 
+    // COLORS
     addGlobalFunc('function TTarget.MatchColor(Color: TColor; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; Bounds: TBox= [-1,-1,-1,-1]): TSingleMatrix;', @_LapeTarget_MatchColor);
 
     addGlobalFunc('function TTarget.FindColor(Color: TColor; Tolerance: Single; Bounds: TBox = [-1,-1,-1,-1]): TPointArray; overload', @_LapeTarget_FindColor1);

@@ -20,6 +20,7 @@ uses
   simba.target;
 
 type
+  PSimbaTarget = ^TSimbaTarget;
   PComponent = ^TComponent;
   PBitmap = ^TBitmap;
 
