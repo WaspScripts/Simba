@@ -172,7 +172,7 @@ end;
 
 class function TDictionary<K,V>.HashInt64(constref k: Int64): UInt32;
 begin
-  Result := UInt32(k);
+  Result := (UInt32(k) * 31) xor UInt32(k shr 32);
 end;
 
 // FNV
