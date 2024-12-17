@@ -46,6 +46,7 @@ type
     // read from stdout
     function Read(Buf: PByte; Count: Integer): Integer;
     function ReadString: String;
+    function ReadStringUntil(Seq: String; Timeout: Integer): String;
 
     // write to stdin
     function Write(Buf: PByte; Count: Integer): Integer;
@@ -228,21 +229,57 @@ begin
 end;
 
 function TRunningProcessPiped.ReadString: String;
-
-  function MaybeRead: String;
-  begin
-    SetLength(Result, 1024);
-    SetLength(Result, FProcess.Output.Read(Result[1], 1024));
-  end;
-
 var
-  Str: String;
+  Data: String;
+  Count: Integer;
 begin
   Result := '';
   repeat
-    Str := MaybeRead();
-    Result := Result + Str;
-  until (Length(Str) = 0);
+    Count := FProcess.Output.NumBytesAvailable;
+    if (Count > 0) then
+    begin
+      if (Length(Data) < Count) then
+        SetLength(Data, Count * 2);
+      Count := FProcess.Output.Read(Data[1], Count);
+      if (Count > 0) then
+        Result := Result + Copy(Data, 1, Count);
+    end;
+  until (Count = 0);
+end;
+
+function TRunningProcessPiped.ReadStringUntil(Seq: String; Timeout: Integer): String;
+var
+  SeqLen: Integer;
+
+  function EndsWithSeq(const Data: String): Boolean;
+  begin
+    Result := (Length(Data) >= SeqLen) and CompareMem(@Seq[1], @Data[Length(Data) - SeqLen], SeqLen);
+  end;
+
+var
+  Data: String;
+  Count: Integer;
+  T: UInt64;
+begin
+  Result := '';
+
+  SeqLen := Length(Seq);
+  if (SeqLen = 0) then
+    SimbaException('Seq is empty');
+
+  T := GetTickCount64() + Timeout;
+  repeat
+    Count := FProcess.Output.NumBytesAvailable;
+    if (Count > 0) then
+    begin
+      if (Length(Data) < Count) then
+        SetLength(Data, Count * 2);
+      Count := FProcess.Output.Read(Data[1], Count);
+      if (Count > 0) then
+        Result := Result + Copy(Data, 1, Count);
+    end else
+      Sleep(50);
+  until EndsWithSeq(Result) or (GetTickCount64() > T);
 end;
 
 function TRunningProcessPiped.Write(Buf: PByte; Count: Integer): Integer;
@@ -277,7 +314,7 @@ var
   Proc: TProcess;
 begin
   Proc := TProcess.Create(nil);
-  Proc.Options := Proc.Options + [poStderrToOutPut, poNoConsole];
+  Proc.Options := Proc.Options + [poStderrToOutPut{, poNoConsole}];
   Proc.Executable := Executable;
   Proc.Parameters.AddStrings(Params);
   Proc.Execute();
@@ -290,7 +327,7 @@ var
   Proc: TProcess;
 begin
   Proc := TProcess.Create(nil);
-  Proc.Options := Proc.Options + [poStderrToOutPut, poNoConsole];
+  Proc.Options := Proc.Options + [poStderrToOutPut{, poNoConsole}];
   Proc.Executable := Executable;
   Proc.CurrentDirectory := Cwd;
   Proc.Environment.AddStrings(Env);
@@ -305,7 +342,7 @@ var
   Proc: TProcess;
 begin
   Proc := TProcess.Create(nil);
-  Proc.Options := Proc.Options + [poStderrToOutPut, poUsePipes, poNoConsole];
+  Proc.Options := Proc.Options + [poStderrToOutPut, poUsePipes{, poNoConsole}];
   Proc.Executable := Executable;
   Proc.Parameters.AddStrings(Params);
   Proc.Execute();
@@ -318,7 +355,7 @@ var
   Proc: TProcess;
 begin
   Proc := TProcess.Create(nil);
-  Proc.Options := Proc.Options + [poStderrToOutPut, poUsePipes, poNoConsole];
+  Proc.Options := Proc.Options + [poStderrToOutPut, poUsePipes{, poNoConsole}];
   Proc.Executable := Executable;
   Proc.CurrentDirectory := Cwd;
   Proc.Environment.AddStrings(Env);

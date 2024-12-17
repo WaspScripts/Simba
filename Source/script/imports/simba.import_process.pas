@@ -219,8 +219,6 @@ TRunningProcess.WaitOnExit
 --------------------------
 ```
 function WaitOnExit: Boolean; overload;
-```
-```
 function WaitOnExit(Timeout: Integer): Boolean; overload;
 ```
 *)
@@ -307,6 +305,18 @@ begin
 end;
 
 (*
+TRunningProcessPiped.ReadStringUntil
+------------------------------------
+```
+function TRunningProcessPiped.ReadStringUntil(Seq: String; Timeout: Integer): String;
+```
+*)
+procedure _LapeRunningProcessPiped_ReadStringUntil(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PString(Result)^ := PRunningProcessPiped(Params^[0])^.ReadStringUntil(PString(Params^[1])^, PInteger(Params^[2])^);
+end;
+
+(*
 TRunningProcessPiped.Write
 --------------------------
 ```
@@ -347,8 +357,6 @@ StartProcess
 ------------
 ```
 function StartProcess(Executable: String; Params: TStringArray): TRunningProcess;
-```
-```
 function StartProcess(Executable: String; Params: TStringArray; Cwd: String; Env: TStringArray = []): TRunningProcess;
 ```
 *)
@@ -387,8 +395,6 @@ RunProcess
 ------------
 ```
 function RunProcess(Executable: String; Params: TStringArray): TProcessExitCode;
-```
-```
 function RunProcess(Executable: String; Params: TStringArray; out Output: String): TProcessExitCode;
 ```
 *)
@@ -407,8 +413,6 @@ RunSimbaScript
 --------------
 ```
 function RunSimbaScript(Script: String; Parameters: TStringArray): TProcessExitStatus;
-```
-```
 function RunSimbaScript(Script: String; Parameters: TStringArray; out Output: String): TProcessExitStatus;
 ```
 
@@ -488,6 +492,7 @@ begin
     addClass('TRunningProcessPiped', 'TRunningProcess');
     addGlobalFunc('function TRunningProcess.Read(Buf: Pointer; Count: Integer): Integer;', @_LapeRunningProcessPiped_Read);
     addGlobalFunc('function TRunningProcess.ReadString: String;', @_LapeRunningProcessPiped_ReadString);
+    addGlobalFunc('function TRunningProcess.ReadStringUntil(Seq: String; Timeout: Integer): String;', @_LapeRunningProcessPiped_ReadStringUntil);
     addGlobalFunc('function TRunningProcess.Write(Buf: Pointer; Count: Integer): Integer;', @_LapeRunningProcessPiped_Write);
     addGlobalFunc('function TRunningProcess.WriteString(Str: String): Integer;', @_LapeRunningProcessPiped_WriteString);
     addProperty('TRunningProcessPiped', 'ReadBytesAvailable', 'Integer', @_LapeRunningProcessPiped_ReadBytesAvailable_Read);

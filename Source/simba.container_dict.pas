@@ -150,6 +150,9 @@ uses
   TypInfo,
   simba.math, simba.hash_murmur;
 
+{$overflowchecks off}
+{$rangechecks off}
+
 class function TDictionary<K,V>.HashBool(constref k: Boolean): UInt32;
 begin
   Result := UInt32(k);
@@ -180,15 +183,12 @@ class function TDictionary<K, V>.HashString(constref k: String): UInt32;
 var
   I: Int32;
 begin
-  {$PUSH}
-  {$Q-}{$R-}
   Result := 2166136261;
   for I := 1 to Length(k) do
   begin
     Result := Result xor Byte(k[I]);
     Result := Result * 16777619;
   end;
-  {$POP}
 end;
 
 class function TDictionary<K, V>.CompareBool(constref A, B: Boolean): Boolean;
