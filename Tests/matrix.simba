@@ -1,0 +1,61 @@
+{$assertions on}
+
+// Test basic matrix methods
+
+procedure TestSingleMatrix;
+var
+  Mat: TSingleMatrix;
+begin
+  Mat.SetSize(99, 101);
+  Assert(Mat.Width = 99);
+  Assert(Mat.Height = 101);
+  Assert(Mat.Area = 99*101);
+
+  Mat[1,1] := -0.5;
+  Mat[90,90] := 100.5;
+
+  Assert(Abs(Mat.Min - (-0.5)) < 0.001);
+  Assert(Abs(Mat.Max -100.5) < 0.001);
+
+  Assert(Abs(Mat.Mean - 0.01) < 0.001);
+  Assert(Mat.ArgMax = [90,90]);
+  Assert(Mat.ArgMin = [1,1]);
+end;
+
+procedure TestDoubleMatrix;
+var
+  Mat: TDoubleMatrix;
+begin
+  Mat.SetSize(99, 101);
+  Assert(Mat.Width = 99);
+  Assert(Mat.Height = 101);
+  Assert(Mat.Area = 99*101);
+end;
+
+procedure TestIntMatrix;
+var
+  Mat: TIntegerMatrix;
+begin
+  Mat.SetSize(99, 101);
+  Assert(Mat.Width = 99);
+  Assert(Mat.Height = 101);
+  Assert(Mat.Area = 99*101);
+end;
+
+procedure TestBoolMatrix;
+var
+  Mat: TBooleanMatrix;
+begin
+  Mat.SetSize(99, 101);
+  Assert(Mat.Width = 99);
+  Assert(Mat.Height = 101);
+  Assert(Mat.Area = 99*101);
+end;
+
+begin
+  TestSingleMatrix();
+  TestDoubleMatrix();
+  TestIntMatrix();
+  TestBoolMatrix();
+end.
+

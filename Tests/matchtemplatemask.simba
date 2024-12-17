@@ -9,8 +9,8 @@ var
 begin
   try
     mat := MatchTemplateMask(img.ToMatrix(), templ.ToMatrix(), formula);
-    Assert(mat.ArgMin() = minLoc);
-    Assert(mat.ArgMax() = maxLoc);
+    Assert(mat.ArgMin = minLoc);
+    Assert(mat.ArgMax = maxLoc);
 
     if (minValue <> 0) and (maxValue <> 0) then
     begin

@@ -235,12 +235,9 @@ type
     function FindImage(Image: TSimbaImage; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; ABounds: TBox): TPoint; overload;
     function FindImageEx(Image: TSimbaImage; Tolerance: Single; MaxToFind: Integer; ABounds: TBox): TPointArray; overload;
     function FindImageEx(Image: TSimbaImage; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; MaxToFind: Integer; ABounds: TBox): TPointArray; overload;
-    function HasImage(Image: TSimbaImage; Tolerance: Single; MinCount: Integer; ABounds: TBox): Boolean; overload;
-    function HasImage(Image: TSimbaImage; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; MinCount: Integer; ABounds: TBox): Boolean; overload;
 
     // Finder - template
     function FindTemplate(Templ: TSimbaImage; out Match: Single; ABounds: TBox): TPoint;
-    function HasTemplate(Templ: TSimbaImage; MinMatch: Single; ABounds: TBox): Boolean;
 
     // Finder - dtm
     function FindDTM(DTM: TDTM; ABounds: TBox): TPoint;
@@ -554,24 +551,9 @@ begin
     Result := TPoint.Create(-1, -1);
 end;
 
-function TSimbaTarget.HasImage(Image: TSimbaImage; Tolerance: Single; MinCount: Integer; ABounds: TBox): Boolean;
-begin
-  Result := Length(FindImageOnTarget(Self, Image, ABounds, DefaultColorSpace, Tolerance, DefaultMultipliers, MinCount)) >= MinCount;
-end;
-
-function TSimbaTarget.HasImage(Image: TSimbaImage; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; MinCount: Integer; ABounds: TBox): Boolean;
-begin
-  Result := Length(FindImageOnTarget(Self, Image, ABounds, ColorSpace, Tolerance, Multipliers, MinCount)) >= MinCount;
-end;
-
 function TSimbaTarget.FindTemplate(Templ: TSimbaImage; out Match: Single; ABounds: TBox): TPoint;
 begin
   Result := FindTemplateOnTarget(Self, Templ, Match, ABounds);
-end;
-
-function TSimbaTarget.HasTemplate(Templ: TSimbaImage; MinMatch: Single; ABounds: TBox): Boolean;
-begin
-  Result := HasTemplateOnTarget(Self, Templ, MinMatch, ABounds);
 end;
 
 function TSimbaTarget.FindDTMEx(DTM: TDTM; MaxToFind: Integer; ABounds: TBox): TPointArray;
