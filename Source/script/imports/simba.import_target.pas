@@ -765,30 +765,6 @@ begin
 end;
 
 (*
-TTarget.HasImage
-----------------
-```
-function TTarget.HasImage(Image: TSimbaImage; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; MinCount: Integer = 1; Bounds: TBox  = [-1,-1,-1,-1]): Boolean;
-```
-*)
-procedure _LapeTarget_HasImage1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := PSimbaTarget(Params^[0])^.HasImage(PSimbaImage(Params^[1])^, PSingle(Params^[2])^, PColorSpace(Params^[3])^, PChannelMultipliers(Params^[4])^, PInteger(Params^[5])^, PBox(Params^[6])^);
-end;
-
-(*
-TTarget.HasImage
-----------------
-```
-function TTarget.HasImage(Image: TSimbaImage; Tolerance: Single; MinCount: Integer = 1; Bounds: TBox  = [-1,-1,-1,-1]): Boolean;
-```
-*)
-procedure _LapeTarget_HasImage2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := PSimbaTarget(Params^[0])^.HasImage(PSimbaImage(Params^[1])^, PSingle(Params^[2])^, PInteger(Params^[3])^, PBox(Params^[4])^);
-end;
-
-(*
 TTarget.FindImage
 -----------------
 ```
@@ -846,18 +822,6 @@ function TTarget.FindTemplate(Image: TImage; out Match: Single; Bounds: TBox = [
 procedure _LapeTarget_FindTemplate(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PPoint(Result)^ := PSimbaTarget(Params^[0])^.FindTemplate(PSimbaImage(Params^[1])^, PSingle(Params^[2])^, PBox(Params^[3])^);
-end;
-
-(*
-TTarget.HasTemplate
---------------------
-```
-function TTarget.HasTemplate(Image: TImage; MinMatch: Single; Bounds: TBox = [-1,-1,-1,-1]): Boolean;
-```
-*)
-procedure _LapeTarget_HasTemplate(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := PSimbaTarget(Params^[0])^.HasTemplate(PSimbaImage(Params^[1])^, PSingle(Params^[2])^, PBox(Params^[3])^);
 end;
 
 (*
@@ -1162,11 +1126,7 @@ begin
     addGlobalFunc('function TTarget.FindImageEx(Image: TImage; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; MaxToFind: Integer = -1; Bounds: TBox = [-1,-1,-1,-1]): TPointArray; overload', @_LapeTarget_FindImageEx2);
     addGlobalFunc('function TTarget.FindImage(Image: TImage; Tolerance: Single; Bounds: TBox = [-1,-1,-1,-1]): TPoint; overload', @_LapeTarget_FindImage1);
     addGlobalFunc('function TTarget.FindImage(Image: TImage; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; Bounds: TBox = [-1,-1,-1,-1]): TPoint; overload', @_LapeTarget_FindImage2);
-    addGlobalFunc('function TTarget.HasImage(Image: TImage; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; MinCount: Integer = 1; Bounds: TBox = [-1,-1,-1,-1]): TPoint; overload', @_LapeTarget_HasImage1);
-    addGlobalFunc('function TTarget.HasImage(Image: TImage; Tolerance: Single; MinCount: Integer = 1; Bounds: TBox = [-1,-1,-1,-1]): TPoint; overload', @_LapeTarget_HasImage2);
-
     addGlobalFunc('function TTarget.FindTemplate(Templ: TImage; out Match: Single; Bounds: TBox = [-1,-1,-1,-1]): TPoint', @_LapeTarget_FindTemplate);
-    addGlobalFunc('function TTarget.HasTemplate(Templ: TImage; MinMatch: Single; Bounds: TBox = [-1,-1,-1,-1]): Boolean', @_LapeTarget_HasTemplate);
 
     addGlobalFunc('function TTarget.FindDTM(DTM: TDTM; Bounds: TBox = [-1,-1,-1,-1]): TPoint', @_LapeTarget_FindDTM);
     addGlobalFunc('function TTarget.FindDTMEx(DTM: TDTM; MaxToFind: Integer = -1; Bounds: TBox = [-1,-1,-1,-1]): TPointArray', @_LapeTarget_FindDTMEx);
@@ -1229,9 +1189,9 @@ begin
       '  Result.SetImage(Self);',
       'end;'
     ]);
-
     DumpSection := '';
   end;
 end;
 
 end.
+

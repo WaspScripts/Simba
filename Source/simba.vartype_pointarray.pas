@@ -80,6 +80,7 @@ type
     function ConvexHull: TPointArray;
 
     function Mean: TPoint;
+    function Median: TPoint;
     function MinAreaRect: TQuad;
     function MinAreaCircle: TCircle;
     function Bounds: TBox;
@@ -160,7 +161,7 @@ type
     function ConvexityDefects(Epsilon: Single; Mode: EConvexityDefects = EConvexityDefects.NONE): TPointArray;
 
     procedure ToAxes(out X, Y: TIntegerArray);
-    function Median: TPoint;
+
   end;
 
   T2DPointArrayHelper = type helper for T2DPointArray
@@ -514,7 +515,7 @@ end;
 
 function TPointArrayHelper.IndicesOf(P: TPoint): TIntegerArray;
 begin
-  Result := specialize TArrayIndicesOf<TPoint>.IndicesOf(P, Self);
+  Result := specialize TArrayIndexOf<TPoint>.IndicesOf(P, Self);
 end;
 
 function TPointArrayHelper.Equals(Other: TPointArray): Boolean;

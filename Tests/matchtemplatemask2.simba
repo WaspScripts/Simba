@@ -9,7 +9,7 @@ begin
   templ.FreeOnTerminate := True;
 
   mat := MatchTemplateMask(img.ToMatrix(), templ.ToMatrix(), TM_CCOEFF_NORMED);
-  Assert(mat.ArgMax() = [8,8]);
+  Assert(mat.ArgMax = [8,8]);
 
   for s in mat.Flatten() do
     if not IsNumber(s) then

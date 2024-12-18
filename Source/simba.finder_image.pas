@@ -29,7 +29,6 @@ function FindImageOnBuffer(var Limit: TLimit;
                            SearchWidth, SearchHeight: Integer): TPointArray;
 
 function FindTemplateOnTarget(constref Target: TSimbaTarget; Templ: TSimbaImage; out Match: Single; Bounds: TBox): TPoint;
-function HasTemplateOnTarget(constref Target: TSimbaTarget; Templ: TSimbaImage; MinMatch: Single; Bounds: TBox): Boolean;
 
 var
   ImageFinderMultithreadOpts: record
@@ -288,21 +287,12 @@ begin
   try
     Mat := MatchTemplate(Image, Templ, TM_CCOEFF_NORMED);
 
-    Best := Mat.ArgMax();
+    Best := Mat.ArgMax;
     Match := Mat[Best.Y, Best.X];
     Result := Best + Bounds.TopLeft;
   finally
     Image.Free();
   end;
-end;
-
-function HasTemplateOnTarget(constref Target: TSimbaTarget; Templ: TSimbaImage; MinMatch: Single; Bounds: TBox): Boolean;
-var
-  Match: Single;
-begin
-  FindTemplateOnTarget(Target, Templ, Match, Bounds);
-
-  Result := Match >= MinMatch;
 end;
 
 initialization

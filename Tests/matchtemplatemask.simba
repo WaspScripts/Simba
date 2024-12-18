@@ -9,8 +9,8 @@ var
 begin
   try
     mat := MatchTemplateMask(img.ToMatrix(), templ.ToMatrix(), formula);
-    Assert(mat.ArgMin() = minLoc);
-    Assert(mat.ArgMax() = maxLoc);
+    Assert(mat.ArgMin = minLoc);
+    Assert(mat.ArgMax = maxLoc);
 
     if (minValue <> 0) and (maxValue <> 0) then
     begin
@@ -18,7 +18,7 @@ begin
       Assert(Abs(mat[maxLoc.Y, maxLoc.X] - maxValue) <= 0.05);
     end;
   except
-    WriteLn(Formula, ' :: ', mat.ArgMin(), ', ', mat.ArgMax(), ', ', Round(mat[mat.ArgMin().Y, mat.ArgMin().X], 1), ', ', Round(mat[mat.ArgMax().Y, mat.ArgMax().X], 1));
+    WriteLn(Formula, ' :: ', mat.ArgMin, ', ', mat.ArgMax, ', ', Round(mat[mat.ArgMin.Y, mat.ArgMin.X], 1), ', ', Round(mat[mat.ArgMax.Y, mat.ArgMax.X], 1));
     raise;
   end;
 end;
@@ -31,8 +31,8 @@ begin
   try
     cache := TMatchTemplateCache.Create(img.toMatrix(), templ.ToMatrix(), formula);
     mat := MatchTemplateMask(cache, templ.ToMatrix(), formula);
-    Assert(mat.ArgMin() = minLoc);
-    Assert(mat.ArgMax() = maxLoc);
+    Assert(mat.ArgMin = minLoc);
+    Assert(mat.ArgMax = maxLoc);
 
     if (minValue <> 0) and (maxValue <> 0) then
     begin
@@ -40,7 +40,7 @@ begin
       Assert(Abs(mat[maxLoc.Y, maxLoc.X] - maxValue) <= 0.05);
     end;
   except
-    WriteLn(Formula, ' :: ', mat.ArgMin(), ', ', mat.ArgMax(), ', ', Round(mat[mat.ArgMin().Y, mat.ArgMin().X], 1), ', ', Round(mat[mat.ArgMax().Y, mat.ArgMax().X], 1));
+    WriteLn(Formula, ' :: ', mat.ArgMin, ', ', mat.ArgMax, ', ', Round(mat[mat.ArgMin.Y, mat.ArgMin.X], 1), ', ', Round(mat[mat.ArgMax.Y, mat.ArgMax.X], 1));
     raise;
   finally
     cache.free();

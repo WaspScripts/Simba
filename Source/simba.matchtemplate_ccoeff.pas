@@ -66,9 +66,9 @@ begin
 
   if not Normed then
   begin
-    mR := TemplChannels.R.Mean();
-    mG := TemplChannels.G.Mean();
-    mB := TemplChannels.B.Mean();
+    mR := TemplChannels.R.Mean;
+    mG := TemplChannels.G.Mean;
+    mB := TemplChannels.B.Mean;
     tplSigma := 0;
   end else
   begin

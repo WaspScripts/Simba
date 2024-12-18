@@ -10,12 +10,17 @@ uses
 
 type
   TIntegerMatrixHelper = type helper for TIntegerMatrix
+  private
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+    function GetArea: Integer;
   public
-    function Width: Integer;
-    function Height: Integer;
-    function Area: Integer;
+    property Width: Integer read GetWidth;
+    property Height: Integer read GetHeight;
+    property Area: Integer read GetArea;
+
     function GetSize(out AWidth, AHeight: Integer): Boolean;
-    procedure SetSize(AWidth, AHeight: Integer);
+    procedure SetSize(NewWidth, NewHeight: Integer);
     function Copy: TIntegerMatrix; overload;
     function Copy(Y1, Y2: Integer): TIntegerMatrix; overload;
     function GetValues(Indices: TPointArray): TIntegerArray;
@@ -28,30 +33,59 @@ type
   end;
 
   TByteMatrixHelper = type helper for TByteMatrix
+  private
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+    function GetArea: Integer;
   public
-    function Width: Integer;
-    function Height: Integer;
+    property Width: Integer read GetWidth;
+    property Height: Integer read GetHeight;
+    property Area: Integer read GetArea;
+
     function GetSize(out AWidth, AHeight: Integer): Boolean;
-    procedure SetSize(AWidth, AHeight: Integer);
+    procedure SetSize(NewWidth, NewHeight: Integer);
   end;
 
   TBooleanMatrixHelper = type helper for TBooleanMatrix
+  private
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+    function GetArea: Integer;
   public
-    function Width: Integer;
-    function Height: Integer;
-    function Area: Integer;
+    property Width: Integer read GetWidth;
+    property Height: Integer read GetHeight;
+    property Area: Integer read GetArea;
+
     function GetSize(out AWidth, AHeight: Integer): Boolean;
-    procedure SetSize(AWidth, AHeight: Integer);
+    procedure SetSize(NewWidth, NewHeight: Integer);
   end;
 
   TSingleMatrixHelper = type helper for TSingleMatrix
+  private
+    function GetArgMax: TPoint;
+    function GetArgMin: TPoint;
+    function GetMax: Single;
+    function GetMin: Single;
+    function GetSum: Double;
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+    function GetArea: Integer;
+    function GetMean: Single;
   public
-    function Width: Integer;
-    function Height: Integer;
-    function Area: Integer;
+    property Width: Integer read GetWidth;
+    property Height: Integer read GetHeight;
+    property Area: Integer read GetArea;
+    property Min: Single read GetMin;
+    property Max: Single read GetMax;
+    property ArgMax: TPoint read GetArgMax;
+    property ArgMin: TPoint read GetArgMin;
+    property Sum: Double read GetSum;
+    property Mean: Single read GetMean;
+
+    procedure SetSize(NewWidth, NewHeight: Integer);
     function GetSize(out AWidth, AHeight: Integer): Boolean;
-    procedure SetSize(AWidth, AHeight: Integer);
     function GetSizeMinusOne(out AWidth, AHeight: Integer): Boolean;
+
     function Copy: TSingleMatrix; overload;
     function Copy(Y1, Y2: Integer): TSingleMatrix; overload;
     function GetValues(Indices: TPointArray): TSingleArray;
@@ -61,18 +95,14 @@ type
     procedure Fill(Value: Single); overload;
     function Flatten: TSingleArray;
     function ToIntegerMatrix: TIntegerMatrix;
-    function Mean: Double;
     procedure MeanStdev(out MeanValue, Stdev: Double);
     procedure MinMax(out MinValue, MaxValue: Single);
-    function Min: Single;
-    function Max: Single;
-    function ArgMax: TPoint;
-    function ArgMin: TPoint;
+
     function NormMinMax(Alpha, Beta: Single): TSingleMatrix;
     function Indices(Value: Single;  Comparator: EComparator): TPointArray;
     function ArgMulti(Count: Integer;  HiLo: Boolean): TPointArray;
     procedure Smoothen(Block: Integer);
-    function Sum: Double;
+
     function Equals(Other: TSingleMatrix; Epsilon: Single = 0): Boolean;
     procedure ReplaceNaNAndInf(const ReplaceWith: Single);
     function Rot90: TSingleMatrix;
@@ -80,12 +110,17 @@ type
   end;
 
   TDoubleMatrixHelper = type helper for TDoubleMatrix
+  private
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+    function GetArea: Integer;
   public
-    function Width: Integer;
-    function Height: Integer;
-    function Area: Integer;
+    property Width: Integer read GetWidth;
+    property Height: Integer read GetHeight;
+    property Area: Integer read GetArea;
+
     function GetSize(out AWidth, AHeight: Integer): Boolean;
-    procedure SetSize(AWidth, AHeight: Integer);
+    procedure SetSize(NewWidth, NewHeight: Integer);
   end;
 
 implementation
@@ -94,7 +129,7 @@ uses
   Math,
   simba.math, simba.containers, simba.container_heaparray, simba.vartype_pointarray, simba.vartype_box;
 
-function TIntegerMatrixHelper.Width: Integer;
+function TIntegerMatrixHelper.GetWidth: Integer;
 begin
   if (Length(Self) > 0) then
     Result := Length(Self[0])
@@ -102,12 +137,12 @@ begin
     Result := 0;
 end;
 
-function TIntegerMatrixHelper.Height: Integer;
+function TIntegerMatrixHelper.GetHeight: Integer;
 begin
   Result := Length(Self);
 end;
 
-function TIntegerMatrixHelper.Area: Integer;
+function TIntegerMatrixHelper.GetArea: Integer;
 begin
   Result := Width * Height;
 end;
@@ -120,9 +155,9 @@ begin
   Result := (AWidth > 0) and (AHeight > 0);
 end;
 
-procedure TIntegerMatrixHelper.SetSize(AWidth, AHeight: Integer);
+procedure TIntegerMatrixHelper.SetSize(NewWidth, NewHeight: Integer);
 begin
-  SetLength(Self, AHeight, AWidth);
+  SetLength(Self, NewHeight, NewWidth);
 end;
 
 function TIntegerMatrixHelper.Copy: TIntegerMatrix;
@@ -247,7 +282,7 @@ begin
   Result := Buffer.ToArray(False);
 end;
 
-function TByteMatrixHelper.Width: Integer;
+function TByteMatrixHelper.GetWidth: Integer;
 begin
   if (Length(Self) > 0) then
     Result := Length(Self[0])
@@ -255,9 +290,14 @@ begin
     Result := 0;
 end;
 
-function TByteMatrixHelper.Height: Integer;
+function TByteMatrixHelper.GetHeight: Integer;
 begin
   Result := Length(Self);
+end;
+
+function TByteMatrixHelper.GetArea: Integer;
+begin
+  Result := Width * Height;
 end;
 
 function TByteMatrixHelper.GetSize(out AWidth, AHeight: Integer): Boolean;
@@ -268,12 +308,12 @@ begin
   Result := (AWidth > 0) and (AHeight > 0);
 end;
 
-procedure TByteMatrixHelper.SetSize(AWidth, AHeight: Integer);
+procedure TByteMatrixHelper.SetSize(NewWidth, NewHeight: Integer);
 begin
-  SetLength(Self, AHeight, AWidth);
+  SetLength(Self, NewHeight, NewWidth);
 end;
 
-function TBooleanMatrixHelper.Width: Integer;
+function TBooleanMatrixHelper.GetWidth: Integer;
 begin
   if (Length(Self) > 0) then
     Result := Length(Self[0])
@@ -281,12 +321,12 @@ begin
     Result := 0;
 end;
 
-function TBooleanMatrixHelper.Height: Integer;
+function TBooleanMatrixHelper.GetHeight: Integer;
 begin
   Result := Length(Self);
 end;
 
-function TBooleanMatrixHelper.Area: Integer;
+function TBooleanMatrixHelper.GetArea: Integer;
 begin
   Result := Width * Height;
 end;
@@ -299,12 +339,102 @@ begin
   Result := (AWidth > 0) and (AHeight > 0);
 end;
 
-procedure TBooleanMatrixHelper.SetSize(AWidth, AHeight: Integer);
+procedure TBooleanMatrixHelper.SetSize(NewWidth, NewHeight: Integer);
 begin
-  SetLength(Self, AHeight, AWidth);
+  SetLength(Self, NewHeight, NewWidth);
 end;
 
-function TSingleMatrixHelper.Width: Integer;
+function TSingleMatrixHelper.GetMin: Single;
+var
+  MaxValue: Single;
+begin
+  MinMax(Result, MaxValue);
+end;
+
+function TSingleMatrixHelper.GetMax: Single;
+var
+  MinValue: Single;
+begin
+  MinMax(MinValue, Result);
+end;
+
+function TSingleMatrixHelper.GetArgMax: TPoint;
+var
+  X, Y, W, H: Integer;
+  Value, Best: Single;
+  HasValue: Boolean;
+begin
+  Result := TPoint.Create(0, 0);
+
+  if Self.GetSizeMinusOne(W, H) then
+  begin
+    HasValue := False;
+
+    for Y := 0 to H do
+      for X := 0 to W do
+      begin
+        Value := Self[Y, X];
+        if (not IsNumber(Value)) or (HasValue and (Value <= {%H-}Best)) then
+          Continue;
+
+        HasValue := True;
+        Best := Value;
+        Result.X := X;
+        Result.Y := Y;
+      end;
+  end;
+end;
+
+function TSingleMatrixHelper.GetArgMin: TPoint;
+var
+  X, Y, W, H: Integer;
+  Value, Best: Single;
+  HasValue: Boolean;
+begin
+  Result := TPoint.Create(0, 0);
+
+  if Self.GetSizeMinusOne(W, H) then
+  begin
+    HasValue := False;
+
+    for Y := 0 to H do
+      for X := 0 to W do
+      begin
+        Value := Self[Y, X];
+        if (not IsNumber(Value)) or (HasValue and (Value >= {%H-}Best)) then
+          Continue;
+
+        HasValue := True;
+        Best := Value;
+        Result.X := X;
+        Result.Y := Y;
+      end;
+  end;
+end;
+
+function TSingleMatrixHelper.GetMean: Single;
+begin
+  Result := Self.Sum / Self.Area;
+end;
+
+function TSingleMatrixHelper.GetSum: Double;
+var
+  X, Y, W, H: Integer;
+  Value: Single;
+begin
+  Result := 0;
+
+  if Self.GetSizeMinusOne(W, H) then
+    for Y := 0 to H do
+      for X := 0 to W do
+      begin
+        Value := Self[Y, X];
+        if IsNumber(Value) then
+          Result := Result + Value;
+      end;
+end;
+
+function TSingleMatrixHelper.GetWidth: Integer;
 begin
   if (Length(Self) > 0) then
     Result := Length(Self[0])
@@ -312,12 +442,12 @@ begin
     Result := 0;
 end;
 
-function TSingleMatrixHelper.Height: Integer;
+function TSingleMatrixHelper.GetHeight: Integer;
 begin
   Result := Length(Self);
 end;
 
-function TSingleMatrixHelper.Area: Integer;
+function TSingleMatrixHelper.GetArea: Integer;
 begin
   Result := Width * Height;
 end;
@@ -330,9 +460,9 @@ begin
   Result := (AWidth > 0) and (AHeight > 0);
 end;
 
-procedure TSingleMatrixHelper.SetSize(AWidth, AHeight: Integer);
+procedure TSingleMatrixHelper.SetSize(NewWidth, NewHeight: Integer);
 begin
-  SetLength(Self, AHeight, AWidth);
+  SetLength(Self, NewHeight, NewWidth);
 end;
 
 function TSingleMatrixHelper.GetSizeMinusOne(out AWidth, AHeight: Integer): Boolean;
@@ -458,11 +588,6 @@ begin
       Result[Y, X] := Trunc(Self[Y, X]);
 end;
 
-function TSingleMatrixHelper.Mean: Double;
-begin
-  Result := Self.Sum() / Self.Area();
-end;
-
 procedure TSingleMatrixHelper.MeanStdev(out MeanValue, Stdev: Double);
 var
   W, H, X, Y: Integer;
@@ -473,7 +598,7 @@ begin
 
   if Self.GetSizeMinusOne(W, H) then
   begin
-    MeanValue := Self.Mean();
+    MeanValue := Self.Mean;
 
     for Y := 0 to H do
       for X := 0 to W do
@@ -483,7 +608,7 @@ begin
           Stdev += Sqr(Value - MeanValue);
       end;
 
-    Stdev := Sqrt(Stdev / Self.Area());
+    Stdev := Sqrt(Stdev / Self.Area);
   end;
 end;
 
@@ -517,74 +642,6 @@ begin
 
         if (Value < MinValue) then MinValue := Value;
         if (Value > MaxValue) then MaxValue := Value;
-      end;
-  end;
-end;
-
-function TSingleMatrixHelper.Min: Single;
-var
-  MaxValue: Single;
-begin
-  MinMax(Result, MaxValue);
-end;
-
-function TSingleMatrixHelper.Max: Single;
-var
-  MinValue: Single;
-begin
-  MinMax(MinValue, Result);
-end;
-
-function TSingleMatrixHelper.ArgMax: TPoint;
-var
-  X, Y, W, H: Integer;
-  Value, Best: Single;
-  HasValue: Boolean;
-begin
-  Result := TPoint.Create(0, 0);
-
-  if Self.GetSizeMinusOne(W, H) then
-  begin
-    HasValue := False;
-
-    for Y := 0 to H do
-      for X := 0 to W do
-      begin
-        Value := Self[Y, X];
-        if (not IsNumber(Value)) or (HasValue and (Value <= {%H-}Best)) then
-          Continue;
-
-        HasValue := True;
-        Best := Value;
-        Result.X := X;
-        Result.Y := Y;
-      end;
-  end;
-end;
-
-function TSingleMatrixHelper.ArgMin: TPoint;
-var
-  X, Y, W, H: Integer;
-  Value, Best: Single;
-  HasValue: Boolean;
-begin
-  Result := TPoint.Create(0, 0);
-
-  if Self.GetSizeMinusOne(W, H) then
-  begin
-    HasValue := False;
-
-    for Y := 0 to H do
-      for X := 0 to W do
-      begin
-        Value := Self[Y, X];
-        if (not IsNumber(Value)) or (HasValue and (Value >= {%H-}Best)) then
-          Continue;
-
-        HasValue := True;
-        Best := Value;
-        Result.X := X;
-        Result.Y := Y;
       end;
   end;
 end;
@@ -717,23 +774,6 @@ begin
   end;
 end;
 
-function TSingleMatrixHelper.Sum: Double;
-var
-  X, Y, W, H: Integer;
-  Value: Single;
-begin
-  Result := 0;
-
-  if Self.GetSizeMinusOne(W, H) then
-    for Y := 0 to H do
-      for X := 0 to W do
-      begin
-        Value := Self[Y, X];
-        if IsNumber(Value) then
-          Result := Result + Value;
-      end;
-end;
-
 function TSingleMatrixHelper.Equals(Other: TSingleMatrix; Epsilon: Single): Boolean;
 var
   X, Y, W, H: Integer;
@@ -825,8 +865,8 @@ var
   I: Integer;
   Weights: TSingleArray;
 begin
-  W := Self.Width();
-  H := Self.Height();
+  W := Self.Width;
+  H := Self.Height;
 
   Buffer.Init(Math.Max(2, Ceil(Sqrt(W * H))));
 
@@ -849,7 +889,7 @@ begin
     SetLength(Result, Count);
 end;
 
-function TDoubleMatrixHelper.Width: Integer;
+function TDoubleMatrixHelper.GetWidth: Integer;
 begin
   if (Length(Self) > 0) then
     Result := Length(Self[0])
@@ -857,12 +897,12 @@ begin
     Result := 0;
 end;
 
-function TDoubleMatrixHelper.Height: Integer;
+function TDoubleMatrixHelper.GetHeight: Integer;
 begin
   Result := Length(Self);
 end;
 
-function TDoubleMatrixHelper.Area: Integer;
+function TDoubleMatrixHelper.GetArea: Integer;
 begin
   Result := Width * Height;
 end;
@@ -875,9 +915,9 @@ begin
   Result := (AWidth > 0) and (AHeight > 0);
 end;
 
-procedure TDoubleMatrixHelper.SetSize(AWidth, AHeight: Integer);
+procedure TDoubleMatrixHelper.SetSize(NewWidth, NewHeight: Integer);
 begin
-  SetLength(Self, AHeight, AWidth);
+  SetLength(Self, NewHeight, NewWidth);
 end;
 
 end.

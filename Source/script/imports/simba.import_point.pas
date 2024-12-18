@@ -599,6 +599,16 @@ begin
   PPointArray(Result)^ := PPointArray(Params^[0])^.Connect();
 end;
 
+procedure _LapeTPAMean(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPoint(Result)^ := PPointArray(Params^[0])^.Mean;
+end;
+
+procedure _LapeTPAMedian(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPoint(Result)^ := PPointArray(Params^[0])^.Median;
+end;
+
 (*
 TPointArray.Extremes
 --------------------
@@ -1540,6 +1550,11 @@ begin
   PBoxArray(Result)^ := P2DPointArray(Params^[0])^.BoundsArray();
 end;
 
+procedure _LapeATPA_Mean(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPoint(Result)^ := P2DPointArray(Params^[0])^.Mean();
+end;
+
 (*
 T2DPointArray.Means
 -------------------
@@ -1648,6 +1663,8 @@ begin
     addGlobalFunc('function TPointArray.FloodFill(const StartPoint: TPoint; const EightWay: Boolean): TPointArray;', @_LapeTPAFloodFill);
     addGlobalFunc('function TPointArray.ShapeFill: TPointArray', @_LapeTPAShapeFill);
 
+    addGlobalFunc('function TPointArray.Mean: TPoint', @_LapeTPAMean);
+    addGlobalFunc('function TPointArray.Median: TPoint', @_LapeTPAMedian);
     addGlobalFunc('function TPointArray.Extremes: TPointArray', @_LapeTPAExtremes);
     addGlobalFunc('function TPointArray.Bounds: TBox', @_LapeTPABounds);
     addGlobalFunc('function TPointArray.MinAreaRect: TQuad', @_LapeTPAMinAreaRect);
@@ -1749,6 +1766,7 @@ begin
     addGlobalFunc('function T2DPointArray.Bounds: TBox', @_LapeATPA_Bounds);
     addGlobalFunc('function T2DPointArray.BoundsArray: TBoxArray', @_LapeATPA_BoundsArray);
 
+    addGlobalFunc('function T2DPointArray.Mean: TPoint', @_LapeATPA_Mean);
     addGlobalFunc('function T2DPointArray.Means: TPointArray', @_LapeATPA_Means);
     addGlobalFunc('function T2DPointArray.Merge: TPointArray;', @_LapeATPA_Merge);
     addGlobalFunc('function T2DPointArray.Intersection: TPointArray; overload;', @_LapeATPA_Intersection);
