@@ -116,6 +116,7 @@ type
     function IsPointNearby(Other: TPoint; MinDistX, MinDistY, MaxDistX, MaxDistY: Double): Boolean; overload;
 
     function NearestPoint(Other: TPoint): TPoint;
+    function FurthestPoint(Other: TPoint): TPoint;
 
     function Sort(Weights: TIntegerArray; LowToHigh: Boolean = True): TPointArray; overload;
     function Sort(Weights: TSingleArray; LowToHigh: Boolean = True): TPointArray; overload;
@@ -923,9 +924,6 @@ begin
 end;
 
 procedure TPointArrayHelper.FurthestPoints(out A, B: TPoint);
-var
-  I, J, H: Integer;
-  Best, Test: Double;
 begin
   if (Length(Self) <= 1) then
   begin
@@ -943,21 +941,7 @@ begin
     Exit;
   end;
 
-  Best := 0;
-  H := High(Self);
-  for I := 0 to H do
-    for J := I+1 to H do
-    begin
-      Test := Distance(Self[I], Self[J]);
-
-      if (Test > Best) then
-      begin
-        Best := Test;
-
-        A := Self[I];
-        B := Self[J];
-      end;
-    end;
+  TSimbaGeometry.FurthestPointsPolygon(Self.ConvexHull(), A,B);
 end;
 
 function TPointArrayHelper.ConvexHull: TPointArray;
@@ -1658,13 +1642,36 @@ var
 begin
   if (Length(Self) > 0) then
   begin
-    BestDist := Self[0].DistanceTo(Other);
+    BestDist := Sqr(Self[0].x-Other.x) + Sqr(Self[0].y-Other.y);
     Result := Self[0];
 
     for I := 1 to High(Self) do
     begin
-      Dist := Self[I].DistanceTo(Other);
+      Dist := Sqr(Self[I].x-Other.x) + Sqr(Self[I].y-Other.y);
       if (Dist < BestDist) then
+      begin
+        BestDist := Dist;
+        Result := Self[I];
+      end;
+    end;
+  end else
+    Result := TPoint.ZERO;
+end;
+
+function TPointArrayHelper.FurthestPoint(Other: TPoint): TPoint;
+var
+  I: Integer;
+  Dist, BestDist: Double;
+begin
+  if (Length(Self) > 0) then
+  begin
+    BestDist := Sqr(Self[0].x-Other.x) + Sqr(Self[0].y-Other.y);
+    Result := Self[0];
+
+    for I := 1 to High(Self) do
+    begin
+      Dist := Sqr(Self[I].x-Other.x) + Sqr(Self[I].y-Other.y);
+      if (Dist > BestDist) then
       begin
         BestDist := Dist;
         Result := Self[I];
@@ -2604,27 +2611,15 @@ begin
 end;
 
 (*
-  Approximate smallest bounding circle algorithm by Slacky
-  This formula makes 3 assumptions of outlier points that defines the circle.
-
-  p1 and p2 are the furthest possible points from one another
-  p3 is the furthest point from the center of the line of p1 and p2 at a 90 degree angle.
-
-  Already now we have a circle that is very close to encapsulating.
-
-  We assume that p3 is nearly always correct, and if there is one wrong assumption it's either p1, or p2.
-  We move p1 and/or p2 until the criteria is reached, odds are one of them is correct already alongside p3.
-  If we actually didn't solve it so far, we move p3 to see if that does it.
-
+  Smallest bounding circle algorithm by Slacky
   https://en.wikipedia.org/wiki/Smallest-circle_problem
 
-  Time complexity is somewhere along the lines of
-    O(max(n log n, h^2))
-
-  Where `h` is the remainding points after convex hull is performed.
-  `n` is the number of points, and `n log n` is assuming optimal convexhull algorithm.
+  Time complexity: O(n log n)
 *)
-function TPointArrayHelper.MinAreaCircle: TCircle;
+function TPointArrayHelper.MinAreaCircle(): TCircle;
+var
+  poly: TPointArray;
+  p1,p2,p3,p,q,t: TPoint;
 
   function Circle3(const P1,P2,P3: TPoint): TCircle;
   var
@@ -2653,96 +2648,47 @@ function TPointArrayHelper.MinAreaCircle: TCircle;
       Result := TCircle.ZERO;
   end;
 
-  function InCircle(const Points: TPointArray; const c: TCircle): Boolean;
-  var
-    i: Integer;
-  begin
-    for i := 0 to High(Points) do
-      if (Distance(Points[i].x, Points[i].y, c.x, c.y) > c.Radius + 1) then
-      begin
-        Result := False;
-        Exit;
-      end;
-
-    Result := True;
-  end;
-
-  function Pass(const Points: TPointArray; const p1,p2,p3: TPoint; const now:TCircle; var new: TPoint): TCircle;
-  var
-    i: Integer;
-    c: TCircle;
-  begin
-    Result := now;
-
-    new := p2;
-    for i := 0 to High(Points) do
-    begin
-      if (Points[i] = p3) or (Points[i] = p1) then
-        Continue;
-
-      c := Circle3(p1,Points[i],p3);
-      if (c.Radius < Result.Radius) and InCircle(Points, c) then
-      begin
-        Result := c;
-        new := Points[i];
-      end;
-    end;
-  end;
-
-var
-  i: Integer;
-  v,q,p1,p2,p3: TPoint;
-  Points: TPointArray;
 begin
-  Points := Self.ConvexHull();
+  poly := Self.ConvexHull();  // O(n log n)
+  TSimbaGeometry.FurthestPointsPolygon(poly, p1,p2); // O(m^2) call - ugh
 
-  if (Length(Points) <= 1) then
+  p.x := (p1.x+p2.x) div 2;
+  p.y := (p1.y+p2.y) div 2;
+  t := poly.FurthestPoint(p);
+
+  // Two Point Circle
+  if (p1 = t) or (p2 = t) then
+    Exit(TCircle.Create(p.x,p.y, Ceil( p1.DistanceTo(p2) / 2 )));
+
+  // Three Point Circle
+  p := Circle3(p1, p2, t).Center;
+  q := poly.FurthestPoint(p);
+
+  if Sign(TSimbaGeometry.CrossProduct(q,  p1, p2)) = Sign(TSimbaGeometry.CrossProduct(t, p1, p2)) then
+    p3 := q
+  else
+    p3 := t;
+
+  p := Circle3(p1,p2,p3).Center;
+  q := poly.FurthestPoint(p);
+  if (p1 <> q) and (p2 <> q) and (p3 <> q) then
   begin
-    Result := TCircle.ZERO;
-    if (Length(Points) = 1) then
+    p.x := (p3.x+q.x) div 2;
+    p.y := (p3.y+q.y) div 2;
+    if p1.DistanceTo(p) < p2.DistanceTo(p) then
     begin
-      Result.X := Points[0].X;
-      Result.Y := Points[0].Y;
-    end;
+      p1 := p2;
+      p2 := q;
+    end else
+      p2 := q;
 
-    Exit;
+    p := Circle3(p1, p2, p3).Center;
+    q := poly.FurthestPoint(p);
+    if (p1 <> q) and (p2 <> q) and (p3 <> q) then
+      p1 := q;
   end;
-
-  Points.FurthestPoints(P1, P2);
-
-  v.x := (p1.x + p2.x) div 2;
-  v.y := (p1.y + p2.y) div 2;
-
-  p3 := Points[0];
-  for i := 0 to High(Points) do
-    if Sqrt(Sqr(v.x - Points[i].x) + Sqr(v.y - Points[i].y)) > Sqrt(Sqr(v.x - p3.x) + Sqr(v.y - p3.y)) then
-      p3 := Points[i];
-
-  if (p3 = p2) or (p3 = p1) then
-    Exit(TCircle.Create(Round(v.x), Round(v.y), Ceil(Distance(p1, p2) / 2)));
 
   Result := Circle3(p1, p2, p3);
-  if (Result.Radius = 0) then
-    Exit(TCircle.Create(Round(v.x), Round(v.y), Ceil(Distance(p1, p2) / 2)));
-
-  if InCircle(Points, Result) then
-    Exit;
-
-  Result.Radius := $FFFF;
-  Result := Pass(Points, p1,p2,p3, Result, v);
-  if (v <> p2) then
-    q := v;
-
-  Result := Pass(Points, p2,p1,p3, Result, v);
-  if (v <> p1) then
-    Result := Pass(Points, v, q{%H-}, p3, Result, v);
-
-  if InCircle(Points, Result) and (Result.Radius <> $FFFF) then
-    Exit;
-
-  Result := Pass(Points, p2,p3,p1, Result, v); // very rarely is the p3 assumption is wrong.
-  if (Result.Radius = $FFFF) then
-    Result.Radius := Ceil(Distance(p1,p2) / 2);
 end;
 
 function TPointArrayHelper.DouglasPeucker(epsilon: Double): TPointArray;

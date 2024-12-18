@@ -284,6 +284,18 @@ begin
 end;
 
 (*
+FurthestPointsPolygon
+-----------
+> procedure FurthestPointsPolygon(const Polygon: TPointArray; out A,B: TPoint);
+
+Returns the two points that are furthest away from eachother in a polygon.
+*)
+procedure _LapeFurthestPointsPolygon(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  TSimbaGeometry.FurthestPointsPolygon(PPointArray(Params^[0])^, PPoint(Params^[1])^, PPoint(Params^[2])^);
+end;
+
+(*
 CrossProduct
 ------------
 ```
@@ -499,6 +511,8 @@ begin
     addGlobalFunc('function IsConvexPolygon(const Polygon: TPointArray): Boolean', @_LapeIsConvexPolygon);
     addGlobalFunc('function TriangulatePolygon(const Polygon: TPointArray; MinArea: Single=0; MaxDepth: Int32=0): TTriangleArray', @_LapeTriangulatePolygon);
     addGlobalFunc('function LineInPolygon(a1, a2: TPoint; const Polygon: TPointArray): Boolean', @_LapeLineInPolygon);
+    addGlobalFunc('procedure FurthestPointsPolygon(const Polygon: TPointArray; out A,B: TPoint)', @_LapeFurthestPointsPolygon);
+    
     
     addGlobalFunc('function DeltaAngle(const DegreesA, DegreesB: Double; R: Double = 360): Double', @_LapeDeltaAngle);
     addGlobalFunc('function PolygonArea(const Polygon: TPointArray): Double', @_LapePolygonArea);

@@ -51,6 +51,8 @@ type
     class function TriangulatePolygon(Polygon: TPointArray; MinArea: Single = 0; MaxDepth: Int32 = 0): TTriangleArray;
     class function PolygonArea(const Polygon: TPointArray): Double; static; inline;
     class function ExpandPolygon(const Polygon: TPointArray; Amount: Integer): TPointArray; static;
+    class procedure FurthestPointsPolygon(const Polygon: TPointArray; out A,B: TPoint);
+
     class function CrossProduct(const r, p, q: TPoint): Int64; static; overload; inline;
     class function CrossProduct(const rx,ry, px,py, qx,qy: Double): Double; static; overload; inline;
     class function LinesIntersect(const P1, P2, Q1, Q2: TPoint): Boolean; static; overload;
@@ -269,6 +271,31 @@ begin
     Inc(i, 2);
   end;
 end;
+
+class procedure TSimbaGeometry.FurthestPointsPolygon(const Polygon: TPointArray; out A,B: TPoint);
+var
+  i, j, n: Integer;
+  maxDist, dist: Double;
+begin
+  n := Length(Polygon);
+  j := 1;
+  maxDist := 0;
+  for i:=0 to n-1 do
+  begin
+    while Abs(TSimbaGeometry.CrossProduct(Polygon[i], Polygon[(i + 1) mod n], Polygon[(j + 1) mod n])) >
+          Abs(TSimbaGeometry.CrossProduct(Polygon[i], Polygon[(i + 1) mod n], Polygon[j])) do
+      j := (j + 1) mod n;
+
+    dist := Sqr(Polygon[i].x - Polygon[j].x) + Sqr(Polygon[i].y - Polygon[j].y);
+    if dist > maxDist then
+    begin
+      maxDist := dist;
+      A := Polygon[i];
+      B := Polygon[j];
+    end;
+  end;
+end;
+
 
 class function TSimbaGeometry.PointInTriangle(const P, P1, P2, P3: TPoint): Boolean;
 
