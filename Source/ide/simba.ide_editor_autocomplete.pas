@@ -422,6 +422,7 @@ begin
     Form.BackgroundColor := SimbaTheme.ColorScrollBarInActive;
     Form.SelectedColor := Editor.SelectedColor.Background;
     Form.Font := Editor.Font;
+    Form.ScrollBar.Position := 0;
   end;
 end;
 
