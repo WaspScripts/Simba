@@ -383,11 +383,30 @@ function TCodeinsight.GetTypeMembers(Decl: TDeclaration_Type; Methods: Boolean):
       Result := nil;
   end;
 
+  function IsArray(Decl: TDeclaration_Type): Boolean;
+  begin
+    Result := (Decl is TDeclaration_TypeArray);
+  end;
+
+  function IsMultiDim(Decl: TDeclaration_Type): Boolean;
+  begin
+    Result := (Decl is TDeclaration_TypeArray) and (ResolveVarType(TDeclaration_TypeArray(Decl).VarType) is TDeclaration_TypeArray);
+  end;
+
+  function IsGeneric(Decl: TDeclaration_Type): Boolean;
+  begin
+    Result := (Decl is TDeclaration_TypeGeneric);
+  end;
+
 var
   Depth, I: Integer;
   Decls: TDeclarationArray;
 begin
-  Result := GetArrayHelpers(Decl) + GetGeneric(Decl); // start with (possible) array helpers
+  Result := [];
+  if IsArray(Decl) then
+    Result.Add(GetArrayHelpers(Decl as TDeclaration_TypeArray, IsMultiDim(Decl)));
+  if IsGeneric(Decl) then
+    Result.Add(GetGeneric(Decl));
 
   Depth := 0;
   while (Decl <> nil) and (Depth < 20) do // max depth of 20 for safety

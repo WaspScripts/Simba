@@ -14,21 +14,22 @@ uses
   simba.base, simba.ide_codetools_parser;
 
 const
-  HELPERS_DYNARRAY: TStringArray = (
+  HELPERS_DYNARRAY_FLAT: TStringArray = (
+    'property <ArrayName>.IsEmpty: Boolean',
     'property <ArrayName>.Length: Integer;',
     'property <ArrayName>.Low: Integer;',
     'property <ArrayName>.High: Integer;',
     'property <ArrayName>.First: <ArrayElementType>;',
     'property <ArrayName>.Last: <ArrayElementType>;',
     'property <ArrayName>.Pop: <ArrayElementType>;',
-    'property <ArrayName>.Min: <ArrayElementType>;',
-    'property <ArrayName>.Max: <ArrayElementType>;',
-    'property <ArrayName>.Sum: <ArrayElementType>;',
-    'property <ArrayName>.Mode: <ArrayElementType>;',
-    'property <ArrayName>.Median: Double;',
-    'property <ArrayName>.Mean: Double;',
-    'property <ArrayName>.Variance: Double;',
-    'property <ArrayName>.Stdev: Double;',
+    'function <ArrayName>.Min: <ArrayElementType>;',
+    'function <ArrayName>.Max: <ArrayElementType>;',
+    'function <ArrayName>.Sum: <ArrayElementType>;',
+    'function <ArrayName>.Mode: <ArrayElementType>;',
+    'function <ArrayName>.Median: Double;',
+    'function <ArrayName>.Mean: Double;',
+    'function <ArrayName>.Variance: Double;',
+    'function <ArrayName>.Stdev: Double;',
     'function <ArrayName>.Contains(Value: <ArrayElementType>): Boolean;',
     'procedure <ArrayName>.Swap(FromIndex, ToIndex: Integer);',
     'function <ArrayName>.Unique: <ArrayDef>;',
@@ -43,14 +44,15 @@ const
     'function <ArrayName>.Copy: <ArrayDef>;',
     'function <ArrayName>.CopyRange(StartIndex, EndIndex: Integer): <ArrayDef>;',
     'function <ArrayName>.Random: <ArrayElementType>;',
-    'function <ArrayName>.Reversed: <ArrayDef>;',
     'function <ArrayName>.Slice(Start, Stop, Step: Integer): <ArrayDef>;',
     'function <ArrayName>.Remove(Value: <ArrayElementType>): <ArrayElementType>;',
-    'function <ArrayName>.DeleteIndex(Index: Integer; Count: Integer): <ArrayElementType>;',
+    'function <ArrayName>.Delete(Index: Integer): <ArrayElementType>;',
     'procedure <ArrayName>.DeleteRange(StartIndex, EndIndex: Integer);',
-    'procedure <ArrayName>.Insert(Item: <ArrayElementType>; Index: Integer);',
+    'procedure <ArrayName>.Insert(Item: <ArrayElementType>; Index: Integer); overload;',
+    'procedure <ArrayName>.Insert(Item: <ArrayDef>; Index: Integer); overload;',
     'procedure <ArrayName>.SetLength(NewLength: Integer);',
     'procedure <ArrayName>.Reverse;',
+    'function <ArrayName>.Reversed: <ArrayDef>;',
     'procedure <ArrayName>.Clear;',
     'function <ArrayName>.Equals(Other: <ArrayDef>): Boolean;',
     'function <ArrayName>.Intersection(Other: <ArrayDef>): <ArrayDef>;',
@@ -58,7 +60,30 @@ const
     'function <ArrayName>.SymDifference(Other: <ArrayDef>): <ArrayDef>;'
   );
 
-  function GetArrayHelpers(Decl: TDeclaration): TDeclarationArray;
+  HELPERS_DYNARRAY_MULTIDIM: TStringArray = (
+    'procedure <ArrayName>.SetLength(NewLength: Integer);',
+    'property <ArrayName>.Low: Integer;',
+    'property <ArrayName>.High: Integer;',
+    'property <ArrayName>.Length: Integer;',
+    'property <ArrayName>.First: <ArrayElementType>;',
+    'property <ArrayName>.Last: <ArrayElementType>;',
+    'procedure <ArrayName>.Swap(FromIndex, ToIndex: Integer);',
+    'function <ArrayName>.Copy: <ArrayDef>;',
+    'function <ArrayName>.CopyRange(StartIndex, EndIndex: Integer): <ArrayDef>;',
+    'function <ArrayName>.Random: <ArrayElementType>;',
+    'function <ArrayName>.Slice(Start, Stop, Step: Integer): <ArrayDef>;',
+    'property <ArrayName>.IsEmpty: Boolean',
+    'procedure <ArrayName>.Clear;',
+    'property <ArrayName>.Pop: <ArrayElementType>;',
+    'function <ArrayName>.Delete(Index: Integer): <ArrayElementType>;',
+    'procedure <ArrayName>.DeleteRange(StartIndex, EndIndex: Integer);',
+    'procedure <ArrayName>.Insert(Item: <ArrayElementType>; Index: Integer);',
+    'procedure <ArrayName>.Reverse;',
+    'function <ArrayName>.Reversed: <ArrayDef>;',
+    'function <ArrayName>.Equals(Other: <ArrayDef>): Boolean;'
+  );
+
+  function GetArrayHelpers(Decl: TDeclaration_TypeArray; IsMultiDim: Boolean): TDeclarationArray;
 
 implementation
 
@@ -96,7 +121,7 @@ begin
   SetScript(Script, 'ArrayHelpers');
 end;
 
-function GetArrayHelpers(Decl: TDeclaration): TDeclarationArray;
+function GetArrayHelpers(Decl: TDeclaration_TypeArray; IsMultiDim: Boolean): TDeclarationArray;
 
   function Get(Helpers: TStringArray; ArrayName, ArrayElementType, ArrayDef: String): TCodeParser;
   var
@@ -117,14 +142,19 @@ function GetArrayHelpers(Decl: TDeclaration): TDeclarationArray;
 var
   Parser: TCodeParser;
   ElementType: String;
+  Methods: TStringArray;
 begin
   Parser := nil;
 
-  if (Decl is TDeclaration_TypeArray) then
+  ElementType := Decl.Items.GetTextOfClass(TDeclaration_VarType);
+  if (ElementType <> '') then
   begin
-    ElementType := Decl.Items.GetTextOfClass(TDeclaration_VarType);
-    if (ElementType <> '') then
-      Parser := Get(HELPERS_DYNARRAY, IfThen(Decl.Name <> '', Decl.Name, 'array'), ElementType, IfThen(Decl.Name <> '', Decl.Name, 'array of ' + ElementType));
+    if IsMultiDim then
+      Methods := HELPERS_DYNARRAY_MULTIDIM
+    else
+      Methods := HELPERS_DYNARRAY_FLAT;
+
+    Parser := Get(Methods, IfThen(Decl.Name <> '', Decl.Name, 'array'), ElementType, IfThen(Decl.Name <> '', Decl.Name, 'array of ' + ElementType));
   end;
 
   if (Parser <> nil) then

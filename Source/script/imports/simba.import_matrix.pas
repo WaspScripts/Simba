@@ -279,7 +279,7 @@ end;
 TSingleMatrix.Min
 -----------------
 ```
-property TSingleMatrix.Min: Single;
+function TSingleMatrix.Min: Single;
 ```
 *)
 procedure _LapeSingleMatrix_Min(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -291,7 +291,7 @@ end;
 TSingleMatrix.Max
 -----------------
 ```
-property TSingleMatrix.Max: Single;
+function TSingleMatrix.Max: Single;
 ```
 *)
 procedure _LapeSingleMatrix_Max(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -303,7 +303,7 @@ end;
 TSingleMatrix.Mean
 ------------------
 ```
-property TSingleMatrix.Mean: Single;
+function TSingleMatrix.Mean: Single;
 ```
 *)
 procedure _LapeSingleMatrix_Mean(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -327,7 +327,7 @@ end;
 TSingleMatrix.ArgMax
 --------------------
 ```
-property TSingleMatrix.ArgMax: TPoint;
+function TSingleMatrix.ArgMax: TPoint;
 ```
 *)
 procedure _LapeSingleMatrix_ArgMax(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -339,7 +339,7 @@ end;
 TSingleMatrix.ArgMin
 --------------------
 ```
-property TSingleMatrix.ArgMin: TPoint;
+function TSingleMatrix.ArgMin: TPoint;
 ```
 *)
 procedure _LapeSingleMatrix_ArgMin(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -656,12 +656,12 @@ begin
     // single
     addGlobalFunc('property TSingleMatrix.Width: Integer;', @_LapeSingleMatrix_Width);
     addGlobalFunc('property TSingleMatrix.Height: Integer;', @_LapeSingleMatrix_Height);
-    addGlobalFunc('property TSingleMatrix.Min: Single;', @_LapeSingleMatrix_Min);
-    addGlobalFunc('property TSingleMatrix.Max: Single;', @_LapeSingleMatrix_Max);
-    addGlobalFunc('property TSingleMatrix.Mean: Single;', @_LapeSingleMatrix_Mean);
     addGlobalFunc('property TSingleMatrix.Area: Integer;', @_LapeSingleMatrix_Area);
-    addGlobalFunc('property TSingleMatrix.ArgMax: TPoint;', @_LapeSingleMatrix_ArgMax);
-    addGlobalFunc('property TSingleMatrix.ArgMin: TPoint;', @_LapeSingleMatrix_ArgMin);
+    addGlobalFunc('function TSingleMatrix.Min: Single;', @_LapeSingleMatrix_Min);
+    addGlobalFunc('function TSingleMatrix.Max: Single;', @_LapeSingleMatrix_Max);
+    addGlobalFunc('function TSingleMatrix.Mean: Single;', @_LapeSingleMatrix_Mean);
+    addGlobalFunc('function TSingleMatrix.ArgMax: TPoint;', @_LapeSingleMatrix_ArgMax);
+    addGlobalFunc('function TSingleMatrix.ArgMin: TPoint;', @_LapeSingleMatrix_ArgMin);
     addGlobalFunc('procedure TSingleMatrix.SetSize(NewWidth, NewHeight: Integer);', @_LapeSingleMatrix_SetSize);
     addGlobalFunc('function TSingleMatrix.GetSize(out Width, Height: Integer): Boolean;', @_LapeSingleMatrix_GetSize);
     addGlobalFunc('function TSingleMatrix.GetValues(Indices: TPointArray): TSingleArray;', @_LapeSingleMatrix_GetValues);
@@ -709,7 +709,7 @@ begin
     // boolean
     addGlobalFunc('property TBooleanMatrix.Width: Integer;', @_LapeBooleanMatrix_Width);
     addGlobalFunc('property TBooleanMatrix.Height: Integer;', @_LapeBooleanMatrix_Height);
-    addGlobalFunc('function TBooleanMatrix.Area: Integer;', @_LapeBooleanMatrix_Area);
+    addGlobalFunc('property TBooleanMatrix.Area: Integer;', @_LapeBooleanMatrix_Area);
     addGlobalFunc('procedure TBooleanMatrix.SetSize(NewWidth, NewHeight: Integer);', @_LapeBooleanMatrix_SetSize);
     addGlobalFunc('function TBooleanMatrix.GetSize(out Width, Height: Integer): Boolean;', @_LapeBooleanMatrix_GetSize);
 
