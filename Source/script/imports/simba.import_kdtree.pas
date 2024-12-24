@@ -77,7 +77,7 @@ end;
 
 procedure _LapeSlackTreeWeightedKNearestClassify(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  Int32(Result^) := TKDTree(Params^[0]^).KNearestClassify(TSingleArray(Params^[1]^), Int32(Params^[2]^));
+  Int32(Result^) := TKDTree(Params^[0]^).WeightedKNearestClassify(TSingleArray(Params^[1]^), Int32(Params^[2]^));
 end;
 
 
