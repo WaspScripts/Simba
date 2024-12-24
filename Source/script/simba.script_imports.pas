@@ -33,7 +33,7 @@ uses
   simba.import_quad, simba.import_box, simba.import_point,
   simba.import_circle, simba.import_datetime,
   simba.import_encoding, simba.import_file, simba.import_process,
-  simba.import_target, simba.import_math, simba.import_misc, simba.import_slacktree, simba.import_string,
+  simba.import_target, simba.import_math, simba.import_misc, simba.import_slacktree, simba.import_kdtree, simba.import_string,
   simba.import_random, simba.import_debugimage, simba.import_web, simba.import_threading,
   simba.import_async,
 
@@ -91,6 +91,7 @@ begin
   ImportTarget(Script);
   ImportMath(Script);
   ImportSlackTree(Script);
+  ImportKDTree(Script);
   ImportString(Script);
   ImportRandom(Script);
   ImportDebugImage(Script);
