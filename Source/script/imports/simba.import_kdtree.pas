@@ -57,7 +57,7 @@ end;
 
 procedure _LapeSlackTreeKNearest(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  TKDItems(Result^) := TKDTree(Params^[0]^).KNearest(TSingleArray(Params^[1]^), Int32(Params^[2]^), Boolean(Params^[2]^));
+  TKDItems(Result^) := TKDTree(Params^[0]^).KNearest(TSingleArray(Params^[1]^), Int32(Params^[2]^), Boolean(Params^[3]^));
 end;
 
 procedure _LapeSlackTreeRangeQuery(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -67,7 +67,7 @@ end;
 
 procedure _LapeSlackTreeRangeQueryEx(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  TKDItems(Result^) := TKDTree(Params^[0]^).RangeQueryEx(TSingleArray(Params^[1]^), TSingleArray(Params^[2]^), Boolean(Params^[2]^));
+  TKDItems(Result^) := TKDTree(Params^[0]^).RangeQueryEx(TSingleArray(Params^[1]^), TSingleArray(Params^[2]^), Boolean(Params^[3]^));
 end;
 
 procedure _LapeSlackTreeKNearestClassify(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -96,7 +96,6 @@ begin
     addGlobalType('array of PKDNode;', 'TKDNodeRefArray');
     
     addGlobalType('record Dimensions: Int32; Data: TSlackArray; Size: Integer; end;', 'TKDTree');
-
 
     addGlobalFunc('function TKDTree.RefArray(): TKDNodeRefArray;', @_LapeKDTreeRefArray);
     addGlobalFunc('function TKDTree.GetItem(i:Int32): PKDNode;', @_LapeKDTreeGetItem);
