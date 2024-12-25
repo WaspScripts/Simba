@@ -100,6 +100,7 @@ begin
   Result := i + 1;
 end;
 
+(*
 function SelectNth_Axis(var arr: TKDItems; k, low, high, Axis: Integer): TKDItem;
 var
   pivotIndex: Integer;
@@ -119,6 +120,29 @@ begin
   end;
 
   Result := arr[k];
+end;
+*)
+
+function SelectNth_Axis(var arr: TKDItems; k, low, high, Axis: Integer): TKDItem;
+var
+  pivotIndex: Integer;
+begin
+  while low <= high do
+  begin
+    pivotIndex := Partition(arr, low, high, Axis);
+
+    // If the pivot element is the k-th smallest element
+    if pivotIndex = k then
+    begin
+      Exit(arr[pivotIndex]);
+    end
+    // If the pivot element is greater than the k-th smallest element
+    else if pivotIndex > k then
+      high := pivotIndex - 1
+    // If the pivot element is smaller than the k-th smallest element
+    else
+      low := pivotIndex + 1;
+  end;
 end;
 
 
