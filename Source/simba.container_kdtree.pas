@@ -69,34 +69,53 @@ uses
 const
   NONE = -1;
 
-function SelectNth_Axis(var arr: TKDItems; k, Start, Stop:Int32; Axis:Byte=0): TKDItem;
+
+function Partition(var arr: TKDItems; low, high: Integer; Axis: Integer): Integer;
 var
-  L, R:Int32;
-  Tmp: TKDItem;
-  Mid: TSingleArray;
+  i, j, pivotIndex: Integer;
+  pivot: TSingleArray;
+  tmp: TKDItem;
 begin
-  Result.Ref := 0;
-  Result.Vector := nil;
-  if Stop-Start < 0 then Exit();
+  pivotIndex := low + Random(high - low + 1);
 
-  while (Start < Stop) do
+  tmp := arr[pivotIndex];
+  arr[pivotIndex] := arr[high];
+  arr[high] := tmp;
+
+  pivot := arr[high].Vector;
+  i := low - 1;
+  for j := low to high - 1 do
+    if arr[j].Vector[Axis] <= pivot[Axis] then
+    begin
+      Inc(i);
+      tmp := arr[i];
+      arr[i] := arr[j];
+      arr[j] := tmp;
+    end;
+
+  tmp := arr[i + 1];
+  arr[i + 1] := arr[high];
+  arr[high] := tmp;
+
+  Result := i + 1;
+end;
+
+function SelectNth_Axis(var arr: TKDItems; k, low, high, Axis: Integer): TKDItem;
+var
+  pivotIndex: Integer;
+begin
+  if low <= high then
   begin
-    l := Start;
-    r := Stop;
-    Mid := arr[(l + r) div 2].Vector;
-    while (l < r) do
-      if (arr[l].Vector[Axis] >= mid[Axis]) then
-      begin
-        tmp := arr[r];
-        arr[r] := arr[l];
-        arr[l] := tmp;
-        Dec(r);
-      end else
-        Inc(l);
+    pivotIndex := Partition(arr, low, high, Axis);
 
-    if (arr[l].Vector[Axis] > mid[Axis]) then Dec(l);
-
-    if (k <= l) then Stop := l else Start := l + 1;
+    if pivotIndex = k then begin
+      Result := arr[pivotIndex];
+      Exit;
+    end
+    else if pivotIndex > k then
+      Result := SelectNth_Axis(arr, k, low, pivotIndex - 1, Axis)
+    else
+      Result := SelectNth_Axis(arr, k, pivotIndex + 1, high, Axis);
   end;
 
   Result := arr[k];
