@@ -95,7 +95,7 @@ begin
     addGlobalType('array of TKDNode;', 'TKDNodeArray');
     addGlobalType('array of PKDNode;', 'TKDNodeRefArray');
     
-    addGlobalType('record Dimensions: Int32; Data: TSlackArray; Size: Integer; end;', 'TKDTree');
+    addGlobalType('record Dimensions: Int32; Data: TKDNodeArray; Size: Integer; end;', 'TKDTree');
 
     addGlobalFunc('function TKDTree.RefArray(): TKDNodeRefArray;', @_LapeKDTreeRefArray);
     addGlobalFunc('function TKDTree.GetItem(i:Int32): PKDNode;', @_LapeKDTreeGetItem);
