@@ -277,6 +277,20 @@ var
   i, j, n: Integer;
   maxDist, dist: Double;
 begin
+  if Length(Polygon) = 0 then
+  begin
+    A := TPoint.ZERO;
+    B := TPoint.ZERO;
+    Exit;
+  end;
+
+  if Length(Polygon) = 1 then
+  begin
+    A := Polygon[0];
+    B := Polygon[0];
+    Exit;
+  end;
+  
   n := Length(Polygon);
   j := 1;
   maxDist := 0;
