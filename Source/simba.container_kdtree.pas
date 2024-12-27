@@ -663,11 +663,8 @@ end;
   Implements an efficient n-dimensional spatial clustering algorithm using a KD-Tree.
   It supports label-based filtering to cluster points within specific categories.
 
-  Average Time Complexity:    O(max(n log n, n * n/k))
-  Worst Case Time Complexity: O(n^2)
-
-  Where `k` is the number of clusters output - essentially O(n^2) when there is only 1 group.
-
+  Average Time Complexity:    O(n log n)
+  Worst Case Time Complexity: O(n log n)
 
   TODO: Add a version that returns T2DIntegerArray where each version represents
         an index in KDTree.Data.
@@ -701,6 +698,9 @@ var
     goleft: Boolean = False;
     splitDim: Int32;
   begin
+    // Early exit if this node and its subtree are fully explored
+    if Byte(this^.hidden) = 2 then Exit;
+
     splitDim := depth mod Self.Dimensions;
 
     goleft  := test.Vector[splitDim] - radii[splitDim] <= this^.Split.Vector[splitDim];
@@ -712,7 +712,7 @@ var
       result[rescount] := this^.split;
       Inc(rescount);
 
-      this^.Hidden := True;
+      Byte(this^.Hidden) := 1;
 
       Inc(qcount);
       queue[qcount] := this;
@@ -720,6 +720,15 @@ var
 
     if goleft  and (this^.l <> -1) then Cluster(test, result, @self.data[this^.l], depth+1);
     if goright and (this^.r <> -1) then Cluster(test, result, @self.data[this^.r], depth+1);
+
+    // Chop off branches completely visted! Avoids O(n^2) worst case
+    if (this^.Hidden) and
+       (((this^.l = -1) and (this^.r = -1)) or
+        ((this^.l = -1) and (Byte(self.data[this^.r].hidden) = 2)) or
+        ((this^.r = -1) and (Byte(self.data[this^.l].hidden) = 2)) or
+        ((Byte(self.data[this^.l].hidden) = 2) and (Byte(self.data[this^.r].hidden) = 2)))
+    then
+      Byte(this^.Hidden) := 2;
   end;
 
 var
