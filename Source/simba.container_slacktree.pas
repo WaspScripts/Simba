@@ -77,6 +77,12 @@ uses
 const
   NONE = -1;
 
+(*
+TODO:
+   - Replace this with what's in TKDTree structure
+     Can for simplicty cast TPA into array of array[0..1] of Int32;
+*)
+
 function TPASelectNth_Axis(var arr:TPointArray; k, start, stop:Int32; axis:Byte=0): TPoint;
 var
   l,r:Int32;
@@ -153,7 +159,7 @@ begin
   Result.Size := Size;
 end;
 
-procedure TSlackTree.Init(TPA:TPointArray);
+procedure TSlackTree.Init(TPA: TPointArray);
   procedure __build(var node:TNode; left, right:Int32; depth:Int32=0);
   var mid: Int32;
   begin
@@ -173,6 +179,8 @@ procedure TSlackTree.Init(TPA:TPointArray);
     end;
   end;
 begin
+  if Length(TPA) = 0 then Exit;
+
   Self.Size := 0;
   SetLength(self.data, Length(TPA));
   __build(self.data[InitBranch()], 0, High(TPA));

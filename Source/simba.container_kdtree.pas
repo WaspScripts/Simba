@@ -57,7 +57,7 @@ type
     function RangeQueryEx(Center: TSingleArray; Radii: TSingleArray; Hide: Boolean): TKDItems;
     function KNearestClassify(Vector: TSingleArray; K: Int32): Int32;
     function WeightedKNearestClassify(Vector: TSingleArray; K: Int32): Int32;
-    function Clusters(radii: TSingleArray): T2DKDItems;
+    function Clusters(Radii: TSingleArray): T2DKDItems;
   end;
 
   PKDTree = ^TKDTree; 
@@ -672,10 +672,10 @@ end;
   TODO: Add a version that returns T2DIntegerArray where each version represents
         an index in KDTree.Data.
 *)
-function TKDTree.Clusters(radii: TSingleArray): T2DKDItems;
+function TKDTree.Clusters(Radii: TSingleArray): T2DKDItems;
 var
-  rescount, qcount: Int32;
-  sqradii: TSingleArray;
+  resCount, qCount: Int32;
+  sqRadii: TSingleArray;
   sqrProduct: Double;
   queue: array of PKDNode;
 
@@ -688,7 +688,7 @@ var
     dsqr := 0;
     for i := 0 to High(p.vector) do
     begin
-      dsqr += (Sqr(p.vector[i] - c.vector[i]) * sqradii[i]);
+      dsqr += (Sqr(p.vector[i] - c.vector[i]) * sqRadii[i]);
       if dsqr > sqrProduct then Exit(False);
     end;
 
@@ -723,12 +723,14 @@ var
   end;
 
 var
-  i,j,r:Int32;
-  t: TIntegerArray;
+  i,j:Int32;
 begin
-  SetLength(sqradii, Length(radii));
+  if Length(Radii) <> self.Dimensions then
+    raise Exception.Create('TKDTree.Clusters: Input dimensions does not match the tree');
+
+  SetLength(sqRadii, Self.Dimensions);
   for i:=0 to High(radii) do
-    sqradii[i] := Sqr(radii[i]);
+    sqRadii[i] := Sqr(Radii[i]);
 
   sqrProduct := 1.0;
   for i:=0 to High(radii) do
@@ -737,28 +739,28 @@ begin
   SetLength(queue, Length(self.Data));
 
   j := 0;
-  for i:=0 to High(self.data) do
+  for i:=0 to High(self.Data) do
   begin
-    if self.data[i].hidden then
+    if self.Data[i].Hidden then
       continue;
 
-    SetLength(result, j+1);
+    SetLength(Result, j+1);
     rescount := 0;
-    SetLength(result[j], 64);
+    SetLength(Result[j], 64);
 
     qcount := 0;
-    queue[0] := @self.data[i];
+    queue[0] := @Self.Data[i];
     while qcount >= 0 do
     begin
       Dec(qcount);
-      Cluster(queue[qcount+1]^.split, result[j], @self.data[0]);
+      Cluster(queue[qcount+1]^.Split, Result[j], @Self.Data[0]);
     end;
-    SetLength(result[j], rescount);
+    SetLength(Result[j], resCount);
     Inc(j);
   end;
 
-  for i:=0 to High(self.data) do
-    self.data[i].hidden := False;
+  for i:=0 to High(Self.Data) do
+    self.data[i].Hidden := False;
 end;
 
 end.

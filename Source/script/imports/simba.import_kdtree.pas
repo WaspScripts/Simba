@@ -17,17 +17,20 @@ uses
   simba.container_kdtree;
 
 (*
-    function RefArray(): TKDNodeRefArray;
-    function GetItem(i:Int32): PKDNode;
-    function InitBranch(): Int32;
-    function Copy(): TKDTree;
-    procedure Init(const AData: TKDItems);
-    function IndexOf(const Value: TSingleArray): Int32;
-    function KNearest(Vector: TSingleArray; K: Int32; NotEqual: Boolean = False): TKDItems;
-    function RangeQuery(Low, High: TSingleArray): TKDItems;
-    function RangeQueryEx(Center: TSingleArray; Radii: TSingleArray; Hide: Boolean): TKDItems;
-    function KNearestClassify(Vector: TSingleArray; K: Int32): Int32;
-    function WeightedKNearestClassify(Vector: TSingleArray; K: Int32; NotEqual: Boolean = False): Int32;
+  Exposed:
+
+  function TKDTree.RefArray(): TKDNodeRefArray;
+  function TKDTree.GetItem(i:Int32): PKDNode;
+  function TKDTree.InitBranch(): Int32;
+  function TKDTree.Copy(): TKDTree;
+  procedure TKDTree.Init(const AData: TKDItems);
+  function TKDTree.IndexOf(const Value: TSingleArray): Int32;
+  function TKDTree.KNearest(Vector: TSingleArray; K: Int32; NotEqual: Boolean = False): TKDItems;
+  function TKDTree.RangeQuery(Low, High: TSingleArray): TKDItems;
+  function TKDTree.RangeQueryEx(Center: TSingleArray; Radii: TSingleArray; Hide: Boolean): TKDItems;
+  function TKDTree.KNearestClassify(Vector: TSingleArray; K: Int32): Int32;
+  function TKDTree.WeightedKNearestClassify(Vector: TSingleArray; K: Int32; NotEqual: Boolean = False): Int32;
+  function TKDTree.Clusters(Radii: TSingleArray): T2DKDItems;
 *)
 
 procedure _LapeKDTreeRefArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
