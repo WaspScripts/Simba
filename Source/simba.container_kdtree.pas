@@ -28,6 +28,7 @@ type
   end;
 
   TKDItems = array of TKDItem;
+  T2DKDItems = array of TKDItems;
 
   PKDNode = ^TKDNode;
   TKDNode = record
@@ -56,6 +57,7 @@ type
     function RangeQueryEx(Center: TSingleArray; Radii: TSingleArray; Hide: Boolean): TKDItems;
     function KNearestClassify(Vector: TSingleArray; K: Int32): Int32;
     function WeightedKNearestClassify(Vector: TSingleArray; K: Int32): Int32;
+    function Clusters(radii: TSingleArray): T2DKDItems;
   end;
 
   PKDTree = ^TKDTree; 
@@ -655,7 +657,109 @@ begin
   end;
 
   Result := MostCommonCategory;
-end; 
+end;
+
+(*
+  Implements an efficient n-dimensional spatial clustering algorithm using a KD-Tree.
+  It supports label-based filtering to cluster points within specific categories.
+
+  Average Time Complexity:    O(max(n log n, n * n/k))
+  Worst Case Time Complexity: O(n^2)
+
+  Where `k` is the number of clusters output - essentially O(n^2) when there is only 1 group.
+
+
+  TODO: Add a version that returns T2DIntegerArray where each version represents
+        an index in KDTree.Data.
+*)
+function TKDTree.Clusters(radii: TSingleArray): T2DKDItems;
+var
+  rescount, qcount: Int32;
+  sqradii: TSingleArray;
+  sqrProduct: Double;
+  queue: array of PKDNode;
+
+  function Fits(p,c: TKDItem): Boolean; {inline; produces worse machinecode}
+  var
+    dsqr: Single;
+    i: Int32;
+  begin
+    if p.ref <> c.ref then Exit(False); //mismatch category
+    dsqr := 0;
+    for i := 0 to High(p.vector) do
+    begin
+      dsqr += (Sqr(p.vector[i] - c.vector[i]) * sqradii[i]);
+      if dsqr > sqrProduct then Exit(False);
+    end;
+
+    Result := dsqr <= sqrProduct;
+  end;
+
+  procedure Cluster(test: TKDItem; var result: TKDItems; this: PKDNode; depth:Int32=0);
+  var
+    goright:Boolean = False;
+    goleft: Boolean = False;
+    splitDim: Int32;
+  begin
+    splitDim := depth mod Self.Dimensions;
+
+    goleft  := test.Vector[splitDim] - radii[splitDim] <= this^.Split.Vector[splitDim];
+    goright := test.Vector[splitDim] + radii[splitDim] >= this^.Split.Vector[splitDim];
+
+    if (not this^.hidden) and ((goleft=goright)=True) and Fits(test, this^.Split) then
+    begin
+      if rescount = Length(result) then Setlength(result, rescount*2);
+      result[rescount] := this^.split;
+      Inc(rescount);
+
+      this^.Hidden := True;
+
+      Inc(qcount);
+      queue[qcount] := this;
+    end;
+
+    if goleft  and (this^.l <> -1) then Cluster(test, result, @self.data[this^.l], depth+1);
+    if goright and (this^.r <> -1) then Cluster(test, result, @self.data[this^.r], depth+1);
+  end;
+
+var
+  i,j,r:Int32;
+  t: TIntegerArray;
+begin
+  SetLength(sqradii, Length(radii));
+  for i:=0 to High(radii) do
+    sqradii[i] := Sqr(radii[i]);
+
+  sqrProduct := 1.0;
+  for i:=0 to High(radii) do
+    sqrProduct *= sqradii[i];
+
+  SetLength(queue, Length(self.Data));
+
+  j := 0;
+  for i:=0 to High(self.data) do
+  begin
+    if self.data[i].hidden then
+      continue;
+
+    SetLength(result, j+1);
+    rescount := 0;
+    SetLength(result[j], 64);
+
+    qcount := 0;
+    queue[0] := @self.data[i];
+    while qcount >= 0 do
+    begin
+      Dec(qcount);
+      Cluster(queue[qcount+1]^.split, result[j], @self.data[0]);
+    end;
+    SetLength(result[j], rescount);
+    Inc(j);
+  end;
+
+  for i:=0 to High(self.data) do
+    self.data[i].hidden := False;
+end;
 
 end.
 

@@ -55,31 +55,35 @@ begin
   PInteger(Result)^ := TKDTree(Params^[0]^).IndexOf(TSingleArray(Params^[1]^));
 end;
 
-procedure _LapeSlackTreeKNearest(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeKDTreeKNearest(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   TKDItems(Result^) := TKDTree(Params^[0]^).KNearest(TSingleArray(Params^[1]^), Int32(Params^[2]^), Boolean(Params^[3]^));
 end;
 
-procedure _LapeSlackTreeRangeQuery(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeKDTreeRangeQuery(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   TKDItems(Result^) := TKDTree(Params^[0]^).RangeQuery(TSingleArray(Params^[1]^), TSingleArray(Params^[2]^));
 end;
 
-procedure _LapeSlackTreeRangeQueryEx(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeKDTreeRangeQueryEx(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   TKDItems(Result^) := TKDTree(Params^[0]^).RangeQueryEx(TSingleArray(Params^[1]^), TSingleArray(Params^[2]^), Boolean(Params^[3]^));
 end;
 
-procedure _LapeSlackTreeKNearestClassify(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeKDTreeKNearestClassify(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   Int32(Result^) := TKDTree(Params^[0]^).KNearestClassify(TSingleArray(Params^[1]^), Int32(Params^[2]^));
 end;
 
-procedure _LapeSlackTreeWeightedKNearestClassify(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeKDTreeWeightedKNearestClassify(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   Int32(Result^) := TKDTree(Params^[0]^).WeightedKNearestClassify(TSingleArray(Params^[1]^), Int32(Params^[2]^));
 end;
 
+procedure _LapeKDTreeClusters(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  T2DKDItems(Result^) := TKDTree(Params^[0]^).Clusters(TSingleArray(Params^[1]^));
+end;
 
 
 procedure ImportKDTree(Script: TSimbaScript);
@@ -87,8 +91,8 @@ begin
   with Script.Compiler do
   begin
     addGlobalType('record Ref: Int32; Vector: TSingleArray; end;', 'TKDItem');
-    addGlobalType('array of TKDItem;', 'TKDItems');
-    
+    addGlobalType('array of TKDItem;',  'TKDItems');
+    addGlobalType('array of TKDItems;', 'T2DKDItems');
     addGlobalType('record Split: TKDItem; L, R: Integer; Hidden: Boolean; end;', 'TKDNode');
     addGlobalType('^TKDNode', 'PKDNode');
     
@@ -102,11 +106,12 @@ begin
     addGlobalFunc('function TKDTree.Copy(): TKDTree;', @_LapeKDTreeCopy);
     addGlobalFunc('procedure TKDTree.Init(const AData: TKDItems);', @_LapeKDTreeInit);
     addGlobalFunc('function TKDTree.IndexOf(const Value: TSingleArray): Int32;', @_LapeKDTreeIndexOf);
-    addGlobalFunc('function TKDTree.KNearest(Vector: TSingleArray; K: Int32; NotEqual: Boolean = False): TKDItems;', @_LapeSlackTreeKNearest);
-    addGlobalFunc('function TKDTree.RangeQuery(Low, High: TSingleArray): TKDItems;', @_LapeSlackTreeRangeQuery);
-    addGlobalFunc('function TKDTree.RangeQueryEx(Center: TSingleArray; Radii: TSingleArray; Hide: Boolean): TKDItems;', @_LapeSlackTreeRangeQueryEx);
-    addGlobalFunc('function TKDTree.KNearestClassify(Vector: TSingleArray; K: Int32): Int32;', @_LapeSlackTreeKNearestClassify);
-    addGlobalFunc('function TKDTree.WeightedKNearestClassify(Vector: TSingleArray; K: Int32): Int32;', @_LapeSlackTreeWeightedKNearestClassify);
+    addGlobalFunc('function TKDTree.KNearest(Vector: TSingleArray; K: Int32; NotEqual: Boolean = False): TKDItems;', @_LapeKDTreeKNearest);
+    addGlobalFunc('function TKDTree.RangeQuery(Low, High: TSingleArray): TKDItems;', @_LapeKDTreeRangeQuery);
+    addGlobalFunc('function TKDTree.RangeQueryEx(Center: TSingleArray; Radii: TSingleArray; Hide: Boolean): TKDItems;', @_LapeKDTreeRangeQueryEx);
+    addGlobalFunc('function TKDTree.KNearestClassify(Vector: TSingleArray; K: Int32): Int32;', @_LapeKDTreeKNearestClassify);
+    addGlobalFunc('function TKDTree.WeightedKNearestClassify(Vector: TSingleArray; K: Int32): Int32;', @_LapeKDTreeWeightedKNearestClassify);
+    addGlobalFunc('function TKDTree.Clusters(Radii: TSingleArray): T2DKDItems;', @_LapeKDTreeClusters);
   end;
 end;
 
