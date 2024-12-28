@@ -17,21 +17,53 @@ uses
   simba.container_kdtree;
 
 (*
-  Exposed:
+TKDTree
+=======
+A version of a KDTree for n dimensional vectors (each a float).
 
-  function TKDTree.RefArray(): TKDNodeRefArray;
-  function TKDTree.GetItem(i:Int32): PKDNode;
-  function TKDTree.InitBranch(): Int32;
-  function TKDTree.Copy(): TKDTree;
-  procedure TKDTree.Init(const AData: TKDItems);
-  function TKDTree.IndexOf(const Value: TSingleArray): Int32;
-  function TKDTree.KNearest(Vector: TSingleArray; K: Int32; NotEqual: Boolean = False): TKDItems;
-  function TKDTree.RangeQuery(Low, High: TSingleArray): TKDItems;
-  function TKDTree.RangeQueryEx(Center: TSingleArray; Radii: TSingleArray; Hide: Boolean): TKDItems;
-  function TKDTree.KNearestClassify(Vector: TSingleArray; K: Int32): Int32;
-  function TKDTree.WeightedKNearestClassify(Vector: TSingleArray; K: Int32; NotEqual: Boolean = False): Int32;
-  function TKDTree.Clusters(Radii: TSingleArray): T2DKDItems;
+An Item is described as
+
+```pascal
+TKDItem = record
+  Ref: Int32;
+  Vector: TSingleArray;
+end;
+```
+
+Where you can use Ref for example as a reference to the initial array before the
+tree itself was built.
+
+Ref can also be used as a label / category to differentiate between various
+types of vectors in the tree, this can be further used alongside the methods:
+
+```pascal
+function TKDTree.KNearestClassify(Vector: TSingleArray; K: Int32): Int32;
+function TKDTree.WeightedKNearestClassify(Vector: TSingleArray; K: Int32): Int32;
+```
+
+Which means you can build a simple kNN system to classify objects.
+
+Note:
+  For a simpeler tree structure for 2D points, look into TSlackTree
+
+
+**Exposed methods so far**
+```
+function TKDTree.RefArray(): TKDNodeRefArray;
+function TKDTree.GetItem(i:Int32): PKDNode;
+function TKDTree.InitBranch(): Int32;
+function TKDTree.Copy(): TKDTree;
+procedure TKDTree.Init(const AData: TKDItems);
+function TKDTree.IndexOf(const Value: TSingleArray): Int32;
+function TKDTree.KNearest(Vector: TSingleArray; K: Int32; NotEqual: Boolean = False): TKDItems;
+function TKDTree.RangeQuery(Low, High: TSingleArray): TKDItems;
+function TKDTree.RangeQueryEx(Center: TSingleArray; Radii: TSingleArray; Hide: Boolean): TKDItems;
+function TKDTree.KNearestClassify(Vector: TSingleArray; K: Int32): Int32;
+function TKDTree.WeightedKNearestClassify(Vector: TSingleArray; K: Int32): Int32;
+function TKDTree.Clusters(Radii: TSingleArray): T2DKDItems;
+```
 *)
+
 
 procedure _LapeKDTreeRefArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -48,6 +80,17 @@ begin
   TKDTree(Result^) := TKDTree(Params^[0]^).Copy();
 end;
 
+(*
+TKDTree.Init
+------------
+```
+procedure TKDTree.Init(const AData: TKDItems);
+```
+
+Builds the KDTree.
+
+Time complexity average is O(n log n)
+*)
 procedure _LapeKDTreeInit(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   TKDTree(Params^[0]^).Init(TKDItems(Params^[1]^));
@@ -73,6 +116,39 @@ begin
   TKDItems(Result^) := TKDTree(Params^[0]^).RangeQueryEx(TSingleArray(Params^[1]^), TSingleArray(Params^[2]^), Boolean(Params^[3]^));
 end;
 
+(*
+TKDTree.KNearestClassify
+------------------------
+```
+function TKDTree.KNearestClassify(Vector: TSingleArray; K: Int32): Int32;
+function TKDTree.WeightedKNearestClassify(Vector: TSingleArray; K: Int32): Int32;
+```
+
+Finds the most frequent Ref (classification label) among the K-nearest neighbors of a given vector.
+
+This function uses a KD-Tree to efficiently find the K-nearest neighbors and then determines the
+most common Ref value among those neighbors. It assumes that Ref values are integers within a
+contiguous range [0..x]. This allows for efficient counting of Ref occurrences using a dynamic array.
+
+Parameters:
+  Vector: The point (TSingleArray) for which to find the K-nearest neighbors and classify.
+  K: The number of nearest neighbors to consider.
+
+Returns:
+  The most frequent Ref value (an integer) among the K-nearest neighbors. Returns -1 if no
+  neighbors are found (e.g., an empty tree or K=0).
+
+Average Time Complexity:    O(log n * log k)
+Worst Case Time Complexity: O(n)
+
+Where:
+  n is the number of nodes in the KD-Tree.
+  k is the number of nearest neighbors to consider (K).
+
+Note:
+  * The time complexity is typically closer to O(log n) when K is significantly smaller than n.
+  * WeightedKNearestClassify is the same as KNearestClassify except we weight the output towards our Vector so that closer vectors in the tree is slightly higher valued.
+*)
 procedure _LapeKDTreeKNearestClassify(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   Int32(Result^) := TKDTree(Params^[0]^).KNearestClassify(TSingleArray(Params^[1]^), Int32(Params^[2]^));
@@ -83,6 +159,20 @@ begin
   Int32(Result^) := TKDTree(Params^[0]^).WeightedKNearestClassify(TSingleArray(Params^[1]^), Int32(Params^[2]^));
 end;
 
+(*
+TKDTree.Clusters
+----------------
+```
+function TKDTree.Clusters(Radii: TSingleArray): T2DKDItems;
+```
+
+Like TPA.Cluster, a spatial clustering algorithm that clusters vectors based on
+proximity to each neigbor, but acts on the vectors in the tree, works in n dimensions.
+
+Note that Radii must match the dimensions of the kd-tree, which was decided by the input.
+
+Time complexity average is between O(n) and O(n log n)
+*)
 procedure _LapeKDTreeClusters(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   T2DKDItems(Result^) := TKDTree(Params^[0]^).Clusters(TSingleArray(Params^[1]^));

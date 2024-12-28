@@ -64,6 +64,8 @@ type
     function RangeQueryEx(query:TPoint; xRad,yRad:Double; hide:Boolean=False): TPointArray;
     function RangeQueryEx(query:TPoint; xmin,ymin,xmax,ymax:Double; hide:Boolean=False): TPointArray; overload;
 
+    function Clusters(RadX, RadY: Single): T2DPointArray;
+
     function RefArray: TNodeRefArray;
   end;
 
@@ -77,52 +79,50 @@ uses
 const
   NONE = -1;
 
+// used to allow us indexing rather than x and y TPoint.
+type
+  IntInt = array [0..1] of Int32; //[0..1] represents a TPoint
+  TIntIntArray = array of IntInt;
+
+
 (*
 TODO:
-   - Replace this with what's in TKDTree structure
-     Can for simplicty cast TPA into array of array[0..1] of Int32;
+   There might be some optimizations in TKDTree that's not used here
 *)
 
-function TPASelectNth_Axis(var arr:TPointArray; k, start, stop:Int32; axis:Byte=0): TPoint;
+function SelectNth_Axis(var arr: TIntIntArray; k, start, stop: Int32; axis: Int32): TPoint;
 var
-  l,r:Int32;
-  tmp,mid:TPoint;
+  l, r: Int32;
+  tmp: IntInt;
+  pivot: Single;
 begin
-  if stop-start < 0 then Exit(TPoint.ZERO);
-
-  while (start < stop) do
+  while start < stop do
   begin
     l := start;
     r := stop;
-    mid := arr[(l + r) div 2];
-    if axis = 0 then
-    begin
-      while (l < r) do
-        if (arr[l].x >= mid.x) then
-        begin
-          tmp := arr[r];
-          arr[r] := arr[l];
-          arr[l] := tmp;
-          Dec(r);
-        end else
-          Inc(l);
-    end else
-      while (l < r) do
-        if (arr[l].y >= mid.y) then
-        begin
-          tmp := arr[r];
-          arr[r] := arr[l];
-          arr[l] := tmp;
-          Dec(r);
-        end else
-          Inc(l);
+    pivot := arr[(l + r) shr 1][axis];
 
-    if (axis = 0) and (arr[l].x > mid.x) then Dec(l);
-    if (axis = 1) and (arr[l].y > mid.y) then Dec(l);
-    if (k <= l) then stop := l else start := l + 1;
+    while l <= r do
+    begin
+      while arr[l][axis] < pivot do Inc(l);
+      while arr[r][axis] > pivot do Dec(r);
+      if l <= r then
+      begin
+        tmp    := arr[l];
+        arr[l] := arr[r];
+        arr[r] := tmp;
+        Inc(l);
+        Dec(r);
+      end;
+    end;
+
+    if k <= r then      stop  := r
+    else if k >= l then start := l
+    else                break;
   end;
 
-  Result := arr[k];
+  Result.x := arr[k][0];
+  Result.y := arr[k][1];
 end;
 
 
@@ -166,7 +166,7 @@ procedure TSlackTree.Init(TPA: TPointArray);
     if (right-left < 0) then Exit(); // just nil back up..
 
     mid := (right+left) shr 1;
-    node.split := TPASelectNth_Axis(TPA, mid, left, right, depth and 1);
+    node.split := SelectNth_Axis(TIntIntArray(TPA), mid, left, right, depth and 1);
 
     if mid-left > 0 then begin           //lower half
       node.L := self.InitBranch();
@@ -468,6 +468,101 @@ begin
     end;
   end;
   SetLength(Result, c);
+end;
+
+
+function TSlackTree.Clusters(RadX, RadY: Single): T2DPointArray;
+var
+  ResCount, qCount: Int32;
+  Radii: array[0..1] of Single;
+  Queue: array of PNode;
+  sqrx,sqry,sqrxy: Single;
+
+  (*
+    If Fits = (Abs(p.x-c.x) <= RadX) and (Abs(p.y-c.y) <= RadY);
+    Then this is equal to ClusterEx
+
+    Further more if RadX, and RadY are integers like in ClusterEx, once the tree
+    is built, this is faster than ClusterTPA. Even as is, it's very competitive.
+  *)
+  function Fits(const p,c: TPoint): Boolean; inline;
+  begin
+    Result := (Sqr(p.x-c.x)*sqry)+(Sqr(p.y-c.y)*sqrx) <= sqrxy;
+  end;
+
+  procedure Cluster(const Test: TPoint; var Result: TPointArray; const This: PNode; const Depth:Int32=0);
+  var
+    goright:Boolean = False;
+    goleft: Boolean = False;
+    split: Byte;
+  begin
+    // Early exit if this node and its subtree are fully explored
+    if Byte(this^.Hidden) = 2 then Exit;
+
+    split := depth and 1;
+
+    goleft  := IntInt(test)[split] - Radii[split] <= IntInt(This^.Split)[split];
+    goright := IntInt(test)[split] + Radii[split] >= IntInt(This^.Split)[split];
+
+    if (not This^.Hidden) and ((goleft=goright)=True) and Fits(Test, This^.Split) then
+    begin
+      if ResCount = Length(Result) then Setlength(Result, ResCount*2);
+      Result[ResCount] := this^.split;
+      Inc(ResCount);
+
+      Byte(This^.Hidden) := 1;
+
+      Inc(qCount);
+      Queue[qCount] := this;
+    end;
+
+    if goleft  and (this^.l <> -1) then Cluster(Test, Result, @self.data[this^.l], depth+1);
+    if goright and (this^.r <> -1) then Cluster(Test, Result, @self.data[this^.r], depth+1);
+
+    // Chop off branches completely visted! Avoids O(n^2) worst case
+    if (this^.Hidden) and
+       (((this^.l = -1) and (this^.r = -1)) or
+        ((this^.l = -1) and (Byte(self.data[this^.r].hidden) = 2)) or
+        ((this^.r = -1) and (Byte(self.data[this^.l].hidden) = 2)) or
+        ((Byte(self.data[this^.l].Hidden) = 2) and (Byte(self.data[this^.r].hidden) = 2)))
+    then
+      Byte(this^.Hidden) := 2;
+  end;
+
+var
+  i,j:Int32;
+begin
+  sqrx := Sqr(RadX);
+  sqry := Sqr(RadY);
+  radii[0] := RadX;
+  radii[1] := RadY;
+  sqrxy := sqrx*sqry;
+
+  SetLength(queue, Length(self.Data));
+
+  j := 0;
+  for i:=0 to High(self.Data) do
+  begin
+    if self.Data[i].Hidden then
+      continue;
+
+    SetLength(Result, j+1);
+    rescount := 0;
+    SetLength(Result[j], 8);
+
+    qcount := 0;
+    queue[0] := @Self.Data[i];
+    while qcount >= 0 do
+    begin
+      Dec(qcount);
+      Cluster(queue[qcount+1]^.Split, Result[j], @Self.Data[0]);
+    end;
+    SetLength(Result[j], resCount);
+    Inc(j);
+  end;
+
+  for i:=0 to High(Self.Data) do
+    self.data[i].Hidden := False;
 end;
 
 end.

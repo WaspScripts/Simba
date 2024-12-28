@@ -47,7 +47,7 @@ type
     
     function RefArray(): TKDNodeRefArray;
     function GetItem(i:Int32): PKDNode;
-    function InitBranch(): Int32;
+    function InitBranch(): Int32; inline;
     function Copy(): TKDTree;
     function SqDistance(A, B: TSingleArray; Limit: Single = High(UInt32)): Single; inline;
     procedure Init(const AData: TKDItems);
@@ -72,79 +72,41 @@ const
   NONE = -1;
 
 
-function Partition(var arr: TKDItems; low, high: Integer; Axis: Integer): Integer;
+(*
+  Quick select for the KDTree build process
+*)
+function QuickSelectOnAxis(var Arr:TKDItems; k, Start, Stop: Int32; Axis: Int32): TKDItem;
 var
-  i, j, pivotIndex: Integer;
-  pivot: TSingleArray;
+  l, r: Int32;
   tmp: TKDItem;
+  pivot: Single;
 begin
-  pivotIndex := low + Random(high - low + 1);
+  while Start < Stop do
+  begin
+    l := Start;
+    r := Stop;
+    pivot := Arr[(l + r) shr 1].Vector[axis];
 
-  tmp := arr[pivotIndex];
-  arr[pivotIndex] := arr[high];
-  arr[high] := tmp;
-
-  pivot := arr[high].Vector;
-  i := low - 1;
-  for j := low to high - 1 do
-    if arr[j].Vector[Axis] <= pivot[Axis] then
+    while l <= r do
     begin
-      Inc(i);
-      tmp := arr[i];
-      arr[i] := arr[j];
-      arr[j] := tmp;
+      while Arr[l].Vector[Axis] < pivot do Inc(l);
+      while Arr[r].Vector[Axis] > pivot do Dec(r);
+      if l <= r then
+      begin
+        tmp    := Arr[l];
+        Arr[l] := Arr[r];
+        Arr[r] := tmp;
+        Inc(l);
+        Dec(r);
+      end;
     end;
 
-  tmp := arr[i + 1];
-  arr[i + 1] := arr[high];
-  arr[high] := tmp;
-
-  Result := i + 1;
-end;
-
-(*
-function SelectNth_Axis(var arr: TKDItems; k, low, high, Axis: Integer): TKDItem;
-var
-  pivotIndex: Integer;
-begin
-  if low <= high then
-  begin
-    pivotIndex := Partition(arr, low, high, Axis);
-
-    if pivotIndex = k then begin
-      Result := arr[pivotIndex];
-      Exit;
-    end
-    else if pivotIndex > k then
-      Result := SelectNth_Axis(arr, k, low, pivotIndex - 1, Axis)
-    else
-      Result := SelectNth_Axis(arr, k, pivotIndex + 1, high, Axis);
+    if      k <= r then Stop  := r
+    else if k >= l then Start := l
+    else                break;
   end;
 
-  Result := arr[k];
-end;
-*)
-
-function SelectNth_Axis(var arr: TKDItems; k, low, high, Axis: Integer): TKDItem;
-var
-  pivotIndex: Integer;
-begin
-  while low <= high do
-  begin
-    pivotIndex := Partition(arr, low, high, Axis);
-
-    // If the pivot element is the k-th smallest element
-    if pivotIndex = k then
-    begin
-      Exit(arr[pivotIndex]);
-    end
-    // If the pivot element is greater than the k-th smallest element
-    else if pivotIndex > k then
-      high := pivotIndex - 1
-    // If the pivot element is smaller than the k-th smallest element
-    else
-      low := pivotIndex + 1;
-  end;
+  Result := Arr[k];
 end;
 
 
@@ -170,7 +132,7 @@ begin
   begin
     L := -1;
     R := -1;
-    hidden := False;
+    Hidden := False;
   end;
   Inc(self.size);
 end;
@@ -204,19 +166,19 @@ var
   var
     Mid: Int32;
   begin
-    if (Right-Left < 0) then Exit(); // just nil back up..
+    if (Right-Left < 0) then Exit();     // just nil back up..
 
     Mid := (Right + left) shr 1;
-    Node.Split := SelectNth_Axis(Sortable, mid, left, right, depth mod Self.Dimensions);
+    Node.Split := QuickSelectOnAxis(Sortable, Mid, Left, Right, depth mod Self.Dimensions);
 
     if Mid-left > 0 then begin           //lower half
       Node.L := self.InitBranch();
-      BuildTree(self.data[Node.L], left,mid-1, depth+1);
+      BuildTree(self.Data[Node.L], left,mid-1, depth+1);
     end;
 
     if Right-Mid > 0 then begin          //upper half
       Node.R := self.InitBranch();
-      BuildTree(self.data[Node.R], mid+1,right, depth+1);
+      BuildTree(self.Data[Node.R], mid+1,right, depth+1);
     end;
   end;
 begin
@@ -680,7 +642,7 @@ var
   sqrProduct: Double;
   queue: array of PKDNode;
 
-  function Fits(p,c: TKDItem): Boolean; {inline; produces worse machinecode}
+  function Fits(const p,c: TKDItem): Boolean; {inline; produces worse machinecode}
   var
     dsqr: Single;
     i: Int32;
@@ -696,7 +658,7 @@ var
     Result := dsqr <= sqrProduct;
   end;
 
-  procedure Cluster(test: TKDItem; var result: TKDItems; this: PKDNode; depth:Int32=0);
+  procedure Cluster(const test: TKDItem; var result: TKDItems; this: PKDNode; depth:Int32=0);
   var
     goright:Boolean = False;
     goleft: Boolean = False;
@@ -759,7 +721,7 @@ begin
 
     SetLength(Result, j+1);
     rescount := 0;
-    SetLength(Result[j], 64);
+    SetLength(Result[j], 8);
 
     qcount := 0;
     queue[0] := @Self.Data[i];
