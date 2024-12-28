@@ -663,8 +663,12 @@ end;
   Implements an efficient n-dimensional spatial clustering algorithm using a KD-Tree.
   It supports label-based filtering to cluster points within specific categories.
 
+  Best case:                  O(n)
   Average Time Complexity:    O(n log n)
-  Worst Case Time Complexity: O(n log n)
+  Worst Case Time Complexity: O(n^2) in theory .. Maybe still just O(n log n) or thereabout.
+
+  Best case of O(n) can happen when we prune all branches in the first pass,
+  this requires a radii that covers all points from anywhere or luck point selection.
 
   TODO: Add a version that returns T2DIntegerArray where each version represents
         an index in KDTree.Data.
