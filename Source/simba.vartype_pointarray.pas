@@ -219,7 +219,7 @@ uses
   simba.containers, simba.geometry, simba.math,
   simba.container_slacktree,
   simba.vartype_matrix, simba.vartype_ordarray,
-  simba.vartype_box, simba.vartype_point, simba.vartype_quad, simba.vartype_circle,
+  simba.vartype_box, simba.vartype_point, simba.vartype_quad, simba.vartype_circle, simba.vartype_triangle,
   simba.array_algorithm;
 
 procedure GetAdjacent4(var Adj: TPointArray; const P: TPoint); inline;
@@ -968,7 +968,7 @@ begin
   end;
 
   u := k+1;
-  for i:=h-1 downto 0 do
+  for i:=h downto 0 do
   begin
     while (k >= u) and (TSimbaGeometry.CrossProduct(Result[k-2], Result[k-1], pts[i]) <= 0) do
       Dec(k);
@@ -2621,34 +2621,6 @@ function TPointArrayHelper.MinAreaCircle(): TCircle;
 var
   poly: TPointArray;
   p1,p2,p3,p,q,t: TPoint;
-
-  function Circle3(const P1,P2,P3: TPoint): TCircle;
-  var
-    d,l: Single;
-    p,pcs,q,qcs: record x,y: Single; end;
-  begin
-    p.x := (P1.x+P2.x) / 2;
-    p.y := (P1.y+P2.y) / 2;
-
-    q.x := (P1.x+P3.x) / 2;
-    q.y := (P1.y+P3.y) / 2;
-
-    SinCos(ArcTan2(P1.Y-P2.Y, P1.X-P2.X) - PI/2, pcs.y, pcs.x);
-    SinCos(ArcTan2(P1.Y-P3.Y, P1.X-P3.X) - PI/2, qcs.y, qcs.x);
-
-    d := pcs.x * qcs.y - pcs.y * qcs.x;
-
-    if (Abs(d) >= 0.001) then
-    begin
-      l := (qcs.x * (p.y - q.y) - qcs.y * (p.x - q.x)) / d;
-
-      Result.X := Round(p.x + l * pcs.x);
-      Result.Y := Round(p.y + l * pcs.y);
-      Result.Radius := Ceil(Sqrt(Sqr((p.x + l * pcs.x) - P1.x) + Sqr((p.y + l * pcs.y) - P1.y)));
-    end else
-      Result := TCircle.ZERO;
-  end;
-
 begin
   poly := Self.ConvexHull();  // O(n log n)
   TSimbaGeometry.FurthestPointsPolygon(poly, p1,p2); // O(m^2) call - ugh
@@ -2662,7 +2634,7 @@ begin
     Exit(TCircle.Create(p.x,p.y, Ceil( p1.DistanceTo(p2) / 2 )));
 
   // Three Point Circle
-  p := Circle3(p1, p2, t).Center;
+  p := TTriangle.Create(p1, p2, t).Circle().Center;
   q := poly.FurthestPoint(p);
 
   if Sign(TSimbaGeometry.CrossProduct(q,  p1, p2)) = Sign(TSimbaGeometry.CrossProduct(t, p1, p2)) then
@@ -2670,7 +2642,7 @@ begin
   else
     p3 := t;
 
-  p := Circle3(p1,p2,p3).Center;
+  p := TTriangle.Create(p1,p2,p3).Circle().Center;
   q := poly.FurthestPoint(p);
   if (p1 <> q) and (p2 <> q) and (p3 <> q) then
   begin
@@ -2683,13 +2655,13 @@ begin
     end else
       p2 := q;
 
-    p := Circle3(p1, p2, p3).Center;
+    p := TTriangle.Create(p1,p2,p3).Circle().Center;
     q := poly.FurthestPoint(p);
     if (p1 <> q) and (p2 <> q) and (p3 <> q) then
       p1 := q;
   end;
 
-  Result := Circle3(p1, p2, p3);
+  Result := TTriangle.Create(p1,p2,p3).Circle();
 end;
 
 function TPointArrayHelper.DouglasPeucker(epsilon: Double): TPointArray;
