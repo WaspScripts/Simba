@@ -23,9 +23,9 @@ type
   *)
   PNode = ^TNode;
   TNode = record
-    split: TPoint;
-    l,r: Int32;
-    hidden: Boolean;
+    Split: TPoint;
+    L,R: Int32;
+    Hidden: Boolean;
   end;
 
   TNodeArray = array of TNode;
@@ -38,11 +38,9 @@ type
   private
     function GetItem(i:Int32): PNode; inline;
   public
-    hidden: Integer;
-
     property items[i:Int32]: PNode read GetItem; default;
 
-    function InitBranch: Int32; inline; //dummy
+    function InitBranch: Int32; inline;
     function Copy: TSlackTree;
 
     procedure Init(TPA:TPointArray);
@@ -70,6 +68,7 @@ type
   end;
 
   PSlackTree = ^TSlackTree;
+
 
 implementation
 
@@ -382,12 +381,9 @@ begin
   SetLength(Result, length(nodes));
   for i:=0 to High(nodes) do
   begin
-    Result[i] := Nodes[i]^.split;
+    Result[i] := Nodes[i]^.Split;
     if hide then
-    begin
-      Nodes[i]^.hidden := True;
-      inc(hidden);
-    end;
+      Nodes[i]^.Hidden := True;
   end;
 end;
 
