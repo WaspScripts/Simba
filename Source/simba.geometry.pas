@@ -235,7 +235,7 @@ begin
   begin
     k := (i+1) mod Length(Polygon);
     theta := ArcTan2(Polygon[i].Y - Polygon[k].Y, Polygon[i].X - Polygon[k].X) + HALF_PI;
-    SinCos(theta, CosValue, SinValue);
+    SinCos(theta, SinValue, CosValue);
     tmp[i*2]  := PointF(Amount*CosValue+Polygon[i].X, Amount*SinValue+Polygon[i].Y);
     tmp[i*2+1]:= PointF(Amount*CosValue+Polygon[k].X, Amount*SinValue+Polygon[k].Y);
   end;
@@ -258,7 +258,7 @@ begin
     c2[2] := -(q1.x*q2.y-q2.x*q1.y);
 
     det := c1[0] * c2[1] - c1[1] * c2[0];
-    if (Abs(0 - det) > 0.001) then
+    if (Abs(det) > 0.001) then
     begin
       Result[i div 2].X := Round((c1[2] * c2[1] - c1[1] * c2[2]) / det);
       Result[i div 2].Y := Round((c1[0] * c2[2] - c1[2] * c2[0]) / det);
