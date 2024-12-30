@@ -1085,6 +1085,7 @@ TImage.DrawCircle
 -----------------
 ```
 procedure TImage.DrawCircle(Center: TPoint; Radius: Integer);
+procedure TImage.DrawCircle(Circle: TCircle);
 ```
 *)
 procedure _LapeImage_DrawCircle1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
@@ -1097,6 +1098,7 @@ TImage.DrawCircleFilled
 -----------------------
 ```
 procedure TImage.DrawCircleFilled(Center: TPoint; Radius: Integer);
+procedure TImage.DrawCircleFilled(Circle: TCircle);
 ```
 *)
 procedure _LapeImage_DrawCircleFilled1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
@@ -1109,11 +1111,28 @@ TImage.DrawCircleInverted
 -------------------------
 ```
 procedure TImage.DrawCircleInverted(Center: TPoint; Radius: Integer);
+procedure TImage.DrawCircleInverted(Circle: TCircle);
 ```
 *)
 procedure _LapeImage_DrawCircleInverted1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaImage(Params^[0])^.DrawCircleInverted(PPoint(Params^[1])^, PInteger(Params^[2])^);
+end;
+
+
+procedure _LapeImage_DrawCircle2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSimbaImage(Params^[0])^.DrawCircle(Point(TCircle(Params^[1]^).X, TCircle(Params^[1]^).Y), TCircle(Params^[1]^).Radius);
+end;
+
+procedure _LapeImage_DrawCircleFilled2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSimbaImage(Params^[0])^.DrawCircleFilled(Point(TCircle(Params^[1]^).X, TCircle(Params^[1]^).Y), TCircle(Params^[1]^).Radius);
+end;
+
+procedure _LapeImage_DrawCircleInverted2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSimbaImage(Params^[0])^.DrawCircleInverted(Point(TCircle(Params^[1]^).X, TCircle(Params^[1]^).Y), TCircle(Params^[1]^).Radius);
 end;
 
 (*
@@ -1145,11 +1164,17 @@ TImage.DrawCircleAA
 --------------------
 ```
 procedure TImage.DrawCircleAA(ACenter: TPoint; Radius: Integer; Color: TColor; Thickness: Single = 1.5);
+procedure TImage.DrawCircleAA(Circle: TCircle; Color: TColor; Thickness: Single = 1.5);
 ```
 *)
-procedure _LapeImage_DrawCircleAA(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeImage_DrawCircleAA1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaImage(Params^[0])^.DrawCircleAA(PPoint(Params^[1])^, PInteger(Params^[2])^, PSingle(Params^[3])^);
+  PSimbaImage(Params^[0])^.DrawCircleAA(TPoint(Params^[1]^), Integer(Params^[2]^), PSingle(Params^[3])^);
+end;
+
+procedure _LapeImage_DrawCircleAA2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSimbaImage(Params^[0])^.DrawCircleAA(Point(TCircle(Params^[1]^).X, TCircle(Params^[1]^).Y), TCircle(Params^[1]^).Radius, PSingle(Params^[3])^);
 end;
 
 (*
@@ -1900,15 +1925,20 @@ begin
     addGlobalFunc('procedure TImage.DrawQuad(Quad: TQuad);', @_LapeImage_DrawQuad);
     addGlobalFunc('procedure TImage.DrawQuadFilled(Quad: TQuad);', @_LapeImage_DrawQuadFilled);
     addGlobalFunc('procedure TImage.DrawQuadInverted(Quad: TQuad);', @_LapeImage_DrawQuadInverted);
+    
+    addGlobalFunc('procedure TImage.DrawCircle(Center: TPoint; Radius: Integer); overload', @_LapeImage_DrawCircle1);
+    addGlobalFunc('procedure TImage.DrawCircleFilled(Center: TPoint; Radius: Integer); overload', @_LapeImage_DrawCircleFilled1);
+    addGlobalFunc('procedure TImage.DrawCircleInverted(Center: TPoint; Radius: Integer); overload', @_LapeImage_DrawCircleInverted1);
 
-    addGlobalFunc('procedure TImage.DrawCircle(Center: TPoint; Radius: Integer)', @_LapeImage_DrawCircle1);
-    addGlobalFunc('procedure TImage.DrawCircleFilled(Center: TPoint; Radius: Integer)', @_LapeImage_DrawCircleFilled1);
-    addGlobalFunc('procedure TImage.DrawCircleInverted(Center: TPoint; Radius: Integer)', @_LapeImage_DrawCircleInverted1);
+    addGlobalFunc('procedure TImage.DrawCircle(Circle: TCircle); overload', @_LapeImage_DrawCircle2);
+    addGlobalFunc('procedure TImage.DrawCircleFilled(Circle: TCircle); overload', @_LapeImage_DrawCircleFilled2);
+    addGlobalFunc('procedure TImage.DrawCircleInverted(Circle: TCircle); overload', @_LapeImage_DrawCircleInverted2);
 
     addGlobalFunc('procedure TImage.DrawLineAA(Start, Stop: TPoint; Thickness: Single = 1.5);', @_LapeImage_DrawLineAA);
     addGlobalFunc('procedure TImage.DrawEllipseAA(ACenter: TPoint; XRadius, YRadius: Integer; Thickness: Single = 1.5);', @_LapeImage_DrawEllipseAA);
-    addGlobalFunc('procedure TImage.DrawCircleAA(ACenter: TPoint; Radius: Integer; Thickness: Single = 1.5);', @_LapeImage_DrawCircleAA);
-
+    addGlobalFunc('procedure TImage.DrawCircleAA(ACenter: TPoint; Radius: Integer; Thickness: Single = 1.5); overload', @_LapeImage_DrawCircleAA1);
+    addGlobalFunc('procedure TImage.DrawCircleAA(Circle: TCircle; Thickness: Single = 1.5); overload', @_LapeImage_DrawCircleAA2);
+    
     addGlobalFunc('procedure TImage.DrawQuadArray(Quads: TQuadArray; Filled: Boolean);', @_LapeImage_DrawQuadArray);
     addGlobalFunc('procedure TImage.DrawBoxArray(Boxes: TBoxArray; Filled: Boolean);', @_LapeImage_DrawBoxArray);
     addGlobalFunc('procedure TImage.DrawPolygonArray(Polygons: T2DPointArray; Filled: Boolean);', @_LapeImage_DrawPolygonArray);

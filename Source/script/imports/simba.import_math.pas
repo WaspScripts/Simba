@@ -512,11 +512,11 @@ begin
     addGlobalFunc('function TriangulatePolygon(const Polygon: TPointArray; MinArea: Single=0; MaxDepth: Int32=0): TTriangleArray', @_LapeTriangulatePolygon);
     addGlobalFunc('function LineInPolygon(a1, a2: TPoint; const Polygon: TPointArray): Boolean', @_LapeLineInPolygon);
     addGlobalFunc('procedure FurthestPointsPolygon(const Polygon: TPointArray; out A,B: TPoint)', @_LapeFurthestPointsPolygon);
-    
-    
+
     addGlobalFunc('function DeltaAngle(const DegreesA, DegreesB: Double; R: Double = 360): Double', @_LapeDeltaAngle);
     addGlobalFunc('function PolygonArea(const Polygon: TPointArray): Double', @_LapePolygonArea);
     addGlobalFunc('function ExpandPolygon(const Polygon: TPointArray; Amount: Integer): TPointArray', @_LapeExpandPolygon);
+
     addGlobalFunc('function CrossProduct(const r, p, q: TPoint): Int64; overload', @_LapeCrossProduct1);
     addGlobalFunc('function CrossProduct(const rx,ry, px,py, qx,qy: Double): Double; overload', @_LapeCrossProduct2);
     addGlobalFunc('function LinesIntersect(const P1, P2, Q1, Q2: TPoint): Boolean; overload', @_LapeLinesIntersect1);

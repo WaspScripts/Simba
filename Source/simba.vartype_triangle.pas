@@ -25,6 +25,10 @@ type
   public
     class function Create(A, B, C: TPoint): TTriangle; static; 
 
+    function Centroid(): TPoint;
+    function SymmedianPoint(): TPoint;
+    function Incenter(): TPoint;
+
     function Rotate(Radians: Double): TTriangle;
     function Contains(P: TPoint): Boolean;
     function Offset(P: TPoint): TTriangle;
@@ -34,8 +38,9 @@ type
     function NearestEdge(P: TPoint): TPoint;
     function IsObtuse(): Boolean; overload;
     function IsObtuse(out Obstuse: TPoint): Boolean;
-    function Circle(): TCircle; 
-    
+    function Circumcircle(): TCircle;
+    function Incircle(): TCircle;
+
     property Corners: TPointArray read GetCorners;
     property Mean: TPoint read GetMean;
     property Area: Integer read GetArea;
@@ -87,6 +92,47 @@ begin
   Result := Ceil(Abs((A.x * (B.y - C.y) + B.x * (C.y - A.y) + C.x * (A.y - B.y)) / 2));
 end;
 
+function TTriangleHelper.Centroid(): TPoint;
+begin
+  Result := Self.GetMean();
+end;
+
+function TTriangleHelper.SymmedianPoint(): TPoint;
+  function WeightedIntersection(YY, ZZ: TPoint; y, z: Single): TPoint; inline;
+  begin
+    Result.X := Round((y * YY.X + z * ZZ.X) / (y + z));
+    Result.Y := Round((y * YY.Y + z * ZZ.Y) / (y + z));
+  end;
+var
+  ar, br, cr: Double;
+  KA, KB: TPoint;
+begin
+  with Self do
+  begin
+    ar := Sqr(B.X - C.X) + Sqr(B.Y - C.Y);
+    br := Sqr(A.X - C.X) + Sqr(A.Y - C.Y);
+    cr := Sqr(A.X - B.X) + Sqr(A.Y - B.Y);
+
+    KA := WeightedIntersection(B,C, br,cr);
+    KB := WeightedIntersection(A,C, ar,cr);
+
+    if not TSimbaGeometry.LinesIntersect(A, KA, B, KB, Result) then
+      Result := A;
+  end;
+end;
+
+function TTriangleHelper.Incenter(): TPoint;
+var
+  ar, br, cr: Single;
+  I: TPoint;
+begin
+  ar := Distance(B, C);
+  br := Distance(A, C);
+  cr := Distance(A, B);
+
+  Result.x := Round((ar * A.x + br * B.x + cr * C.x) / (ar + br + cr));
+  Result.y := Round((ar * A.y + br * B.y + cr * C.y) / (ar + br + cr));
+end;
 
 function TTriangleHelper.Rotate(Radians: Double): TTriangle;
 begin
@@ -217,7 +263,7 @@ begin
 end;
 
 
-function TTriangleHelper.Circle(): TCircle;
+function TTriangleHelper.Circumcircle(): TCircle;
 var
   d,l: Single;
   p,pcs,q,qcs: record x,y: Single; end;
@@ -246,6 +292,18 @@ begin
     Result.X := 0;
     Result.Y := 0;
   end;
+end;
+
+function TTriangleHelper.Incircle(): TCircle;
+var
+  p,q: TPoint;
+begin
+  p := Self.Incenter();
+  q := Self.NearestEdge(p);
+
+  Result.x := p.x;
+  Result.y := p.y;
+  Result.Radius := Round(p.DistanceTo(q));
 end;
 
 

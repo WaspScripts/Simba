@@ -30,12 +30,16 @@ uses
 
   // Simba
   simba.import_base, simba.import_colormath,simba.import_matrix, simba.import_windowhandle,
-  simba.import_quad, simba.import_box, simba.import_point,
-  simba.import_circle, simba.import_datetime,
+
+  simba.import_datetime,
   simba.import_encoding, simba.import_file, simba.import_process,
   simba.import_target, simba.import_math, simba.import_misc, simba.import_slacktree, simba.import_kdtree, simba.import_string,
   simba.import_random, simba.import_debugimage, simba.import_web, simba.import_threading,
   simba.import_async,
+  
+  // Simba shapes
+  simba.import_quad, simba.import_triangle, simba.import_box, simba.import_point, simba.import_circle, 
+  
 
   // Simba classes
   simba.import_image, simba.import_externalcanvas, simba.import_dtm, simba.import_matchtemplate,
@@ -64,10 +68,12 @@ begin
   ImportColorMath(Script);
   ImportMatrix(Script);
   ImportWindowHandle(Script);
+  
   ImportQuad(Script);
   ImportCircle(Script);
   ImportBox(Script);
   ImportPoint(Script);
+  ImportTriangle(Script);
 
   ImportLCLSystem(Script);
   ImportLCLGraphics(Script);

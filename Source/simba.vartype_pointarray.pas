@@ -2634,7 +2634,7 @@ begin
     Exit(TCircle.Create(p.x,p.y, Ceil( p1.DistanceTo(p2) / 2 )));
 
   // Three Point Circle
-  p := TTriangle.Create(p1, p2, t).Circle().Center;
+  p := TTriangle.Create(p1, p2, t).Circumcircle().Center;
   q := poly.FurthestPoint(p);
 
   if Sign(TSimbaGeometry.CrossProduct(q,  p1, p2)) = Sign(TSimbaGeometry.CrossProduct(t, p1, p2)) then
@@ -2642,7 +2642,7 @@ begin
   else
     p3 := t;
 
-  p := TTriangle.Create(p1,p2,p3).Circle().Center;
+  p := TTriangle.Create(p1,p2,p3).Circumcircle().Center;
   q := poly.FurthestPoint(p);
   if (p1 <> q) and (p2 <> q) and (p3 <> q) then
   begin
@@ -2655,13 +2655,13 @@ begin
     end else
       p2 := q;
 
-    p := TTriangle.Create(p1,p2,p3).Circle().Center;
+    p := TTriangle.Create(p1,p2,p3).Circumcircle().Center;
     q := poly.FurthestPoint(p);
     if (p1 <> q) and (p2 <> q) and (p3 <> q) then
       p1 := q;
   end;
 
-  Result := TTriangle.Create(p1,p2,p3).Circle();
+  Result := TTriangle.Create(p1,p2,p3).Circumcircle();
 end;
 
 function TPointArrayHelper.DouglasPeucker(epsilon: Double): TPointArray;
