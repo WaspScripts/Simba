@@ -3,6 +3,13 @@
   Project: Simba (https://github.com/MerlijnWajer/Simba)
   License: GNU General Public License (https://www.gnu.org/licenses/gpl-3.0)
 }
+
+{
+  Osada, R., Funkhouser, T., Chazelle, B., & Dobkin, D. (2002). Shape distributions. ACM Transactions on Graphics (TOG), 21(4), 807-832.
+
+  RandomPoint
+  RandomPointCenter
+}
 unit simba.vartype_triangle;
 
 {$i simba.inc}
@@ -40,6 +47,9 @@ type
     function IsObtuse(out Obstuse: TPoint): Boolean;
     function Circumcircle(): TCircle;
     function Incircle(): TCircle;
+
+    function RandomPoint(): TPoint;
+    function RandomPointCenter(): TPoint;
 
     property Corners: TPointArray read GetCorners;
     property Mean: TPoint read GetMean;
@@ -306,6 +316,29 @@ begin
   Result.Radius := Round(p.DistanceTo(q));
 end;
 
+function TTriangleHelper.RandomPoint(): TPoint;
+var
+  r1,r2,s1: Double;
+begin
+  r1 := Random();
+  r2 := Random();
+  s1 := Sqrt(r1);
+
+  Result.X := Round(A.X * (1.0 - s1) + B.X * (1.0 - r2) * s1 + C.X * r2 * s1);
+  Result.Y := Round(A.Y * (1.0 - s1) + B.Y * (1.0 - r2) * s1 + C.Y * r2 * s1);
+end;
+
+function TTriangleHelper.RandomPointCenter(): TPoint;
+var
+  r1,r2,s1: Double;
+begin
+  r1 := RandomMean(0.0, 1.0);
+  r2 := RandomMean(0.0, 1.0);
+  s1 := Sqrt(r1);
+
+  Result.X := Round(A.X * (1.0 - s1) + B.X * (1.0 - r2) * s1 + C.X * r2 * s1);
+  Result.Y := Round(A.Y * (1.0 - s1) + B.Y * (1.0 - r2) * s1 + C.Y * r2 * s1);
+end;
 
 operator in(const P: TPoint; const Triangle: TTriangle): Boolean;
 begin

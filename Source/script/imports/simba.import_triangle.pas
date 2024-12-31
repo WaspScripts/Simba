@@ -229,6 +229,30 @@ begin
 end;
 
 (*
+TTriangle.RandomPoint
+---------------------
+```
+function TTriangle.RandomPoint(): TPoint;
+```
+*)
+procedure _LapeTriangle_RandomPoint(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPoint(Result)^ := TTriangle(Params^[0]^).RandomPoint();
+end;
+
+(*
+TTriangle.RandomPointCenter
+---------------------------
+```
+function TTriangle.RandomPointCenter(): TPoint;
+```
+*)
+procedure _LapeTriangle_RandomPointCenter(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPoint(Result)^ := TTriangle(Params^[0]^).RandomPointCenter();
+end;
+
+(*
 TTriangle.Area
 --------------
 ```
@@ -276,9 +300,6 @@ begin
   TPoint(Result^) := TTriangle(Params^[0]^).Mean;
 end;
 
-
-
-
 (*
 in
 --
@@ -297,14 +318,14 @@ begin
   begin
     DumpSection := 'TTriangle';
 
-    addGlobalFunc('function TTriangle.Create(A, B, C: TPoint): TTriangle; static; overload', @_LapeTriangle_Create);
+    addGlobalFunc('function TTriangle.Create(A, B, C: TPoint): TTriangle; static', @_LapeTriangle_Create);
 
     addGlobalFunc('function TTriangle.Centroid(): TPoint', @_LapeTriangle_Centroid);
     addGlobalFunc('function TTriangle.SymmedianPoint(): TPoint', @_LapeTriangle_SymmedianPoint);
     addGlobalFunc('function TTriangle.Incenter(): TPoint', @_LapeTriangle_Incenter);
 
     addGlobalFunc('function TTriangle.Rotate(Angle: Double): TTriangle', @_LapeTriangle_Rotate);
-    addGlobalFunc('function TTriangle.Contains(P: TPoint): Boolean; overload', @_LapeTriangle_Contains);
+    addGlobalFunc('function TTriangle.Contains(P: TPoint): Boolean', @_LapeTriangle_Contains);
     addGlobalFunc('function TTriangle.Offset(P: TPoint): TTriangle', @_LapeTriangle_Offset);
     addGlobalFunc('function TTriangle.Extract(Points: TPointArray): TPointArray', @_LapeTriangle_Extract);
     addGlobalFunc('function TTriangle.Exclude(Points: TPointArray): TPointArray', @_LapeTriangle_Exclude);
@@ -315,8 +336,8 @@ begin
     addGlobalFunc('function TTriangle.Circumcircle(): TCircle', @_LapeTriangle_Circumcircle);
     addGlobalFunc('function TTriangle.Incircle(): TCircle', @_LapeTriangle_Incircle);
 
-    //addGlobalFunc('function TTriangle.RandomPoint: TPoint', @_LapeTriangle_RandomPoint);
-    //addGlobalFunc('function TTriangle.RandomPointCenter: TPoint', @_LapeTriangle_RandomPointCenter);
+    addGlobalFunc('function TTriangle.RandomPoint: TPoint', @_LapeTriangle_RandomPoint);
+    addGlobalFunc('function TTriangle.RandomPointCenter: TPoint', @_LapeTriangle_RandomPointCenter);
 
     addProperty('TTriangle', 'Area',    'Integer',     @_LapeTriangle_Area_Read);
     addProperty('TTriangle', 'Corners', 'TPointArray', @_LapeTriangle_Corners_Read);
