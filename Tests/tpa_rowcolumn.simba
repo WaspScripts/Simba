@@ -1,0 +1,45 @@
+{$assertions on}
+
+var
+  TPA, TPASorted: TPointArray;
+  Rows, Columns: T2DPointArray;
+  I, J: Integer;
+begin
+  TPA := TPointArray.CreateFromBox([0,0,99,99], True);
+  Rows := TPA.Rows;
+  Columns := TPA.Columns;
+
+  // row
+  TPASorted := TPA.SortByRow(True);
+  for I := 0 to High(TPASorted) do
+    Assert(TPASorted[I].Y = (I div 100));
+
+  TPASorted := TPA.SortByRow(False);
+  for I := 0 to High(TPASorted) do
+    Assert(TPASorted[I].Y = 99 - (I div 100));
+
+  Assert(Length(Rows) = 100);
+  for I := 0 to High(Rows) do
+  begin
+    Assert(Length(Rows[I]) = 100);
+    for j:=0 to High(Rows[I]) do
+      Assert(Rows[I,J] = [J,I]);
+  end;
+
+  // column
+  TPASorted := TPA.SortByColumn(True);
+  for I := 0 to High(TPASorted) do
+    Assert(TPASorted[I].X = (I div 100));
+
+  TPASorted := TPA.SortByColumn(False);
+  for I := 0 to High(TPASorted) do
+    Assert(TPASorted[I].X = 99 - (I div 100));
+
+  Assert(Length(Columns) = 100);
+  for I := 0 to High(Columns) do
+  begin
+    Assert(Length(Columns[I]) = 100);
+    for j:=0 to High(Columns[I]) do
+      Assert(Columns[I,J] = [I,J]);
+  end;
+ end;

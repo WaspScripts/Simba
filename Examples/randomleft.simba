@@ -1,3 +1,5 @@
+// Random left returns numbers weighted to the left number
+
 const
   SampleCount = 1000000;
   Range = 10;

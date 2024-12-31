@@ -1801,7 +1801,7 @@ begin
   begin
     Start := I;
     Current := TPA[I].Y;
-    while (TPA[I].Y = Current) do
+    while (I < Len) and (TPA[I].Y = Current) do
       Inc(I);
 
     Buffer.Add(Copy(TPA, Start, I-Start));
@@ -1824,7 +1824,7 @@ begin
   begin
     Start := I;
     Current := TPA[I].X;
-    while (TPA[I].X = Current) do
+    while (I < Len) and (TPA[I].X = Current) do
       Inc(I);
 
     Buffer.Add(Copy(TPA, Start, I-Start));
