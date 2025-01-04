@@ -198,10 +198,7 @@ end;
 
 function RandomMean(Lo, Hi: Double): Double;
 begin
-  if (Random() < 0.50) then
-    Result := (Hi+Lo) / 2.0 + RandomLeft(0, (Hi-Lo) / 2)
-  else
-    Result := (Hi+Lo) / 2.0 - RandomLeft(0, (Hi-Lo) / 2);
+  Result := RandomMode(Lo + ((Hi-Lo) / 2), Lo, Hi);
 end;
 
 function RandomMean(Lo, Hi: Int64): Int64;
