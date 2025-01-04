@@ -12,7 +12,7 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.image;
+  simba.base, simba.image, simba.colormath;
 
 function SimbaImage_GreyScale(Image: TSimbaImage): TSimbaImage;
 function SimbaImage_Brightness(Image: TSimbaImage; Value: Integer): TSimbaImage;
@@ -26,11 +26,15 @@ function SimbaImage_Threshold(Image: TSimbaImage; Invert: Boolean; C: Integer): 
 function SimbaImage_ThresholdAdaptive(Image: TSimbaImage; Invert: Boolean; Radius: Integer; C: Integer): TSimbaImage;
 function SimbaImage_ThresholdAdaptiveSauvola(Image: TSimbaImage; Invert: Boolean; Radius: Integer; C: Single): TSimbaImage;
 
+procedure SimbaImage_ReplaceColor(Image: TSimbaImage; OldColor, NewColor: TColor; Tol: Single = 0);
+procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Color: TColor; Tol: Single = 0);
+procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Colors: TColorArray; Tol: Single = 0);
+
 implementation
 
 uses
   Math,
-  simba.image_utils, simba.vartype_matrix;
+  simba.image_utils, simba.vartype_matrix, simba.colormath_conversion, simba.colormath_distance;
 
 function SimbaImage_GreyScale(Image: TSimbaImage): TSimbaImage;
 var
@@ -684,6 +688,76 @@ begin
       if (Invert and (Mat[Y, X] <= Threshold)) or ((not Invert) and (Mat[Y, X] >= Threshold)) then
         Result.Data[Y * Image.Width + X].AsInteger := $FFFFFFFF;
     end;
+end;
+
+procedure SimbaImage_ReplaceColor(Image: TSimbaImage; OldColor, NewColor: TColor; Tol: Single);
+var
+  Old,New: TColorBGRA;
+  Ptr, Upper: PColorBGRA;
+begin
+  Old := TSimbaColorConversion.ColorToBGRA(OldColor);
+  New := TSimbaColorConversion.ColorToBGRA(NewColor, ALPHA_OPAQUE);
+
+  Image.DataRange(Ptr, Upper);
+  while (PtrUInt(Ptr) < PtrUInt(Upper)) do
+  begin
+    if SimilarRGB(Old, Ptr^, Tol) then
+      Ptr^ := New;
+    Inc(Ptr);
+  end;
+end;
+
+procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Color: TColor; Tol: Single);
+const
+  BLACK: TColorBGRA = (B:0; G:0; R:0; A: ALPHA_OPAQUE);
+  WHITE: TColorBGRA = (B:255; G:255; R:255; A: ALPHA_OPAQUE);
+var
+  Col: TColorBGRA;
+  Ptr, Upper: PColorBGRA;
+begin
+  Col := TSimbaColorConversion.ColorToBGRA(Color);
+
+  Image.DataRange(Ptr, Upper);
+  while (PtrUInt(Ptr) < PtrUInt(Upper)) do
+  begin
+    if SimilarRGB(Col, Ptr^, Tol) then
+      Ptr^ := WHITE
+    else
+      Ptr^ := BLACK;
+
+    Inc(Ptr);
+  end;
+end;
+
+procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Colors: TColorArray; Tol: Single);
+const
+  BLACK: TColorBGRA = (B:0; G:0; R:0; A: ALPHA_OPAQUE);
+  WHITE: TColorBGRA = (B:255; G:255; R:255; A: ALPHA_OPAQUE);
+var
+  Cols: array of TColorBGRA;
+  I: Integer;
+  Ptr, Upper: PColorBGRA;
+label
+  Next;
+begin
+  SetLength(Cols, Length(Colors));
+  for I := 0 to High(Colors) do
+    Cols[I] := TSimbaColorConversion.ColorToBGRA(Colors[I]);
+
+  Image.DataRange(Ptr, Upper);
+  while (PtrUInt(Ptr) < PtrUInt(Upper)) do
+  begin
+    for I := 0 to High(Cols) do
+      if SimilarRGB(Cols[I], Ptr^, Tol) then
+      begin
+        Ptr^ := WHITE;
+        goto Next;
+      end;
+    Ptr^ := BLACK;
+    Next:
+
+    Inc(Ptr);
+  end;
 end;
 
 end.

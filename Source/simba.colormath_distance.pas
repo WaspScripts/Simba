@@ -40,6 +40,8 @@ function ColorDistance(const Color1, Color2: TColor): Single; overload;
 function SimilarColors(const Color1, Color2: TColor; const Tolerance: Single; ColorSpace: EColorSpace; const Multipliers: TChannelMultipliers): Boolean; overload;
 function SimilarColors(const Color1, Color2: TColor; const Tolerance: Single): Boolean; overload;
 
+function SimilarRGB(const Color1, Color2: TColorBGRA; const Tol: Single): Boolean;
+
 implementation
 
 // ----| RGB |-----------------------------------------------------------------
@@ -239,6 +241,20 @@ function SimilarColors(const Color1, Color2: TColor; const Tolerance: Single): B
 begin
   Result := ColorDistance(Color1, Color2) <= Tolerance;
 end;
+
+const
+  DEFAULT_DISTANCE_RGB_MAX: Single = 0;
+
+function SimilarRGB(const Color1, Color2: TColorBGRA; const Tol: Single): Boolean;
+begin
+  if (Tol > 0) then
+    Result := (Sqrt(Sqr(Color1.B - Color2.B) + Sqr(Color1.G - Color2.G) + Sqr(Color1.R - Color2.R)) / DEFAULT_DISTANCE_RGB_MAX * 100) <= Tol
+  else
+    Result := (Color1.B = Color2.B) and (Color1.G = Color2.G) and (Color1.R = Color2.R);
+end;
+
+initialization
+  DEFAULT_DISTANCE_RGB_MAX := DistanceRGB_Max(DefaultMultipliers);
 
 end.
 

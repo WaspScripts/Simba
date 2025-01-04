@@ -667,6 +667,20 @@ begin
 end;
 
 (*
+TImage.isBinary
+---------------
+```
+function TImage.isBinary: Boolean;
+```
+
+Binary in this context means the entire image is either filled with $000000 (black) or $FFFFFF (white) excluding Alpha.
+*)
+procedure _LapeImage_isBinary(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PBoolean(Result)^ := PSimbaImage(Params^[0])^.isBinary();
+end;
+
+(*
 TImage.SplitChannels
 --------------------
 ```
@@ -718,24 +732,36 @@ end;
 TImage.ReplaceColor
 -------------------
 ```
-procedure TImage.ReplaceColor(OldColor, NewColor: TColor);
-```
-*)
-procedure _LapeImage_ReplaceColor1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaImage(Params^[0])^.ReplaceColor(PColor(Params^[1])^, PColor(Params^[2])^);
-end;
-
-(*
-TImage.ReplaceColor
--------------------
-```
 procedure TImage.ReplaceColor(OldColor, NewColor: TColor; Tolerance: Single);
 ```
 *)
-procedure _LapeImage_ReplaceColor2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeImage_ReplaceColor(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaImage(Params^[0])^.ReplaceColor(PColor(Params^[1])^, PColor(Params^[2])^, PSingle(Params^[3])^);
+end;
+
+(*
+TImage.ReplaceColorBinary
+-------------------------
+```
+procedure TImage.ReplaceColorBinary(Color: TColor; Tolerance: Single = 0);
+```
+*)
+procedure _LapeImage_ReplaceColorBinary1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSimbaImage(Params^[0])^.ReplaceColorBinary(PColor(Params^[1])^, PSingle(Params^[2])^);
+end;
+
+(*
+TImage.ReplaceColorBinary
+-------------------------
+```
+procedure TImage.ReplaceColorBinary(Colors: TColorArray; Tolerance: Single = 0);
+```
+*)
+procedure _LapeImage_ReplaceColorBinary2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSimbaImage(Params^[0])^.ReplaceColorBinary(PColorArray(Params^[1])^, PSingle(Params^[2])^);
 end;
 
 (*
@@ -1620,22 +1646,10 @@ end;
 TImage.PixelDifference
 ----------------------
 ```
-function TImage.PixelDifference(Other: TImage): Integer;
+function TImage.PixelDifference(Other: TImage; Tolerance: Single = 0): Integer;
 ```
 *)
 procedure _LapeImage_PixelDifference(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PInteger(Result)^ := PSimbaImage(Params^[0])^.PixelDifference(PSimbaImage(Params^[1])^);
-end;
-
-(*
-TImage.PixelDifference
-----------------------
-```
-function TImage.PixelDifference(Other: TImage; Tolerance: Integer): Integer;
-```
-*)
-procedure _LapeImage_PixelDifferenceTolerance(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PInteger(Result)^ := PSimbaImage(Params^[0])^.PixelDifference(PSimbaImage(Params^[1])^, PSingle(Params^[2])^);
 end;
@@ -1644,22 +1658,10 @@ end;
 TImage.PixelDifferenceTPA
 -------------------------
 ```
-function TImage.PixelDifferenceTPA(Other: TImage): TPointArray;
+function TImage.PixelDifferenceTPA(Other: TImage; Tolerance: Single = 0): TPointArray;
 ```
 *)
 procedure _LapeImage_PixelDifferenceTPA(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
- PPointArray(Result)^ := PSimbaImage(Params^[0])^.PixelDifferenceTPA(PSimbaImage(Params^[1])^);
-end;
-
-(*
-TImage.PixelDifferenceTPA
--------------------------
-```
-function TImage.PixelDifferenceTPA(Other: TImage; Tolerance: Integer): TPointArray;
-```
-*)
-procedure _LapeImage_PixelDifferenceToleranceTPA(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PPointArray(Result)^ := PSimbaImage(Params^[0])^.PixelDifferenceTPA(PSimbaImage(Params^[1])^, PSingle(Params^[2])^);
 end;
@@ -1880,6 +1882,7 @@ begin
     addGlobalFunc('procedure TImage.Crop(Box: TBox);', @_LapeImage_Crop);
     addGlobalFunc('procedure TImage.Pad(Amount: Integer)', @_LapeImage_Pad);
     addGlobalFunc('procedure TImage.Offset(X,Y: Integer)', @_LapeImage_Offset);
+    addGlobalFunc('function TImage.isBinary: Boolean;', @_LapeImage_isBinary);
 
     addGlobalFunc('procedure TImage.SplitChannels(var B,G,R: TByteArray)', @_LapeImage_SplitChannels);
     addGlobalFunc('procedure TImage.FromChannels(const B,G,R: TByteArray; W, H: Integer);', @_LapeImage_FromChannels);
@@ -1887,8 +1890,9 @@ begin
     addGlobalFunc('function TImage.GetColors: TColorArray; overload', @_LapeImage_GetColors1);
     addGlobalFunc('function TImage.GetColors(Box: TBox): TColorArray; overload', @_LapeImage_GetColors2);
 
-    addGlobalFunc('procedure TImage.ReplaceColor(OldColor, NewColor: TColor); overload', @_LapeImage_ReplaceColor1);
-    addGlobalFunc('procedure TImage.ReplaceColor(OldColor, NewColor: TColor; Tolerance: Single); overload', @_LapeImage_ReplaceColor2);
+    addGlobalFunc('procedure TImage.ReplaceColor(OldColor, NewColor: TColor; Tolerance: Single = 0)', @_LapeImage_ReplaceColor);
+    addGlobalFunc('procedure TImage.ReplaceColorBinary(Color: TColor; Tolerance: Single = 0); overload', @_LapeImage_ReplaceColorBinary1);
+    addGlobalFunc('procedure TImage.ReplaceColorBinary(Colors: TColorArray; Tolerance: Single = 0); overload', @_LapeImage_ReplaceColorBinary2);
 
     addGlobalFunc('function TImage.Resize(Algo: EImageResizeAlgo; NewWidth, NewHeight: Integer): TImage; overload;', @_LapeImage_Resize1);
     addGlobalFunc('function TImage.Resize(Algo: EImageResizeAlgo; Scale: Single): TImage; overload;', @_LapeImage_Resize2);
@@ -1977,10 +1981,8 @@ begin
     addGlobalFunc('function TImage.Equals(Other: TImage): Boolean;', @_LapeImage_Equals);
     addGlobalFunc('function TImage.Compare(Other: TImage): Single;', @_LapeImage_Compare);
 
-    addGlobalFunc('function TImage.PixelDifference(Other: TImage): Integer; overload', @_LapeImage_PixelDifference);
-    addGlobalFunc('function TImage.PixelDifference(Other: TImage; Tolerance: Single): Integer; overload', @_LapeImage_PixelDifferenceTolerance);
-    addGlobalFunc('function TImage.PixelDifferenceTPA(Other: TImage): TPointArray; overload', @_LapeImage_PixelDifferenceTPA);
-    addGlobalFunc('function TImage.PixelDifferenceTPA(Other: TImage; Tolerance: Single): TPointArray; overload', @_LapeImage_PixelDifferenceToleranceTPA);
+    addGlobalFunc('function TImage.PixelDifference(Other: TImage; Tolerance: Single = 0): Integer', @_LapeImage_PixelDifference);
+    addGlobalFunc('function TImage.PixelDifferenceTPA(Other: TImage; Tolerance: Single = 0): TPointArray', @_LapeImage_PixelDifferenceTPA);
 
     addGlobalFunc('function TImage.ToLazBitmap: TLazBitmap;', @_LapeImage_ToLazBitmap);
     addGlobalFunc('procedure TImage.FromLazBitmap(LazBitmap: TLazBitmap);', @_LapeImage_FromLazBitmap);

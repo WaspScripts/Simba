@@ -115,6 +115,7 @@ type
     property Pixel[X, Y: Integer]: TColor read GetPixel write SetPixel; default;
     property Alpha[X, Y: Integer]: Byte read GetAlpha write SetAlpha;
 
+    procedure DataRange(out Lo, Hi: PColorBGRA);
     function InImage(const X, Y: Integer): Boolean;
 
     procedure SetSize(NewWidth, NewHeight: Integer);
@@ -134,6 +135,8 @@ type
     procedure Pad(Amount: Integer);
     procedure Offset(X, Y: Integer);
 
+    function isBinary: Boolean;
+
     function GetPixels(Points: TPointArray): TColorArray;
     procedure SetPixels(Points: TPointArray; Color: TColor); overload;
     procedure SetPixels(Points: TPointArray; Colors: TColorArray); overload;
@@ -144,8 +147,9 @@ type
     procedure SplitChannels(var B,G,R: TByteArray);
     procedure FromChannels(const B,G,R: TByteArray; W, H: Integer);
 
-    procedure ReplaceColor(OldColor, NewColor: TColor); overload;
-    procedure ReplaceColor(OldColor, NewColor: TColor; Tolerance: Single); overload;
+    procedure ReplaceColor(OldColor, NewColor: TColor; Tolerance: Single = 0);
+    procedure ReplaceColorBinary(Color: TColor; Tolerance: Single = 0); overload;
+    procedure ReplaceColorBinary(Colors: TColorArray; Tolerance: Single = 0); overload;
 
     // Rotate resize flip
     function Rotate(Algo: EImageRotateAlgo; Radians: Single; Expand: Boolean): TSimbaImage;
@@ -248,10 +252,8 @@ type
     // Compare/Difference
     function Equals(Other: TSimbaImage): Boolean; reintroduce;
     function Compare(Other: TSimbaImage): Single;
-    function PixelDifference(Other: TSimbaImage): Integer; overload;
-    function PixelDifference(Other: TSimbaImage; Tolerance: Single): Integer; overload;
-    function PixelDifferenceTPA(Other: TSimbaImage): TPointArray; overload;
-    function PixelDifferenceTPA(Other: TSimbaImage; Tolerance: Single): TPointArray; overload;
+    function PixelDifference(Other: TSimbaImage; Tolerance: Single = 0): Integer;
+    function PixelDifferenceTPA(Other: TSimbaImage; Tolerance: Single = 0): TPointArray;
 
     // Laz bridge
     function ToLazBitmap: TBitmap;
@@ -720,102 +722,48 @@ begin
   Result := Result / Sqrt(isum * tsum);
 end;
 
-function TSimbaImage.PixelDifference(Other: TSimbaImage): Integer;
-var
-  I: Integer;
-  P1, P2: PColorBGRA;
-begin
-  Result := 0;
-  if (FWidth <> Other.Width) or (FHeight <> Other.Height) then
-    SimbaException('TSimbaImage.PixelDifference: Both images must be equal dimensions');
-
-  P1 := Data;
-  P2 := Other.Data;
-  for I := 0 to FWidth * FHeight - 1 do
-  begin
-    if not P1^.EqualsIgnoreAlpha(P2^) then
-      Inc(Result);
-
-    Inc(P1);
-    Inc(P2);
-  end;
-end;
-
 function TSimbaImage.PixelDifference(Other: TSimbaImage; Tolerance: Single): Integer;
 var
-  I: Integer;
+  Upper: PtrUInt;
   P1, P2: PColorBGRA;
 begin
   Result := 0;
   if (FWidth <> Other.Width) or (FHeight <> Other.Height) then
     SimbaException('TSimbaImage.PixelDifference: Both images must be equal dimensions');
-  if (Tolerance = 0) then
-    Exit(PixelDifference(Other));
 
   P1 := Data;
   P2 := Other.Data;
-  for I := 0 to FWidth * FHeight - 1 do
+
+  Upper := PtrUInt(P1) + FDataSize;
+  while (PtrUInt(P1) < PtrUInt(Upper)) do
   begin
-    if (not SimilarColors(TSimbaColorConversion.BGRAToColor(P1^), TSimbaColorConversion.BGRAToColor(P2^), Tolerance)) then
+    if (not SimilarRGB(P1^, P2^, Tolerance)) then
       Inc(Result);
 
     Inc(P1);
     Inc(P2);
   end;
-end;
-
-function TSimbaImage.PixelDifferenceTPA(Other: TSimbaImage): TPointArray;
-var
-  X, Y, W, H: Integer;
-  P1, P2: PColorBGRA;
-  Buffer: TSimbaPointBuffer;
-begin
-  if (FWidth <> Other.Width) or (FHeight <> Other.Height) then
-    SimbaException('TSimbaImage.PixelDifferenceTPA: Both images must be equal dimensions');
-
-  W := FWidth - 1;
-  H := FHeight - 1;
-
-  P1 := Data;
-  P2 := Other.Data;
-  for Y := 0 to H do
-    for X := 0 to W do
-    begin
-      if (not P1^.EqualsIgnoreAlpha(P2^)) then
-        {%H-}Buffer.Add(X, Y);
-
-      Inc(P1);
-      Inc(P2);
-    end;
-
-  Result := Buffer.ToArray(False);
 end;
 
 function TSimbaImage.PixelDifferenceTPA(Other: TSimbaImage; Tolerance: Single): TPointArray;
 var
-  X, Y, W, H: Integer;
+  I: Integer;
   P1, P2: PColorBGRA;
   Buffer: TSimbaPointBuffer;
 begin
   if (FWidth <> Other.Width) or (FHeight <> Other.Height) then
     SimbaException('TSimbaImage.PixelDifferenceTPA: Both images must be equal dimensions');
-  if (Tolerance = 0) then
-    Exit(PixelDifferenceTPA(Other));
-
-  W := FWidth - 1;
-  H := FHeight - 1;
 
   P1 := Data;
   P2 := Other.Data;
-  for Y := 0 to H do
-    for X := 0 to W do
-    begin
-      if (not SimilarColors(TSimbaColorConversion.BGRAToColor(P1^), TSimbaColorConversion.BGRAToColor(P2^), Tolerance)) then
-        Buffer.Add(X, Y);
+  for I := 0 to (FWidth * FHeight) - 1 do
+  begin
+    if (not SimilarRGB(P1^, P2^, Tolerance)) then
+      Buffer.Add(I mod FWidth, I div FWidth);
 
-      Inc(P1);
-      Inc(P2);
-    end;
+    Inc(P1);
+    Inc(P2);
+  end;
 
   Result := Buffer.ToArray(False);
 end;
@@ -1318,43 +1266,20 @@ begin
   Result := SimbaFreeTypeFontLoader.LoadFonts(Dir);
 end;
 
-procedure TSimbaImage.ReplaceColor(OldColor, NewColor: TColor);
-var
-  Old, New: TColorBGRA;
-  Ptr: PColorBGRA;
-  Upper: PtrUInt;
-begin
-  Old := TSimbaColorConversion.ColorToBGRA(OldColor);
-  New := TSimbaColorConversion.ColorToBGRA(NewColor, ALPHA_OPAQUE);
-
-  Upper := PtrUInt(@FData[FWidth * FHeight]);
-  Ptr := FData;
-  while (PtrUInt(Ptr) < Upper) do
-  begin
-    if Ptr^.EqualsIgnoreAlpha(Old) then
-      Ptr^ := New;
-
-    Inc(Ptr);
-  end;
-end;
 
 procedure TSimbaImage.ReplaceColor(OldColor, NewColor: TColor; Tolerance: Single);
-var
-  Old, New: TColorBGRA;
-  Ptr: PColorBGRA;
-  Upper: PtrUInt;
 begin
-  Old := TSimbaColorConversion.ColorToBGRA(OldColor);
-  New := TSimbaColorConversion.ColorToBGRA(NewColor, ALPHA_OPAQUE);
+  SimbaImage_ReplaceColor(Self, OldColor, NewColor, Tolerance);
+end;
 
-  Upper := PtrUInt(@FData[FWidth * FHeight]);
-  Ptr := FData;
-  while (PtrUInt(Ptr) < Upper) do
-  begin
-    if SimilarColors(Old.ToColor(), Ptr^.ToColor(), Tolerance) then
-      Ptr^ := New;
-    Inc(Ptr);
-  end;
+procedure TSimbaImage.ReplaceColorBinary(Color: TColor; Tolerance: Single);
+begin
+  SimbaImage_ReplaceColorBinary(Self, Color, Tolerance);
+end;
+
+procedure TSimbaImage.ReplaceColorBinary(Colors: TColorArray; Tolerance: Single);
+begin
+  SimbaImage_ReplaceColorBinary(Self, Colors, Tolerance);
 end;
 
 function TSimbaImage.GreyScale: TSimbaImage;
@@ -1877,6 +1802,22 @@ begin
   end;
 end;
 
+function TSimbaImage.isBinary: Boolean;
+var
+  Ptr: PColorBGRA;
+  Upper: PtrUInt;
+begin
+  if (FDataSize = 0) then
+    Exit(False);
+
+  Ptr := FData;
+  Upper := PtrUInt(FData) + FDataSize;
+  while (PtrUInt(Ptr) < Upper) and ((Ptr^.R = 0) and (Ptr^.G = 0) and (Ptr^.B = 0)) or ((Ptr^.R = 255) and (Ptr^.G = 255) and (Ptr^.B = 255)) do
+    Inc(Ptr);
+
+  Result := PtrUInt(Ptr) = Upper;
+end;
+
 function TSimbaImage.DetachData: TDetachedImageData;
 begin
   Result.Data := FData;
@@ -2038,6 +1979,12 @@ begin
   FreeAndNil(FTextDrawer);
 
   inherited Destroy();
+end;
+
+procedure TSimbaImage.DataRange(out Lo, Hi: PColorBGRA);
+begin
+  Lo := Pointer(FData);
+  Hi := Pointer(FData) + FDataSize;
 end;
 
 end.
