@@ -269,16 +269,15 @@ function TSimbaStringHelper.BetweenAll(const S1, S2: String): TStringArray;
   var
     I: Integer;
   begin
-    Offset := System.Pos(S1, Self, Offset);
+    I      := Self.IndexOf(S1, Offset);
+    Offset := self.IndexOf(S2, Offset);
 
     if (Offset > 0) then
     begin
-      Offset := Offset + System.Length(S1);
-      I := System.Pos(S2, Self, Offset);
-      if (I > 0) then
-        Result := Result + [System.Copy(Self, Offset, I - Offset)];
+      Result := Result + [System.Copy(Self, I+Length(S1), Offset-(I+Length(S1)))];
+      Offset := Offset + System.Length(S2);
     end;
-  end;
+  end;  
 
 var
   Offset: Integer;
