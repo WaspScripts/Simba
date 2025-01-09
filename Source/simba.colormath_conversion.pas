@@ -60,7 +60,24 @@ type
     class function XYZToRGB(const XYZ: TColorXYZ): TColorRGB; static;
   end;
 
+  function fcbrt(x: Single): Single; inline;
+
 implementation
+
+(*
+ * 2-4x speedup over Power(x, 1/3) in LAB colorspace finding
+ * Not a generalizable solution, but good for small numbers
+ * For number beyond this, consider the less accurate (for small numbers)
+ * https://pastebin.com/uRAwkm7s - Sun Microsystems (C) 1993
+ *)
+function fcbrt(x: Single): Single; inline;
+begin
+  Result := Sqrt(x);
+  Result := (2.0 * Result + x / Sqr(Result)) / 3.0;
+  Result := (2.0 * Result + x / Sqr(Result)) / 3.0;
+  Result := (2.0 * Result + x / Sqr(Result)) / 3.0;
+//Result := (2.0 * Result + x / Sqr(Result)) / 3.0; // Can't see that we need one more
+end;
 
 class function TSimbaColorConversion.ColorToBGRA(const Color: TColor; const Alpha: Byte): TColorBGRA;
 begin
@@ -140,11 +157,11 @@ begin
   Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505) * D65_Zn_Inv;
 
   // XYZ To LAB
-  if X > 0.008856 then X := Power(X, ONE_DIV_THREE)
+  if X > 0.008856 then X := fcbrt(x)
   else                 X := (7.787 * X) + 0.137931;
-  if Y > 0.008856 then Y := Power(Y, ONE_DIV_THREE)
+  if Y > 0.008856 then Y := fcbrt(y)
   else                 Y := (7.787 * Y) + 0.137931;
-  if Z > 0.008856 then Z := Power(Z, ONE_DIV_THREE)
+  if Z > 0.008856 then Z := fcbrt(z)
   else                 Z := (7.787 * Z) + 0.137931;
 
   Result.L := (116.0 * Y) - 16.0;
