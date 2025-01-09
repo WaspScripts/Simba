@@ -29,6 +29,17 @@ function DistanceDeltaE_UnRolled(const C1: PColorLAB; const C2: TColorBGRA; cons
 
 implementation
 
+// 2-4x speedup over Power(x, 1/3) in LAB colorspace finding
+function Cbrt(x: Single): Single; inline;
+begin
+  Result := Sqrt(x);
+  Result := (2.0 * Result + x / Sqr(Result)) / 3.0;
+  Result := (2.0 * Result + x / Sqr(Result)) / 3.0;
+  Result := (2.0 * Result + x / Sqr(Result)) / 3.0;
+//Result := (2.0 * Result + x / Sqr(Result)) / 3.0; // Can't see that we need one more
+end;
+
+
 function DistanceRGB_UnRolled(const C1: PColorRGB; const C2: TColorBGRA; const mul: TChannelMultipliers): Single;
 begin
   Result := Sqrt(Sqr((C1^.R-C2.R) * mul[0]) + Sqr((C1^.G-C2.G) * mul[1]) + Sqr((C1^.B-C2.B) * mul[2]));
@@ -185,11 +196,11 @@ begin
   Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722) * D65_Yn_Inv;
   Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505) * D65_Zn_Inv;
 
-  if X > 0.008856 then X := Power(X, ONE_DIV_THREE)
+  if X > 0.008856 then X := Cbrt(X)
   else                 X := (7.787 * X) + 0.137931;
-  if Y > 0.008856 then Y := Power(Y, ONE_DIV_THREE)
+  if Y > 0.008856 then Y := Cbrt(Y)
   else                 Y := (7.787 * Y) + 0.137931;
-  if Z > 0.008856 then Z := Power(Z, ONE_DIV_THREE)
+  if Z > 0.008856 then Z := Cbrt(Z)
   else                 Z := (7.787 * Z) + 0.137931;
 
   Color2.L := (116.0 * Y) - 16.0;
@@ -223,11 +234,11 @@ begin
   Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722) * D65_Yn_Inv;
   Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505) * D65_Zn_Inv;
 
-  if X > 0.008856 then X := Power(X, ONE_DIV_THREE)
+  if X > 0.008856 then X := Cbrt(X)
   else                 X := (7.787 * X) + 0.137931;
-  if Y > 0.008856 then Y := Power(Y, ONE_DIV_THREE)
+  if Y > 0.008856 then Y := Cbrt(Y)
   else                 Y := (7.787 * Y) + 0.137931;
-  if Z > 0.008856 then Z := Power(Z, ONE_DIV_THREE)
+  if Z > 0.008856 then Z := Cbrt(Z)
   else                 Z := (7.787 * Z) + 0.137931;
 
   L := (116.0 * Y) - 16.0;
@@ -287,11 +298,11 @@ begin
   Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722) * D65_Yn_Inv;
   Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505) * D65_Zn_Inv;
 
-  if X > 0.008856 then X := Power(X, ONE_DIV_THREE)
+  if X > 0.008856 then X := Cbrt(X)
   else                 X := (7.787 * X) + 0.137931;
-  if Y > 0.008856 then Y := Power(Y, ONE_DIV_THREE)
+  if Y > 0.008856 then Y := Cbrt(Y)
   else                 Y := (7.787 * Y) + 0.137931;
-  if Z > 0.008856 then Z := Power(Z, ONE_DIV_THREE)
+  if Z > 0.008856 then Z := Cbrt(Z)
   else                 Z := (7.787 * Z) + 0.137931;
 
   Color2.L := (116.0 * Y) - 16.0;
