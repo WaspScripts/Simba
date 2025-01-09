@@ -135,27 +135,28 @@ function DistanceXYZ_UnRolled(const C1: PColorXYZ; const C2: TColorBGRA; const m
 var
   vR,vG,vB: Single;
   Color1, Color2: TColorXYZ;
+const
+  D65_Xn_Inv: Single = 1.0 / 0.95047;
+  D65_Yn_Inv: Single = 1.0 / 1.00000;
+  D65_Zn_Inv: Single = 1.0 / 1.08883;
 begin
   Color1 := C1^;
 
   // function RGBToXYZ
   with C2 do
   begin
-    if R > 10 then vR := XYZ_POW_2_4[R]
-    else           vR := (R / 255.0) / 12.92;
-    if G > 10 then vG := XYZ_POW_2_4[G]
-    else           vG := (G / 255.0) / 12.92;
-    if B > 10 then vB := XYZ_POW_2_4[B]
-    else           vB := (B / 255.0) / 12.92;
+    vR := XYZ_GAMMA_LUT[R];
+    vG := XYZ_GAMMA_LUT[G];
+    vB := XYZ_GAMMA_LUT[B];
   end;
 
   vR := vR * 100;
   vG := vG * 100;
   vB := vB * 100;
 
-  Color2.X := (vR * 0.4124 + vG * 0.3576 + vB * 0.1805);
-  Color2.Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722);
-  Color2.Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505);
+  Color2.X := (vR * 0.4124 + vG * 0.3576 + vB * 0.1805) * D65_Xn_Inv;
+  Color2.Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722) * D65_Yn_Inv;
+  Color2.Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505) * D65_Zn_Inv;
 
   // function DistanceXYZ
   Result := Sqrt(Sqr((Color1.X - Color2.X) * mul[0]) + Sqr((Color1.Y - Color2.Y) * mul[1]) + Sqr((Color1.Z - Color2.Z) * mul[2]));
@@ -165,23 +166,24 @@ function DistanceLAB_UnRolled(const C1: PColorLAB; const C2: TColorBGRA; const m
 var
   vR,vG,vB, X,Y,Z: Single;
   Color1, Color2: TColorLAB;
+const
+  D65_Xn_Inv: Single = 1.0 / 0.95047;
+  D65_Yn_Inv: Single = 1.0 / 1.00000;
+  D65_Zn_Inv: Single = 1.0 / 1.08883;
 begin
   Color1 := C1^;
 
   // function RGBToLAB
   with C2 do
   begin
-    if R > 10 then vR := XYZ_POW_2_4[R]
-    else           vR := (R / 255.0) / 12.92;
-    if G > 10 then vG := XYZ_POW_2_4[G]
-    else           vG := (G / 255.0) / 12.92;
-    if B > 10 then vB := XYZ_POW_2_4[B]
-    else           vB := (B / 255.0) / 12.92;
+    vR := XYZ_GAMMA_LUT[R];
+    vG := XYZ_GAMMA_LUT[G];
+    vB := XYZ_GAMMA_LUT[B];
   end;
 
-  X := (vR * 0.4124 + vG * 0.3576 + vB * 0.1805);
-  Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722);
-  Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505);
+  X := (vR * 0.4124 + vG * 0.3576 + vB * 0.1805) * D65_Xn_Inv;
+  Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722) * D65_Yn_Inv;
+  Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505) * D65_Zn_Inv;
 
   if X > 0.008856 then X := Power(X, ONE_DIV_THREE)
   else                 X := (7.787 * X) + 0.137931;
@@ -202,23 +204,24 @@ function DistanceLCH_UnRolled(const C1: PColorLCH; const C2: TColorBGRA; const m
 var
   vR,vG,vB, X,Y,Z, L,A,B, deltaH: Single;
   Color1, Color2: TColorLCH;
+const
+  D65_Xn_Inv: Single = 1.0 / 0.95047;
+  D65_Yn_Inv: Single = 1.0 / 1.00000;
+  D65_Zn_Inv: Single = 1.0 / 1.08883;
 begin
   Color1 := C1^;
 
   // function RGBToLAB
   with C2 do
   begin
-    if R > 10 then vR := XYZ_POW_2_4[R]
-    else           vR := (R / 255.0) / 12.92;
-    if G > 10 then vG := XYZ_POW_2_4[G]
-    else           vG := (G / 255.0) / 12.92;
-    if B > 10 then vB := XYZ_POW_2_4[B]
-    else           vB := (B / 255.0) / 12.92;
+    vR := XYZ_GAMMA_LUT[R];
+    vG := XYZ_GAMMA_LUT[G];
+    vB := XYZ_GAMMA_LUT[B];
   end;
 
-  X := (vR * 0.4124 + vG * 0.3576 + vB * 0.1805);
-  Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722);
-  Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505);
+  X := (vR * 0.4124 + vG * 0.3576 + vB * 0.1805) * D65_Xn_Inv;
+  Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722) * D65_Yn_Inv;
+  Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505) * D65_Zn_Inv;
 
   if X > 0.008856 then X := Power(X, ONE_DIV_THREE)
   else                 X := (7.787 * X) + 0.137931;
@@ -265,23 +268,24 @@ var
   vR,vG,vB, X,Y,Z: Single;
   xC1,xC2,xDL,xDC,xDE,xDH,xSC,xSH: Single;
   Color1, Color2: TColorLAB;
+const
+  D65_Xn_Inv: Single = 1.0 / 0.95047;
+  D65_Yn_Inv: Single = 1.0 / 1.00000;
+  D65_Zn_Inv: Single = 1.0 / 1.08883;
 begin
   Color1 := C1^;
 
   // function RGBToLAB
   with C2 do
   begin
-    if R > 10 then vR := XYZ_POW_2_4[R]
-    else           vR := (R / 255.0) / 12.92;
-    if G > 10 then vG := XYZ_POW_2_4[G]
-    else           vG := (G / 255.0) / 12.92;
-    if B > 10 then vB := XYZ_POW_2_4[B]
-    else           vB := (B / 255.0) / 12.92;
+    vR := XYZ_GAMMA_LUT[R];
+    vG := XYZ_GAMMA_LUT[G];
+    vB := XYZ_GAMMA_LUT[B];
   end;
 
-  X := (vR * 0.4124 + vG * 0.3576 + vB * 0.1805);
-  Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722);
-  Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505);
+  X := (vR * 0.4124 + vG * 0.3576 + vB * 0.1805) * D65_Xn_Inv;
+  Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722) * D65_Yn_Inv;
+  Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505) * D65_Zn_Inv;
 
   if X > 0.008856 then X := Power(X, ONE_DIV_THREE)
   else                 X := (7.787 * X) + 0.137931;
