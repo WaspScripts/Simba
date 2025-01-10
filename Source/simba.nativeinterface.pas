@@ -105,7 +105,7 @@ end;
 
 function TSimbaNativeInterface.WindowHandleFromStr(Str: String): TWindowHandle;
 begin
-  Result := Str.ToInt64(0);
+  Result := Str.ToInt(0);
 end;
 
 procedure TSimbaNativeInterface.PreciseSleep(Milliseconds: UInt32);

@@ -891,99 +891,51 @@ begin
 end;
 
 (*
-String.ToInteger
-----------------
+String.ToInt
+------------
 ```
-function String.ToInteger: Integer;
+function String.ToInt: Int64;
 ```
 *)
-procedure _LapeString_ToInteger(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeString_ToInt(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PString(Params^[0])^.ToInteger();
+  PInt64(Result)^ := PString(Params^[0])^.ToInt();
 end;
 
 (*
-String.ToInteger
-----------------
+String.ToInt
+------------
 ```
-function String.ToInteger(Default: Integer): Integer;
+function String.ToInt(Default: Int64): Int64;
 ```
 *)
-procedure _LapeString_ToIntegerDef(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeString_ToIntDef(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PString(Params^[0])^.ToInteger(PInteger(Params^[1])^);
+  PInt64(Result)^ := PString(Params^[0])^.ToInt(PInt64(Params^[1])^);
 end;
 
 (*
-String.ToInt64
+String.ToFloat
 --------------
 ```
-function String.ToInt64: Int64;
+function String.ToFloat: Double;
 ```
 *)
-procedure _LapeString_ToInt64(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeString_ToFloat(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInt64(Result)^ := PString(Params^[0])^.ToInt64();
+  PDouble(Result)^ := PString(Params^[0])^.ToFloat();
 end;
 
 (*
-String.ToInt64
+String.ToFloat
 --------------
 ```
-function String.ToInt64(Default: Int64): Int64;
+function String.ToFloat(Default: Double): Double;
 ```
 *)
-procedure _LapeString_ToInt64Def(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeString_ToFloatDef(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInt64(Result)^ := PString(Params^[0])^.ToInt64(PInt64(Params^[1])^);
-end;
-
-(*
-String.ToSingle
----------------
-```
-function String.ToSingle: Single;
-```
-*)
-procedure _LapeString_ToSingle(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSingle(Result)^ := PString(Params^[0])^.ToSingle();
-end;
-
-(*
-String.ToSingle
----------------
-```
-function String.ToSingle(Default: Single): Single;
-```
-*)
-procedure _LapeString_ToSingleDef(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSingle(Result)^ := PString(Params^[0])^.ToSingle(PSingle(Params^[1])^);
-end;
-
-(*
-String.ToDouble
----------------
-```
-function String.ToDouble: Double;
-```
-*)
-procedure _LapeString_ToDouble(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PDouble(Result)^ := PString(Params^[0])^.ToDouble();
-end;
-
-(*
-String.ToDouble
----------------
-```
-function String.ToDouble(Default: Double): Double;
-```
-*)
-procedure _LapeString_ToDoubleDef(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PDouble(Result)^ := PString(Params^[0])^.ToDouble(PDouble(Params^[1])^);
+  PDouble(Result)^ := PString(Params^[0])^.ToFloat(PDouble(Params^[1])^);
 end;
 
 (*
@@ -1293,14 +1245,10 @@ begin
     addGlobalFunc('function String.ToBytes: TByteArray; overload;', @_LapeString_ToBytes);
     addGlobalFunc('function String.ToBoolean: Boolean; overload;', @_LapeString_ToBoolean);
     addGlobalFunc('function String.ToBoolean(Default: Boolean): Boolean; overload;', @_LapeString_ToBooleanDef);
-    addGlobalFunc('function String.ToInteger: Integer; overload;', @_LapeString_ToInteger);
-    addGlobalFunc('function String.ToInteger(Default: Integer): Integer; overload;', @_LapeString_ToIntegerDef);
-    addGlobalFunc('function String.ToInt64: Int64; overload;', @_LapeString_ToInt64);
-    addGlobalFunc('function String.ToInt64(Default: Int64): Int64; overload;', @_LapeString_ToInt64Def);
-    addGlobalFunc('function String.ToSingle: Single; overload;', @_LapeString_ToSingle);
-    addGlobalFunc('function String.ToSingle(Default: Single): Single; overload;', @_LapeString_ToSingleDef);
-    addGlobalFunc('function String.ToDouble: Double; overload;', @_LapeString_ToDouble);
-    addGlobalFunc('function String.ToDouble(Default: Double): Double; overload;', @_LapeString_ToDoubleDef);
+    addGlobalFunc('function String.ToInt: Int64; overload;', @_LapeString_ToInt);
+    addGlobalFunc('function String.ToInt(Default: Int64): Int64; overload;', @_LapeString_ToIntDef);
+    addGlobalFunc('function String.ToFloat: Double; overload;', @_LapeString_ToFloat);
+    addGlobalFunc('function String.ToFloat(Default: Double): Double; overload;', @_LapeString_ToFloatDef);
     addGlobalFunc('function String.ToDateTime(Fmt: String; Def: TDateTime): TDateTime;', @_LapeString_ToDateTime);
 
     addGlobalFunc('function TStringArray.Join(Glue: String): String;', @_LapeStringArray_Join);

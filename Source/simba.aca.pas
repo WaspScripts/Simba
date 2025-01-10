@@ -154,7 +154,7 @@ var
   Value: String;
 begin
   if InputQuery('ACA', 'HSL Circle Radius (Max 2000)', Value) and Value.IsNumeric then
-    LoadHSLCircle(Min(Value.ToInteger, 2000));
+    LoadHSLCircle(Min(Value.ToInt, 2000));
 end;
 
 function TSimbaACAForm.IsShortcut(var Message: TLMKey): Boolean;
@@ -334,11 +334,11 @@ end;
 function TSimbaACAForm.GetBestColorTol: TColorTolerance;
 begin
   Result.ColorSpace := GetColorSpace();
-  Result.Color := String(BestColorEdit.Text).ToInteger(0);
-  Result.Tolerance := String(BestToleranceEdit.Text).ToSingle(0);
-  Result.Multipliers[0] := String(BestMulti1Edit.Text).ToSingle(0);
-  Result.Multipliers[1] := String(BestMulti2Edit.Text).ToSingle(0);
-  Result.Multipliers[2] := String(BestMulti3Edit.Text).ToSingle(0);
+  Result.Color := String(BestColorEdit.Text).ToInt(0);
+  Result.Tolerance := String(BestToleranceEdit.Text).ToFloat(0);
+  Result.Multipliers[0] := String(BestMulti1Edit.Text).ToFloat(0);
+  Result.Multipliers[1] := String(BestMulti2Edit.Text).ToFloat(0);
+  Result.Multipliers[2] := String(BestMulti3Edit.Text).ToFloat(0);
 end;
 
 function TSimbaACAForm.GetColorSpace: EColorSpace;

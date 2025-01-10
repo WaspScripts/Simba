@@ -153,14 +153,10 @@ type
 
     function ToBoolean: Boolean; overload;
     function ToBoolean(Default: Boolean): Boolean; overload;
-    function ToInteger: Integer; overload;
-    function ToInteger(Default: Integer): Integer; overload;
-    function ToInt64: Int64; overload;
-    function ToInt64(Default: Int64): Int64; overload;
-    function ToSingle: Single; overload;
-    function ToSingle(Default: Single): Single; overload;
-    function ToDouble: Double; overload;
-    function ToDouble(Default: Double): Double; overload;
+    function ToInt: Int64; overload;
+    function ToInt(Default: Int64): Int64; overload;
+    function ToFloat: Double; overload;
+    function ToFloat(Default: Double): Double; overload;
 
     function ToDateTime(Fmt: String; Def: TDateTime): TDateTime;
     function ToBytes: TByteArray;
@@ -751,7 +747,7 @@ function String.ExtractNumbers(): TStringArray;
 ```
 Extract all the numbers found in the string.
 The result is a an array of strings, where each string contains a number
-extracted from the string. You can now use .ToFloat or .ToInteger on it.
+extracted from the string. You can now use .ToFloat or .ToInt on it.
 *)
 function TSimbaStringHelper.ExtractNumbers(): TStringArray;
 var
@@ -1170,42 +1166,22 @@ begin
   Result := StrToBoolDef(Self, Default);
 end;
 
-function TSimbaStringHelper.ToInteger: Integer;
-begin
-  Result := StrToInt(Self);
-end;
-
-function TSimbaStringHelper.ToInteger(Default: Integer): Integer;
-begin
-  Result := StrToIntDef(Self, Default);
-end;
-
-function TSimbaStringHelper.ToInt64: Int64;
+function TSimbaStringHelper.ToInt: Int64;
 begin
   Result := StrToInt64(Self);
 end;
 
-function TSimbaStringHelper.ToInt64(Default: Int64): Int64;
+function TSimbaStringHelper.ToInt(Default: Int64): Int64;
 begin
   Result := StrToInt64Def(Self, Default);
 end;
 
-function TSimbaStringHelper.ToSingle: Single;
+function TSimbaStringHelper.ToFloat: Double;
 begin
   Result := StrToFloat(Self);
 end;
 
-function TSimbaStringHelper.ToSingle(Default: Single): Single;
-begin
-  Result := StrToFloatDef(Self, Default);
-end;
-
-function TSimbaStringHelper.ToDouble: Double;
-begin
-  Result := StrToFloat(Self);
-end;
-
-function TSimbaStringHelper.ToDouble(Default: Double): Double;
+function TSimbaStringHelper.ToFloat(Default: Double): Double;
 begin
   Result := StrToFloatDef(Self, Default);
 end;
@@ -1223,7 +1199,7 @@ begin
       TryISO8601ToDate(Self, Result);
     'unix':
       if Self.IsNumeric then
-        Result := UnixToDateTime(Self.ToInt64());
+        Result := UnixToDateTime(Self.ToInt());
     else
       SimbaException('String.ToDateTime: Fmt "%s" not recognized', [Fmt]);
   end;

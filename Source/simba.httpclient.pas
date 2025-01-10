@@ -517,7 +517,7 @@ begin
   with FHTTPClient.Proxy do
   begin
     Host := Host.Before(':');
-    Port := Host.After(':').ToInteger();
+    Port := Host.After(':').ToInt();
     UserName := User;
     Password := Pass;
   end;
