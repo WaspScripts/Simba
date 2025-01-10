@@ -802,7 +802,7 @@ begin
   begin
     Value := '';
     if InputQuery('Goto line', 'Goto line:', Value) and Value.IsNumeric then
-      SimbaTabsForm.CurrentEditor.TopLine := Value.ToInteger - (SimbaTabsForm.CurrentEditor.LinesInWindow div 2);
+      SimbaTabsForm.CurrentEditor.TopLine := Value.ToInt - (SimbaTabsForm.CurrentEditor.LinesInWindow div 2);
   end;
 end;
 
