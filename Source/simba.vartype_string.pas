@@ -751,27 +751,47 @@ extracted from the string. You can now use .ToFloat or .ToInt on it.
 *)
 function TSimbaStringHelper.ExtractNumbers(): TStringArray;
 var
-  i,c,l: Int32;
-  function Next(var i: Int32): Int32; begin Inc(i);Result:=i; end;
+  i, c, l: Int32;
 begin
   c := 0;
   L := Length(Self);
   i := 1;
-  while i <= Length(Self) do
+  while i <= L do
   begin
-    if Self[i] in ['0'..'9'] then
+    // Check for a negative sign or a digit
+    if (Self[i] in ['0'..'9']) or ((i < L) and (Self[i] = '-') and (Self[i+1] in ['0'..'9'])) then
     begin
-      SetLength(Result, c+1);
+      SetLength(Result, c + 1);
+      Result[c] := ''; // Initialize the new number string
 
-      Result[c] := Self[i];
-      while (Next(i) <= L) and (Self[i] in ['0'..'9']) do Result[c] += Self[i];
+      // Handle negative sign
+      if Self[i] = '-' then
+      begin
+        Result[c] := Self[i];
+        Inc(i);
+      end;
+
+      // Collect digits
+      while (i <= L) and (Self[i] in ['0'..'9']) do
+      begin
+        Result[c] += Self[i];
+        Inc(i);
+      end;
+
+      // Handle decimal point
       if (i <= L) and (Self[i] = '.') then
       begin
         Result[c] += Self[i];
-        while (Next(i) <= L) and (Self[i] in ['0'..'9']) do Result[c] += Self[i];
+        Inc(i);
+        while (i <= L) and (Self[i] in ['0'..'9']) do
+        begin
+          Result[c] += Self[i];
+          Inc(i);
+        end;
       end;
-      if (i > L) then Break;
+
       Inc(c);
+      continue;
     end;
     Inc(i);
   end;

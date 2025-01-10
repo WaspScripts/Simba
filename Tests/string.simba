@@ -63,6 +63,7 @@ begin
   Assert(ToString(Str.ExtractFloat) = '123.456');
   Str := '-hello123world.456';
   Assert(ToString(Str.ExtractFloat) = '-123.456');
+  Assert(Str.ExtractNumbers.Equals(['123','456']));
 end;
 
 procedure TestStringToXXX;
@@ -70,11 +71,9 @@ var
   Str: String;
 begin
   Str := '123';
-  Assert(Str.ToInteger() = 123);
-  Assert(Str.ToInt64() = 123);
+  Assert(Str.ToInt() = 123);
   Str := '1.23';
-  Assert(Str.ToSingle() = Single(1.23));
-  Assert(Str.ToDouble() = Double(1.23));
+  Assert(Str.ToFloat() = Double(1.23));
 
   Str := 'True';
   Assert(Str.ToBoolean = True);
