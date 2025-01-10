@@ -65,21 +65,6 @@ function TKDTree.Clusters(Radii: TSingleArray): T2DKDItems;
 *)
 
 
-procedure _LapeKDTreeRefArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  TKDNodeRefArray(Result^) := TKDTree(Params^[0]^).RefArray();
-end;
-
-procedure _LapeKDTreeGetItem(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PKDNode(Result^) := TKDTree(Params^[0]^).GetItem(Int32(Params^[1]^));
-end;
-
-procedure _LapeKDTreeCopy(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  TKDTree(Result^) := TKDTree(Params^[0]^).Copy();
-end;
-
 (*
 TKDTree.Init
 ------------
@@ -94,6 +79,70 @@ Time complexity average is O(n log n)
 procedure _LapeKDTreeInit(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   TKDTree(Params^[0]^).Init(TKDItems(Params^[1]^));
+end;
+
+(*
+TKDTree.Create
+--------------
+```
+function TKDTree.Create(const AData: TKDItems): TKDTree; static;
+```
+
+Same as Init, just as a constructor to allow simplified usage as seen in the example:
+
+**Example:**
+```
+  TKDTree.Create(data).SaveToFile('file.kd');
+```
+*)
+procedure _LapeKDTreeCreate1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  TKDTree(Result^) := TKDTree.Create(TKDItems(Params^[0]^));
+end;
+
+(*
+TKDTree.Create
+--------------
+```
+function TKDTree.Create(const FileName: string): TKDTree; static;
+```
+
+Constructs the KDTree from a compatible KDTree file.
+*)
+procedure _LapeKDTreeCreate2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  TKDTree(Result^) := TKDTree.Create(String(Params^[0]^));
+end;
+
+(*
+TKDTree.SaveToFile
+------------------
+```
+function TKDTree.SaveToFile(const FileName: string): Boolean; static;
+```
+
+Writes the KDTree to a binary file, so that you dont have to rebuild it. 
+Should return True on success
+*)
+procedure _LapeKDTreeSaveToFile(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  Boolean(Result^) := TKDTree(Params^[0]^).SaveToFile(String(Params^[1]^));
+end;
+
+
+procedure _LapeKDTreeRefArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  TKDNodeRefArray(Result^) := TKDTree(Params^[0]^).RefArray();
+end;
+
+procedure _LapeKDTreeGetItem(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PKDNode(Result^) := TKDTree(Params^[0]^).GetItem(Int32(Params^[1]^));
+end;
+
+procedure _LapeKDTreeCopy(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  TKDTree(Result^) := TKDTree(Params^[0]^).Copy();
 end;
 
 procedure _LapeKDTreeIndexOf(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -194,10 +243,14 @@ begin
     
     addGlobalType('record Dimensions: Int32; Data: TKDNodeArray; Size: Integer; end;', 'TKDTree');
 
+    addGlobalFunc('procedure TKDTree.Init(const AData: TKDItems);', @_LapeKDTreeInit);
+    addGlobalFunc('function TKDTree.Create(const AData: TKDItems): TKDTree; static; overload;', @_LapeKDTreeCreate1);
+    addGlobalFunc('function TKDTree.Create(const FileName: string): TKDTree; static; overload;', @_LapeKDTreeCreate2);
+    addGlobalFunc('function TKDTree.SaveToFile(const FileName: string): Boolean;', @_LapeKDTreeSaveToFile); 
+
     addGlobalFunc('function TKDTree.RefArray(): TKDNodeRefArray;', @_LapeKDTreeRefArray);
     addGlobalFunc('function TKDTree.GetItem(i:Int32): PKDNode;', @_LapeKDTreeGetItem);
     addGlobalFunc('function TKDTree.Copy(): TKDTree;', @_LapeKDTreeCopy);
-    addGlobalFunc('procedure TKDTree.Init(const AData: TKDItems);', @_LapeKDTreeInit);
     addGlobalFunc('function TKDTree.IndexOf(const Value: TSingleArray): Int32;', @_LapeKDTreeIndexOf);
     addGlobalFunc('function TKDTree.KNearest(Vector: TSingleArray; K: Int32; NotEqual: Boolean = False): TKDItems;', @_LapeKDTreeKNearest);
     addGlobalFunc('function TKDTree.RangeQuery(Low, High: TSingleArray): TKDItems;', @_LapeKDTreeRangeQuery);

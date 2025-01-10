@@ -44,13 +44,17 @@ type
     Dimensions: Int32;
     Data: TKDNodeArray;
     Size: Int32;
-    
+
+    procedure Init(const AData: TKDItems);
+    constructor Create(const AData: TKDItems);
+    constructor Create(const FileName: string);
+    function SaveToFile(FileName: string): Boolean;
+
     function RefArray(): TKDNodeRefArray;
     function GetItem(i:Int32): PKDNode;
     function InitBranch(): Int32; inline;
     function Copy(): TKDTree;
     function SqDistance(A, B: TSingleArray; Limit: Single = High(UInt32)): Single; inline;
-    procedure Init(const AData: TKDItems);
     function IndexOf(const Value: TSingleArray): Int32;
     function KNearest(Vector: TSingleArray; K: Int32; NotEqual: Boolean = False): TKDItems;
     function RangeQuery(Low, High: TSingleArray): TKDItems;
@@ -64,6 +68,9 @@ type
   
 
 implementation
+
+uses
+  simba.fs;
 
 const
   NONE = -1;
@@ -189,6 +196,83 @@ begin
   SetLength(self.Data, Length(Sortable));
   BuildTree(self.Data[self.InitBranch()], 0, High(Sortable));
 end;
+
+constructor TKDTree.Create(const AData: TKDItems);
+begin
+  Self.Init(AData);
+end;
+
+constructor TKDTree.Create(const FileName: string);
+var
+  bytes: TByteArray;
+  i,j,c: Int32;
+begin
+  bytes := TSimbaFile.FileReadBytes(FileName);
+  Move(bytes[0], Self.Dimensions, 4);
+  Move(bytes[4], Self.Size,       4);
+  c := 8;
+
+  SetLength(Self.Data, Self.Size);
+  for i:=0 to Self.Size-1 do
+  begin
+    Self.Data[i].Hidden := Boolean(bytes[c]);
+    Inc(c);
+    Move(bytes[c], Self.Data[i].L, 4);
+    Inc(c, 4);
+    Move(bytes[c], Self.Data[i].R, 4);
+    Inc(c, 4);
+    Move(bytes[c], Self.Data[i].Split.Ref, 4);
+    Inc(c, 4);
+
+    SetLength(Self.Data[i].Split.Vector, Self.Dimensions);
+    for j:=0 to Self.Dimensions-1 do
+    begin
+      Move(bytes[c], Self.Data[i].Split.Vector[j], 4);
+      Inc(c, 4);
+    end;
+  end;
+end;
+
+
+
+function TKDTree.SaveToFile(FileName: string): Boolean;
+var
+  bytes: TByteArray;
+  i,j,c: Int32;
+begin
+  SetLength(bytes,
+    4 +
+    4 +
+    Length(Self.Data) * (1+4+4+4+Self.Dimensions*SizeOf(Single)) +
+    1
+  );                   //h,l,r,^,vectors
+
+  Move(self.Dimensions, bytes[0], 4);
+  Move(self.Size,       bytes[4], 4);
+  c := 8;
+
+  for i:=0 to High(self.Data) do
+  begin
+    bytes[c] := Byte(self.Data[i].Hidden);
+    Inc(c, 1);
+    Move(self.Data[i].L, bytes[c], 4);
+    Inc(c, 4);
+    Move(self.Data[i].R, bytes[c], 4);
+    Inc(c, 4);
+    Move(self.Data[i].Split.Ref, bytes[c], 4);
+    Inc(c, 4);
+
+    for j:=0 to self.Dimensions-1 do
+    begin
+      Move(self.Data[i].Split.Vector[j], bytes[c], 4);
+      Inc(c, 4);
+    end;
+  end;
+
+  Result := TSimbaFile.FileWriteBytes(FileName, bytes);
+end;
+
+
 
 
 (*

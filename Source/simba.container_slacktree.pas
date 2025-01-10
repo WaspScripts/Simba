@@ -44,6 +44,8 @@ type
     function Copy: TSlackTree;
 
     procedure Init(TPA:TPointArray);
+    constructor Create(TPA:TPointArray);
+    
 
     function IndexOf(p:TPoint): Int32;
     function Find(p:TPoint): PNode;
@@ -183,6 +185,11 @@ begin
   Self.Size := 0;
   SetLength(self.data, Length(TPA));
   __build(self.data[InitBranch()], 0, High(TPA));
+end;
+
+constructor TSlackTree.Create(TPA: TPointArray);
+begin
+  Self.Init(TPA);
 end;
 
 

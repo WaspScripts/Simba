@@ -44,6 +44,26 @@ begin
 end;
 
 (*
+TSlackTree.Create
+-----------------
+```
+function TSlackTree.Create(TPA: TPointArray): TSlackTree; static;
+```
+
+Same as Init, just as a constructor to allow simplified usage as seen in the example:
+
+**Example:**
+```
+  Groups := TSlackTree.Create(TPA).Clusters(5,5);
+```
+*)
+procedure _LapeSlackTreeCreate(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  TSlackTree(Result^) := TSlackTree.Create(TPointArray(Params^[0]^));
+end;
+
+
+(*
 TSlackTree.IndexOf
 ------------------
 ```
@@ -287,6 +307,8 @@ begin
     addGlobalType('record Data: TSlackArray; Size: Integer; end;', 'TSlackTree');
 
     addGlobalFunc('procedure TSlackTree.Init(TPA: TPointArray);', @_LapeSlackTreeInit);
+    addGlobalFunc('function TSlackTree.Create(TPA: TPointArray): TSlackTree; static;', @_LapeSlackTreeCreate); 
+    
     addGlobalFunc('function TSlackTree.IndexOf(P: TPoint): Integer;', @_LapeSlackTreeIndexOf);
     addGlobalFunc('function TSlackTree.Find(P: TPoint): PSlackNode;', @_LapeSlackTreeFind);
     addGlobalFunc('procedure TSlackTree.Hide(idx:Integer);', @_LapeSlackTreeHideNode);
