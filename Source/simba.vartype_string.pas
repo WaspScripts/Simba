@@ -116,6 +116,7 @@ type
     function Extract(const Chars: array of Char): String;
     function ExtractInteger(Default: Int64 = -1): Int64;
     function ExtractFloat(Default: Double = -1): Double;
+    function ExtractNumbers(): TStringArray;
 
     function Trim: String; overload;
     function Trim(const TrimChars: array of Char): String; overload;
@@ -740,6 +741,44 @@ end;
 function TSimbaStringHelper.ExtractFloat(Default: Double): Double;
 begin
   Result := StrToFloatDef(Self.Extract(['.','-','0','1','2','3','4','5','6','7','8','9']), Default);
+end;
+
+(*
+String.ExtractNumbers
+---------------------
+```
+function String.ExtractNumbers(): TStringArray;
+```
+Extract all the numbers found in the string.
+The result is a an array of strings, where each string contains a number
+extracted from the string. You can now use .ToFloat or .ToInteger on it.
+*)
+function TSimbaStringHelper.ExtractNumbers(): TStringArray;
+var
+  i,c,l: Int32;
+  function Next(var i: Int32): Int32; begin Inc(i);Result:=i; end;
+begin
+  c := 0;
+  L := Length(Self);
+  i := 1;
+  while i <= Length(Self) do
+  begin
+    if Self[i] in ['0'..'9'] then
+    begin
+      SetLength(Result, c+1);
+
+      Result[c] := Self[i];
+      while (Next(i) <= L) and (Self[i] in ['0'..'9']) do Result[c] += Self[i];
+      if (i <= L) and (Self[i] = '.') then
+      begin
+        Result[c] += Self[i];
+        while (Next(i) <= L) and (Self[i] in ['0'..'9']) do Result[c] += Self[i];
+      end;
+      if (i > L) then Break;
+      Inc(c);
+    end;
+    Inc(i);
+  end;
 end;
 
 function TSimbaStringHelper.Trim: String;

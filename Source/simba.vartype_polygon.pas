@@ -36,6 +36,7 @@ type
     function DouglasPeucker(Epsilon: Double): TPolygon;
     procedure FurthestPoints(out A,B: TPoint);
     function Triangulate(MinArea: Single = 0; MaxDepth: Int32 = 0): TTriangleArray;
+    function Connect: TPointArray;
   end;
 
   PPolygon = ^TPolygon;
@@ -49,6 +50,7 @@ uses
   Math,
   simba.math,
   simba.geometry,
+  simba.containers,
   simba.vartype_point,
   simba.vartype_pointarray;
 
@@ -335,6 +337,27 @@ begin
     Result[High(Result)].B := tmp1[1];
     Result[High(Result)].C := tmp1[2];
   end;
+end;
+
+function TPolygonHelper.Connect: TPointArray;
+var
+  I: Integer;
+  Buffer: TSimbaPointBuffer;
+begin
+  Buffer.Init();
+
+  if (Length(Self) > 1) then
+  begin
+    for I := 0 to High(Self) - 1 do
+    begin
+      Buffer.Add(TPointArray.CreateFromLine(Self[I], Self[I+1]));
+      Buffer.Pop(); // dont duplicate self[I+1]
+    end;
+    Buffer.Add(TPointArray.CreateFromLine(Self[High(Self)], Self[0]));
+    Buffer.Pop(); // dont duplicate self[0]
+  end;
+
+  Result := Buffer.ToArray(False);
 end;
 
 operator in(const P: TPoint; const Poly: TPolygon): Boolean;

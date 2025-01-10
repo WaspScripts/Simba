@@ -26,6 +26,9 @@ uses
 Polygon
 =======
 Polygon type
+
+Note:
+  Polygon variable can be cast into a TPointArray in order to use it with TPointArray methods.
 *)
 
 (*
@@ -46,6 +49,7 @@ TPolygon.Mean
 ```
 function TPolygon.Mean: TPoint;
 ```
+Returns the mean, or rather the centroid of the polygon.
 *)
 procedure _LapePolygon_Mean(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -58,6 +62,7 @@ TPolygon.Area
 ```
 function TPolygon.Area: Double;
 ```
+Computes the area of the polygon.
 *)
 procedure _LapePolygon_Area(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -68,7 +73,7 @@ end;
 TPolygon.IsConvex
 -----------------
 ```
-function TPolygon.IsConvex(Polygon: TPointArray): Boolean;
+function TPolygon.IsConvex: Boolean;
 ```
 Returns if the polygon is convex, order does not matter. A concave polygon will return False.
 *)
@@ -97,6 +102,7 @@ TPolygon.ContainsLine
 function TPolygon.ContainsLine(p,q: TPoint): Boolean;
 ```
 Returns True if the line fits within the bounds of the polygon.
+This is determined by checking if the line crosses any of the vertices.
 *)
 procedure _LapePolygon_ContainsLine(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -138,7 +144,7 @@ Break the polygon into triangles, the smallest possible polygon. The order of th
 input does matter, if it fails, try to reverse the Poly with Poly.Reversed()
 
 This is a custom algorithm by slacky, based around the concept of trimming "ears",
-if you dont like the output, you may have more luck with rolling the Polygon before calling.
+if you dont like the output, you may have luck with rolling the Polygon before calling.
 
 Two default params exists as well, `MinArea` and `MaxDepth`, they work in tandom,
 `MinArea` parameter is for setting a minimum size of triangles added to result, and as this method
@@ -153,9 +159,10 @@ end;
 (*
 TPolygon.DouglasPeucker
 -----------------------
-> function TPolygon.DouglasPeucker(Epsilon: Double): TPolygon;
-
-Returns the two points that are furthest away from eachother in a polygon.
+```
+function TPolygon.DouglasPeucker(Epsilon: Double): TPolygon;
+```
+Attempts to simplify the polygon by trimming vertices.
 *)
 procedure _LapePolygon_DouglasPeucker(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -165,14 +172,30 @@ end;
 (*
 TPolygon.FurthestPoints
 -----------------------
-> procedure TPolygon.FurthestPoints(out A,B: TPoint);
-
+```
+procedure TPolygon.FurthestPoints(out A,B: TPoint);
+```
 Returns the two points that are furthest away from eachother in a polygon.
 *)
 procedure _LapePolygon_FurthestPoints(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PPolygon(Params^[0])^.FurthestPoints(PPoint(Params^[1])^, PPoint(Params^[2])^);
 end;
+
+(*
+TPolygon.Connect
+-----------------
+```
+function TPolygon.Connect: TPointArray;
+```
+Connects the polygon vertices in order to make a TPointArray bounding shape.
+*)
+procedure _LapePolygon_Connect(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  TPointArray(Result^) := PPolygon(Params^[0])^.Connect;
+end;
+
+
 
 procedure _LapePoint_IN_Polygon(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -199,7 +222,8 @@ begin
     addGlobalFunc('function TPolygon.Triangulate(MinArea: Single; MaxDepth: Int32): TTriangleArray;', @_LapePolygon_Triangulate);
     addGlobalFunc('function TPolygon.DouglasPeucker(Epsilon: Double): TPolygon;', @_LapePolygon_DouglasPeucker);
     addGlobalFunc('procedure TPolygon.FurthestPoints(out A, B: TPoint);', @_LapePolygon_FurthestPoints);
-
+    addGlobalFunc('function TPolygon.Connect: TPointArray', @_LapePolygon_Connect);
+    
     addGlobalFunc('operator in(Left: TPoint; Right: TPolygon): Boolean;', @_LapePoint_IN_Polygon);
 
     DumpSection := '';

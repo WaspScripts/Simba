@@ -2723,8 +2723,8 @@ begin
 
     Buffer.Add(pts);
   end;
-
-  Result := TPolygon(Buffer.ToArray(False)).DouglasPeucker(Max(2, Epsilon/2));
+  
+  Result := TPolygon(TPointArray(Buffer.ToArray(False)).Border()).DouglasPeucker(Max(2, Epsilon/2));
 end;
 
 (*

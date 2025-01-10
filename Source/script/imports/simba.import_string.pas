@@ -668,6 +668,21 @@ begin
 end;
 
 (*
+String.ExtractNumbers
+---------------------
+```
+function String.ExtractNumbers(): TStringArray;
+```
+Extract all the numbers found in the string.
+The result is a an array of strings, where each string contains a number
+extracted from the string. You can now use .ToFloat or .ToInteger on it.
+*)
+procedure _LapeString_ExtractNumbers(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  TStringArray(Result^) := String(Params^[0]^).ExtractNumbers();
+end;
+
+(*
 String.IsAlpha
 --------------
 ```
@@ -1244,7 +1259,8 @@ begin
     addGlobalFunc('function String.Extract(Chars: array of Char): String;', @_LapeString_Extract);
     addGlobalFunc('function String.ExtractInteger(Default: Int64 = -1): Int64;', @_LapeString_ExtractInteger);
     addGlobalFunc('function String.ExtractFloat(Default: Double = -1): Double;', @_LapeString_ExtractFloat);
-
+    addGlobalFunc('function String.ExtractNumbers(): TStringArray;', @_LapeString_ExtractNumbers);
+    
     addGlobalFunc('function String.Trim: String; overload;', @_LapeString_Trim);
     addGlobalFunc('function String.Trim(TrimChars: array of Char): String; overload;', @_LapeString_TrimEx);
 
