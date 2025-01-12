@@ -24,28 +24,28 @@ type
 
   TQuadHelper = type helper for TQuad
   private
-    function GetCorners: TPointArray;
-    function GetMean: TPoint;
-    function GetArea: Integer;
-    function GetBounds: TBox;
-    function GetShortSideLen: Integer;
-    function GetLongSideLen: Integer;
+    function GetCorners: TPointArray; inline;
+    function GetMean: TPoint; inline;
+    function GetArea: Integer; inline;
+    function GetBounds: TBox; inline;
+    function GetShortSideLen: Integer; inline;
+    function GetLongSideLen: Integer; inline;
   public const
     EMPTY: TQuad = (Top: (X:0; Y:0); Right: (X:0; Y:0); Bottom: (X:0; Y:0); Left: (X:0; Y:0));
   public
-    class function Create(ATop, ARight, ABottom, ALeft: TPoint): TQuad; static; overload;
-    class function CreateFromBox(Box: TBox): TQuad; static; overload;
-    class function CreateFromPoints(Points: TPointArray): TQuad; static; overload;
+    class function Create(ATop, ARight, ABottom, ALeft: TPoint): TQuad; static; inline; overload;
+    class function CreateFromBox(Box: TBox): TQuad; static; inline; overload;
+    class function CreateFromPoints(Points: TPointArray): TQuad; static; inline; overload;
 
     function RandomPoint: TPoint;
     function RandomPointCenter: TPoint;
 
-    function Rotate(Radians: Double): TQuad;
-    function Contains(P: TPoint): Boolean;
-    function Offset(P: TPoint): TQuad;
-    function Expand(Amount: Integer): TQuad;
-    function NearestEdge(P: TPoint): TPoint;
-    function Normalize: TQuad;
+    function Rotate(Radians: Double): TQuad; inline;
+    function Contains(P: TPoint): Boolean; inline;
+    function Offset(P: TPoint): TQuad; inline;
+    function Expand(Amount: Integer): TQuad; inline;
+    function NearestEdge(P: TPoint): TPoint; inline; 
+    function Normalize: TQuad; inline;
 
     property Corners: TPointArray read GetCorners;
     property Mean: TPoint read GetMean;

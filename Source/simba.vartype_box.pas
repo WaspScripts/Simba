@@ -35,24 +35,24 @@ type
     function RandomPoint: TPoint;
     function RandomPointCenter: TPoint;
 
-    function EqualDimensions(Other: TBox): Boolean;
+    function EqualDimensions(Other: TBox): Boolean; inline;
     function Expand(SizeMod: Integer): TBox; overload;
     function Expand(SizeMod: Integer; MaxBounds: TBox): TBox; overload;
     function Expand(WidMod, HeiMod: Integer): TBox; overload;
     function Expand(WidMod, HeiMod: Integer; MaxBounds: TBox): TBox; overload;
-    function Contains(p: TPoint): Boolean;
+    function Contains(p: TPoint): Boolean; inline;
 
-    function Offset(P: TPoint): TBox;
-    function Combine(Other: TBox): TBox;
-    function Invert(Space: TBox): TBoxArray;
-    function Partition(Rows, Cols: Integer): TBoxArray;
+    function Offset(P: TPoint): TBox; inline;
+    function Combine(Other: TBox): TBox; inline;
+    function Invert(Space: TBox): TBoxArray; inline;
+    function Partition(Rows, Cols: Integer): TBoxArray; 
 
-    function NearestEdge(P: TPoint): TPoint;
-    function Intersect(P: TPoint): TPoint;
-    function Corners: TPointArray;
+    function NearestEdge(P: TPoint): TPoint; inline;
+    function Intersect(P: TPoint): TPoint; inline;
+    function Corners: TPointArray; inline;
 
-    function Clip(Other: TBox): TBox;
-    function Normalize: TBox;
+    function Clip(Other: TBox): TBox; inline;
+    function Normalize: TBox; inline;
 
     property TopRight: TPoint read GetTopRight;
     property BottomLeft: TPoint read GetBottomLeft;

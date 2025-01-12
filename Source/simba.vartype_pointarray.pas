@@ -1452,32 +1452,28 @@ end;
 
 function TPointArrayHelper.ExtractPolygon(Polygon: TPolygon): TPointArray;
 var
-  I, Count: Integer;
+  I: Integer;
+  Buffer: TSimbaPointBuffer;
 begin
-  Count := 0;
   SetLength(Result, Length(Self));
   for I := 0 to High(Self) do
     if Polygon.Contains(Self[I]) then
-    begin
-      Result[Count] := Self[I];
-      Inc(Count);
-    end;
-  SetLength(Result, Count);
+      Buffer.Add(Self[I]);
+  Result := Buffer.ToArray(False);
 end;
 
 function TPointArrayHelper.ExtractBox(Box: TBox): TPointArray;
 var
-  I, Count: Integer;
+  I: Integer;
+  Buffer: TSimbaPointBuffer;
 begin
-  Count := 0;
-  SetLength(Result, Length(Self));
+  Buffer.Init();
+  
   for I := 0 to High(Self) do
     if Box.Contains(Self[I]) then
-    begin
-      Result[Count] := Self[I];
-      Inc(Count);
-    end;
-  SetLength(Result, Count);
+      Buffer.Add(Self[I]);
+  
+  Result := Buffer.ToArray(False);
 end;
 
 function TPointArrayHelper.ExtractQuad(Quad: TQuad): TPointArray;

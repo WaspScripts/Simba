@@ -29,28 +29,28 @@ type
 
   TTriangleHelper = type helper for TTriangle
   private
-    function GetCorners: TPointArray;
-    function GetMean: TPoint;
-    function GetArea: Integer;
-    function GetBounds: TBox;
+    function GetCorners: TPointArray; inline;
+    function GetMean: TPoint; inline;
+    function GetArea: Integer; inline;
+    function GetBounds: TBox; inline;
   public const
     EMPTY: TTriangle = (A: (X:0; Y:0); B: (X:0; Y:0); C: (X:0; Y:0));
   public
-    class function Create(const A, B, C: TPoint): TTriangle; static;
+    class function Create(const A, B, C: TPoint): TTriangle; static; inline;
 
-    function Centroid(): TPoint;
-    function SymmedianPoint(): TPoint;
-    function Incenter(): TPoint;
+    function Centroid(): TPoint; inline;
+    function SymmedianPoint(): TPoint; inline;
+    function Incenter(): TPoint; inline;
 
-    function Rotate(Radians: Double): TTriangle;
-    function Contains(P: TPoint): Boolean;
-    function Offset(P: TPoint): TTriangle;
+    function Rotate(Radians: Double): TTriangle; inline;
+    function Contains(P: TPoint): Boolean; inline;
+    function Offset(P: TPoint): TTriangle; inline;
     function Expand(Amount: Int32): TTriangle;
-    function NearestEdge(P: TPoint): TPoint;
-    function IsObtuse(): Boolean; overload;
-    function IsObtuse(out Obstuse: TPoint): Boolean;
-    function Circumcircle(): TCircle;
-    function Incircle(): TCircle;
+    function NearestEdge(P: TPoint): TPoint; inline;
+    function IsObtuse(): Boolean; inline; overload;
+    function IsObtuse(out Obstuse: TPoint): Boolean; inline;
+    function Circumcircle(): TCircle; inline;
+    function Incircle(): TCircle; inline;
 
     function RandomPoint(): TPoint;
     function RandomPointCenter(): TPoint;

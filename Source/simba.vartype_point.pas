@@ -20,10 +20,10 @@ type
   public
     class function Create(const X, Y: Integer): TPoint; static; inline;
 
-    function DistanceTo(Other: TPoint): Double;
-    function Rotate(Radians: Double; Center: TPoint): TPoint;
-    function Magnitude: Double;
-    function AngleBetween(Other: TPoint): Double;
+    function DistanceTo(Other: TPoint): Double; inline;
+    function Rotate(Radians: Double; Center: TPoint): TPoint; inline;
+    function Magnitude: Double; inline;
+    function AngleBetween(Other: TPoint): Double; inline;
     function Offset(X, Y: Integer): TPoint; inline; overload;
     function Offset(P: TPoint): TPoint; inline; overload;
     function Random(Min, Max: Integer): TPoint; overload;
