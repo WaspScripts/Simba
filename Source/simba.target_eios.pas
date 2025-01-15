@@ -81,7 +81,7 @@ type
 
 function LoadEIOS(FileName, Args: String): TEIOSTarget;
 
-function EIOSTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
+function EIOSTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; out Data: PColorBGRA; out DataWidth: Integer): Boolean;
 procedure EIOSTarget_GetDimensions(Target: Pointer; out Width, Height: Integer);
 
 procedure EIOSTarget_KeyDown(Target: Pointer; Key: EKeyCode);
@@ -155,7 +155,7 @@ begin
   end;
 end;
 
-function EIOSTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
+function EIOSTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; out Data: PColorBGRA; out DataWidth: Integer): Boolean;
 var
   BufferWidth, BufferHeight: Integer;
 begin

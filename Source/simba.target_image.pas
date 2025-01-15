@@ -14,7 +14,7 @@ uses
   simba.base;
 
 procedure ImageTarget_GetDimensions(Target: Pointer; out W, H: Integer);
-function ImageTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
+function ImageTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; out Data: PColorBGRA; out DataWidth: Integer): Boolean;
 function ImageTarget_IsValid(Target: Pointer): Boolean;
 
 implementation
@@ -30,7 +30,7 @@ begin
   H := Image.Height;
 end;
 
-function ImageTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
+function ImageTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; out Data: PColorBGRA; out DataWidth: Integer): Boolean;
 var
   Image: TSimbaImage absolute Target;
 begin

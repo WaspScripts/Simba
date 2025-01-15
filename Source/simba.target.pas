@@ -47,7 +47,7 @@ type
     Plugin: TSimbaPluginTarget;
 
     GetDimensions: procedure(Target: Pointer; out W, H: Integer);
-    GetImageData: function(Target: Pointer; X, Y, Width, Height: Integer; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
+    GetImageData: function(Target: Pointer; X, Y, Width, Height: Integer; out Data: PColorBGRA; out DataWidth: Integer): Boolean;
 
     IsValid: function(Target: Pointer): Boolean;
     IsFocused: function(Target: Pointer): Boolean;
@@ -163,7 +163,7 @@ type
     procedure SetPlugin(FileName, Args: String; out DebugImage: TSimbaExternalCanvas); overload;
 
     function GetImageDataAsImage(var ABounds: TBox; out Image: TSimbaImage): Boolean;
-    function GetImageData(var ABounds: TBox; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
+    function GetImageData(var ABounds: TBox; out Data: PColorBGRA; out DataWidth: Integer): Boolean;
     procedure FreeImageData(var Data: PColorBGRA);
 
     function IsImageFrozen: Boolean;
@@ -1074,26 +1074,41 @@ begin
   end;
 end;
 
-function TSimbaTarget.GetImageData(var ABounds: TBox; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
-begin
-  CheckMethod(FTarget.GetImageData, 'GetImageData');
-  if IsImageFrozen() then
-  begin
-    Data := @FFrozen.Data[0];
-    DataWidth := FFrozen.DataWidth;
-    ABounds := FFrozen.Bounds;
+function TSimbaTarget.GetImageData(var ABounds: TBox; out Data: PColorBGRA; out DataWidth: Integer): Boolean;
 
-    Exit(True);
+  function GetFrozenData: Boolean;
+  begin
+    // constrain to our frozen bounds
+     if (ABounds.X1 = -1) and (ABounds.Y1 = -1) and (ABounds.X2 = -1) and (ABounds.Y2 = -1) then
+       ABounds := FFrozen.Bounds
+     else
+       ABounds := ABounds.Clip(FFrozen.Bounds);
+
+    Result := (ABounds.Width > 0) and (ABounds.Height > 0);
+    if Result then
+    begin
+      Data := @FFrozen.Data[(ABounds.Y1 - FFrozen.Bounds.Y1) * FFrozen.DataWidth + (ABounds.X1 - FFrozen.Bounds.X1)];
+      DataWidth := FFrozen.DataWidth;
+    end;
   end;
 
+begin
   Data := nil;
-  Result := ValidateBounds(ABounds) and FTarget.GetImageData(FTarget.Target, ABounds.X1, ABounds.Y1, ABounds.Width, ABounds.Height, Data, DataWidth);
+  DataWidth := 0;
+
+  CheckMethod(FTarget.GetImageData, 'GetImageData');
+  if IsImageFrozen() then
+    Result := GetFrozenData()
+  else
+    Result := ValidateBounds(ABounds) and FTarget.GetImageData(FTarget.Target, ABounds.X1, ABounds.Y1, ABounds.Width, ABounds.Height, Data, DataWidth);
 end;
 
 procedure TSimbaTarget.FreeImageData(var Data: PColorBGRA);
 begin
+  // never free frozen data
   if IsImageFrozen() and (Data = @FFrozen.Data[0]) then
     Exit;
+  // Only free window since rest of targets are references to buffers or image data.
   if (FTarget.Kind in [ESimbaTargetKind.WINDOW]) then
     FreeMem(Data);
 end;

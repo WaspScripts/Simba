@@ -47,7 +47,7 @@ function LoadPluginTarget(FileName, Args: String): TSimbaPluginTarget; overload;
 function LoadPluginTarget(FileName, Args: String; out DebugImage: TSimbaExternalCanvas): TSimbaPluginTarget; overload;
 
 procedure PluginTarget_GetDimensions(Target: Pointer; out W, H: Integer);
-function PluginTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
+function PluginTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; out Data: PColorBGRA; out DataWidth: Integer): Boolean;
 
 function PluginTarget_MousePressed(Target: Pointer; Button: EMouseButton): Boolean;
 function PluginTarget_MousePosition(Target: Pointer): TPoint;
@@ -190,7 +190,7 @@ begin
   end;
 end;
 
-function PluginTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
+function PluginTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; out Data: PColorBGRA; out DataWidth: Integer): Boolean;
 begin
   with PSimbaPluginTarget(Target)^ do
   begin

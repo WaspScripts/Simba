@@ -9,7 +9,7 @@ uses
   simba.base;
 
 procedure WindowTarget_GetDimensions(Target: Pointer; out W, H: Integer);
-function WindowTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
+function WindowTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; out Data: PColorBGRA; out DataWidth: Integer): Boolean;
 
 function WindowTarget_Focus(Target: Pointer): Boolean;
 function WindowTarget_IsFocused(Target: Pointer): Boolean;
@@ -47,7 +47,7 @@ begin
   end;
 end;
 
-function WindowTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; var Data: PColorBGRA; var DataWidth: Integer): Boolean;
+function WindowTarget_GetImageData(Target: Pointer; X, Y, Width, Height: Integer; out Data: PColorBGRA; out DataWidth: Integer): Boolean;
 begin
   Result := SimbaNativeInterface.GetWindowImage(PWindowHandle(Target)^, X, Y, Width, Height, Data);
   if Result then

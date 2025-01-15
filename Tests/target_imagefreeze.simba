@@ -2,20 +2,34 @@
 var
   img: TImage := TImage.Create(50, 50);
 begin
+  // test entire client
+  img.FreeOnTerminate := True;
   img.Fill(Colors.RED);
 
   Target.SetImage(img);
-  Target.FreezeImage([5,5,25,25]);
+  Target.FreezeImage();
 
-  img.Fill(Colors.GREEN); // draw green, but frozen image is still red
+  img.Fill(Colors.GREEN); // draw green but frozen target is still red
   Assert(Target.IsImageFrozen());
   Assert(Target.CountColor(Colors.GREEN, 0) = 0);
-  Assert(Target.FindColor(Colors.RED, 0).Bounds.Area = 21*21);
+  Assert(Target.CountColor(Colors.RED, 0) = 50*50);
 
-  Target.UnFreezeImage();
-  Assert(not Target.IsImageFrozen());
-  Assert(Target.CountColor(Colors.GREEN, 0) = (50*50));
-  Assert(Target.CountColor(Colors.RED, 0) = 0);
+  Target.UnFreezeImage(); // test unfreeze
+  Assert(Target.CountColor(Colors.GREEN, 0) = 50*50);
 
-  img.Free();
+  // test area
+  img.Fill(0);
+  img.DrawColor := Colors.RED;
+  img.DrawBox([10,10,35,45]);
+
+  Target.FreezeImage([15,15,40,50]);
+  img.Clear(); // clear image but target is frozen
+
+  // search the entire frozen
+  Assert(Target.FindColor(Colors.RED, 0).Bounds = [15,15,35,45]);
+  Assert(Target.FindColor(Colors.RED, 0, [0,0,1000,1000]).Bounds = [15,15,35,45]);
+
+  // search a sub region of frozen
+  Assert(Target.CountColor(Colors.RED, 0, [20,20,25,30]) = 0);
+  Assert(Target.FindColor(Colors.RED, 0, [20,20,45,40]).Bounds = [35,20,35,40]);
 end.
