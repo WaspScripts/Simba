@@ -583,6 +583,18 @@ begin
   PBoxArray(Result)^ := PBoxArray(Params^[0])^.Sort(PDoubleArray(Params^[1])^, PBoolean(Params^[2])^);
 end;
 
+(*
+in
+--
+```
+operator in(Left: TPoint; Right: TBox): Boolean;
+```
+*)
+procedure _LapePoint_IN_Box(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PBoolean(Result)^ := PBox(Params^[1])^.Contains(PPoint(Params^[0])^);
+end;
+
 procedure ImportBox(Script: TSimbaScript);
 begin
   with Script.Compiler do
@@ -648,6 +660,8 @@ begin
 
     addGlobalFunc('function TBoxArray.ContainsPoint(P: TPoint; out Index: Integer): Boolean; overload;', @_LapeBoxArray_ContainsPoint1);
     addGlobalFunc('function TBoxArray.ContainsPoint(P: TPoint): Boolean; overload;', @_LapeBoxArray_ContainsPoint2);
+
+    addGlobalFunc('operator in(Left: TPoint; Right: TBox): Boolean;', @_LapePoint_IN_Box);
 
     DumpSection := '';
   end;

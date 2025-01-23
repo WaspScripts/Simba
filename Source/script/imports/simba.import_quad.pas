@@ -249,7 +249,7 @@ in
 operator in(Left: TPoint; Right: TQuad): Boolean;
 ```
 *)
-procedure _LapeQuad_IN_Quad(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapePoint_IN_Quad(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PBoolean(Result)^ := PPoint(Params^[0])^ in PQuad(Params^[1])^;
 end;
@@ -280,7 +280,7 @@ begin
     addProperty('TQuad', 'LongSideLen', 'Integer', @_LapeQuad_LongSideLen_Read);
     addProperty('TQuad', 'Mean', 'TPoint', @_LapeQuad_Mean_Read);
 
-    addGlobalFunc('operator in(Left: TPoint; Right: TQuad): Boolean;', @_LapeQuad_IN_Quad);
+    addGlobalFunc('operator in(Left: TPoint; Right: TQuad): Boolean;', @_LapePoint_IN_Quad);
 
     DumpSection := '';
   end;
