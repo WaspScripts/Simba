@@ -329,6 +329,7 @@ generic function MaxA<_T>(const Arr: specialize TArray<_T>): _T;
 generic function Sum<_T, _R>(var AValues: specialize TArray<_T>): _R;
 generic procedure Reverse<_T>(var Arr: specialize TArray<_T>);
 generic function Reversed<_T>(const Arr: specialize TArray<_T>): specialize TArray<_T>;
+generic function Contains<_A, _T>(const Arr: _A; const Value: _T): Boolean;
 
 type
   TBooleanHelper = type helper for Boolean
@@ -678,6 +679,16 @@ begin
       Inc(r);
     end;
   end;
+end;
+
+generic function Contains<_A, _T>(const Arr: _A; const Value: _T): Boolean;
+var
+  i: Integer;
+begin
+  for i := 0 to High(Arr) do
+    if (Arr[i] = Value) then
+      Exit(True);
+  Result := False;
 end;
 
 generic function MinA<_T>(const Arr: specialize TArray<_T>): _T;

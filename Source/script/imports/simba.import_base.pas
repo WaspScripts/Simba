@@ -532,6 +532,60 @@ begin
   PVariant(Result)^ := Null;
 end;
 
+procedure _LapeInt32_IN_Int32Array(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+type Int32Array = array of Int32;
+begin
+  PBoolean(Result)^ := specialize Contains<Int32Array, Int32>(Int32Array(Params^[1]^), Int32(Params^[0]^));
+end;
+
+procedure _LapeInt32_IN_Int64Array(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+type Int64Array = array of Int64;
+begin
+  PBoolean(Result)^ := specialize Contains<Int64Array, Int32>(Int64Array(Params^[1]^), Int32(Params^[0]^));
+end;
+
+procedure _LapeInt64_IN_Int32Array(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+type Int32Array = array of Int32;
+begin
+  PBoolean(Result)^ := specialize Contains<Int32Array, Int64>(Int32Array(Params^[1]^), Int64(Params^[0]^));
+end;
+
+procedure _LapeInt64_IN_Int64Array(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+type Int64Array = array of Int64;
+begin
+  PBoolean(Result)^ := specialize Contains<Int64Array, Int64>(Int64Array(Params^[1]^), Int64(Params^[0]^));
+end;
+
+procedure _LapeString_MUL_Integer(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PString(Result)^ := PString(Params^[0])^ * PInteger(Params^[1])^;
+end;
+
+procedure _LapeString_IN_String(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PBoolean(Result)^ := PString(Params^[0])^ in PString(Params^[1])^;
+end;
+
+procedure _LapeString_IN_StringArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PBoolean(Result)^ := PString(Params^[0])^ in PStringArray(Params^[1])^;
+end;
+
+procedure _LapeChar_MUL_Integer(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PString(Result)^ := PChar(Params^[0])^ * PInteger(Params^[1])^;
+end;
+
+procedure _LapeChar_IN_String(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PBoolean(Result)^ := PChar(Params^[0])^ in PString(Params^[1])^;
+end;
+
+procedure _LapeChar_IN_StringArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PBoolean(Result)^ := PChar(Params^[0])^ in PStringArray(Params^[1])^;
+end;
+
 procedure _LapeBaseClass_Name_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PString(Result)^ := TSimbaBaseClass(Params^[0]^).Name;
@@ -811,6 +865,19 @@ begin
     addGlobalFunc('function Variant.IsAssigned: Boolean;', @_LapeVariantIsAssigned);
     addGlobalFunc('function Variant.IsNull: Boolean;', @_LapeVariantIsNull);
     addGlobalFunc('function Variant.NULL: Variant; static;', @_LapeVariantNULL);
+
+    addGlobalFunc('operator in(Left: Int32; Right: array of Int32): Boolean', @_LapeInt32_IN_Int32Array);
+    addGlobalFunc('operator in(Left: Int32; Right: array of Int64): Boolean', @_LapeInt32_IN_Int64Array);
+    addGlobalFunc('operator in(Left: Int64; Right: array of Int32): Boolean', @_LapeInt64_IN_Int32Array);
+    addGlobalFunc('operator in(Left: Int64; Right: array of Int64): Boolean', @_LapeInt64_IN_Int64Array);
+
+    addGlobalFunc('operator *(Left: String; Right: Integer): String', @_LapeString_MUL_Integer);
+    addGlobalFunc('operator in(Left: String; Right: String): Boolean', @_LapeString_IN_String);
+    addGlobalFunc('operator in(Left: String; Right: array of String): Boolean', @_LapeString_IN_StringArray);
+
+    addGlobalFunc('operator *(Left: Char; Right: Integer): String', @_LapeChar_MUL_Integer);
+    addGlobalFunc('operator in(Left: Char; Right: String): Boolean', @_LapeChar_IN_String);
+    addGlobalFunc('operator in(Left: Char; Right: array of String): Boolean', @_LapeChar_IN_StringArray);
 
     DumpSection := '';
 

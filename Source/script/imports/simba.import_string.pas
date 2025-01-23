@@ -675,7 +675,7 @@ function String.ExtractNumbers(): TStringArray;
 ```
 Extract all the numbers found in the string.
 The result is a an array of strings, where each string contains a number
-extracted from the string. You can now use .ToFloat or .ToInteger on it.
+extracted from the string. You can now use .ToFloat or .ToInt on it.
 *)
 procedure _LapeString_ExtractNumbers(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -950,41 +950,7 @@ begin
   PDateTime(Result)^ := PString(Params^[0])^.ToDateTime(PString(Params^[1])^, PDateTime(Params^[2])^);
 end;
 
-(*
-*
--
-```
-operator *(Left: String; Right: Integer): String;
-```
-*)
-procedure _LapeString_MUL_Integer(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PString(Result)^ := PString(Params^[0])^ * PInteger(Params^[1])^;
-end;
 
-(*
-in
---
-```
-operator in(Left: String; Right: String): Boolean;
-```
-*)
-procedure _LapeString_IN_String(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := PString(Params^[0])^ in PString(Params^[1])^;
-end;
-
-(*
-in
---
-```
-operator in(Left: String; Right: TStringArray): Boolean;
-```
-*)
-procedure _LapeString_IN_StringArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := PString(Params^[0])^ in PStringArray(Params^[1])^;
-end;
 
 (*
 Char.IsAlpha
@@ -1080,42 +1046,6 @@ function Char.Join(Values: TStringArray): String;
 procedure _LapeChar_Join(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PString(Result)^ := PChar(Params^[0])^.Join(PStringArray(Params^[1])^);
-end;
-
-(*
-*
--
-```
-operator *(Left: Char; Right: Integer): String;
-```
-*)
-procedure _LapeChar_MUL_Integer(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PString(Result)^ := PChar(Params^[0])^ * PInteger(Params^[1])^;
-end;
-
-(*
-in
---
-```
-operator in(Left: Char; Right: String): Boolean;
-```
-*)
-procedure _LapeChar_IN_String(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := PChar(Params^[0])^ in PString(Params^[1])^;
-end;
-
-(*
-in
---
-```
-operator in(Left: Char; Right: TStringArray): Boolean;
-```
-*)
-procedure _LapeChar_IN_StringArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := PChar(Params^[0])^ in PStringArray(Params^[1])^;
 end;
 
 (*
@@ -1253,20 +1183,12 @@ begin
 
     addGlobalFunc('function TStringArray.Join(Glue: String): String;', @_LapeStringArray_Join);
 
-    addGlobalFunc('operator *(Left: String; Right: Integer): String', @_LapeString_MUL_Integer);
-    addGlobalFunc('operator in(Left: String; Right: String): Boolean', @_LapeString_IN_String);
-    addGlobalFunc('operator in(Left: String; Right: TStringArray): Boolean', @_LapeString_IN_StringArray);
-
     addGlobalFunc('property Char.IsUpper: Boolean;', @_LapeChar_IsUpper);
     addGlobalFunc('property Char.IsLower: Boolean;', @_LapeChar_IsLower);
     addGlobalFunc('property Char.IsAlpha: Boolean;', @_LapeChar_IsAlpha);
     addGlobalFunc('property Char.IsAlphaNum: Boolean;', @_LapeChar_IsAlphaNum);
     addGlobalFunc('property Char.IsNumeric: Boolean;', @_LapeChar_IsNumeric);
     addGlobalFunc('function Char.Join(Values: TStringArray): String;', @_LapeChar_Join);
-
-    addGlobalFunc('operator *(Left: Char; Right: Integer): String', @_LapeChar_MUL_Integer);
-    addGlobalFunc('operator in(Left: Char; Right: String): Boolean', @_LapeChar_IN_String);
-    addGlobalFunc('operator in(Left: Char; Right: TStringArray): Boolean', @_LapeChar_IN_StringArray);
 
     DumpSection := '';
   end;
