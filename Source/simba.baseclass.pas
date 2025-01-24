@@ -25,6 +25,8 @@ type
     function GetName: String;
     procedure SetName(Value: String);
   public
+    Ref: Int32; // not real refcount - just for _BaseClassAssign in script
+
     constructor Create;
     destructor Destroy; override;
 
@@ -170,7 +172,6 @@ end;
 constructor TSimbaBaseClass.Create;
 begin
   inherited Create();
-
   if (TrackedObjects <> nil) then
     TrackedObjects.Add(Self);
 end;

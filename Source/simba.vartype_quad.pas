@@ -40,11 +40,11 @@ type
     function RandomPoint: TPoint;
     function RandomPointCenter: TPoint;
 
-    function Rotate(Radians: Double): TQuad; inline;
+    function Rotate(Radians: Double): TQuad;
     function Contains(P: TPoint): Boolean; inline;
     function Offset(P: TPoint): TQuad; inline;
-    function Expand(Amount: Integer): TQuad; inline;
-    function NearestEdge(P: TPoint): TPoint; inline; 
+    function Expand(Amount: Integer): TQuad;
+    function NearestEdge(P: TPoint): TPoint;
     function Normalize: TQuad; inline;
 
     property Corners: TPointArray read GetCorners;
