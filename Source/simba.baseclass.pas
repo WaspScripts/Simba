@@ -14,7 +14,6 @@ uses
   simba.base, simba.containers, simba.threading;
 
 type
-
   TSimbaBaseClass = class
   protected
     FName: String;

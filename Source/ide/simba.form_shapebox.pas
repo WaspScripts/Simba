@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus,
-  simba.base, simba.component_shapebox, simba.env;
+  simba.base, simba.component_shapebox, simba.env, simba.image;
 
 type
   TSimbaShapeBoxForm = class(TForm)
@@ -76,7 +76,7 @@ end;
 procedure TSimbaShapeBoxForm.MenuItemLoadImageClick(Sender: TObject);
 begin
   if OpenDialog.Execute() then
-    ShapeBox.SetBackgroundFromFile(OpenDialog.FileName);
+    ShapeBox.SetImage(TSimbaImage.Create(OpenDialog.FileName));
 end;
 
 {$R *.lfm}

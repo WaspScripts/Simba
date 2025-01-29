@@ -118,7 +118,8 @@ implementation
 {$R *.lfm}
 
 uses
-  simba.vartype_windowhandle, simba.vartype_string, simba.colormath, simba.dialog, simba.vartype_box;
+  simba.vartype_windowhandle, simba.vartype_string, simba.colormath, simba.dialog, simba.vartype_box,
+  simba.image;
 
 procedure TSimbaDTMEditorForm.DoImgMouseMove(Sender: TSimbaImageBox; Shift: TShiftState; X, Y: Integer);
 var
@@ -218,7 +219,7 @@ procedure TSimbaDTMEditorForm.ButtonUpdateImageClick(Sender: TObject);
 begin
   if (not FWindow.IsValid()) then
     FWindow := GetDesktopWindow();
-  FImageBox.SetBackgroundFromWindow(FWindow);
+  FImageBox.SetImage(TSimbaImage.CreateFromWindow(FWindow));
 
   DrawDTM();
 end;
@@ -467,12 +468,8 @@ begin
   with TOpenDialog.Create(Self) do
   try
     InitialDir := Application.Location;
-
-    if Execute() then
-    try
-      FImageBox.SetBackgroundFromFile(FileName);
-    except
-    end;
+    if Execute() and FileExists(FileName) then
+      FImageBox.SetImage(TSimbaImage.Create(FileName));
   finally
     Free();
   end;
@@ -537,7 +534,7 @@ begin
   FImageBox.OnImgMouseDown := @DoImgMouseDown;
   FImageBox.OnImgMouseMove := @DoImgMouseMove;
   FImageBox.OnImgMouseUp := @DoImgMouseUp;
-  FImageBox.SetBackgroundFromWindow(FWindow);
+  FImageBox.SetImage(TSimbaImage.CreateFromWindow(FWindow));
 
   FZoomPanel := TSimbaImageBoxZoomPanel.Create(Self);
   FZoomPanel.Parent := PanelRight;

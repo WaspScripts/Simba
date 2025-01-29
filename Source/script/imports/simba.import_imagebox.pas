@@ -67,27 +67,7 @@ end;
 
 procedure _LapeSimbaImageBox_SetBackground(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaImageBox(Params^[0])^.SetBackground(PSimbaImage(Params^[1])^);
-end;
-
-procedure _LapeSimbaImageBox_SetBackgroundFromFile(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaImageBox(Params^[0])^.SetBackgroundFromFile(PString(Params^[1])^);
-end;
-
-procedure _LapeSimbaImageBox_SetBackgroundFromWindow(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaImageBox(Params^[0])^.SetBackgroundFromWindow(PWindowHandle(Params^[1])^);
-end;
-
-procedure _LapeSimbaImageBox_SetBackgroundFromTarget1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaImageBox(Params^[0])^.SetBackgroundFromTarget(PSimbaTarget(Params^[1])^, PBox(Params^[2])^);
-end;
-
-procedure _LapeSimbaImageBox_SetBackgroundFromTarget2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaImageBox(Params^[0])^.SetBackgroundFromTarget(PSimbaTarget(Params^[1])^);
+  PSimbaImageBox(Params^[0])^.SetImage(PSimbaImage(Params^[1])^);
 end;
 
 procedure _LapeSimbaImageBox_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -464,10 +444,6 @@ begin
     addGlobalFunc('function TImageBox.MousePoint: TPoint;', @_LapeSimbaImageBox_MousePoint);
 
     addGlobalFunc('procedure TImageBox.SetBackground(Image: TImage)', @_LapeSimbaImageBox_SetBackground);
-    addGlobalFunc('procedure TImageBox.SetBackgroundFromFile(FileName: String)', @_LapeSimbaImageBox_SetBackgroundFromFile);
-    addGlobalFunc('procedure TImageBox.SetBackgroundFromWindow(Window: TWindowHandle)', @_LapeSimbaImageBox_SetBackgroundFromWindow);
-    addGlobalFunc('procedure TImageBox.SetBackgroundFromTarget(Target: TTarget; Bounds: TBox); overload', @_LapeSimbaImageBox_SetBackgroundFromTarget1);
-    addGlobalFunc('procedure TImageBox.SetBackgroundFromTarget(Target: TTarget); overload', @_LapeSimbaImageBox_SetBackgroundFromTarget2);
 
     addClassConstructor('TImageBox', '(Owner: TLazComponent)', @_LapeSimbaImageBox_Create);
   end;

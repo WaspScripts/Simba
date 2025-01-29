@@ -28,7 +28,6 @@ type
 
   TSimbaImageScrollBox = class(TCustomControl)
   protected
-    FBackground: TBitmap; // background image
     FCanvas: TSimbaImageBoxCanvas; // canvas for user to draw on in PaintArea
     FResizeBuffer: TBitmap; // buffer to resize canvas onto for zoom
 
@@ -51,6 +50,8 @@ type
 
     FPaintTime: Double;
 
+    procedure MyInvalidate(Data: PtrInt);
+
     procedure WMEraseBkgnd(var Message: TLMEraseBkgnd); message LM_ERASEBKGND;
 
     function DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean; override;
@@ -71,7 +72,6 @@ type
     procedure Paint; override;
     procedure Resize; override;
 
-    procedure DoBackgroundChange(Sender: TObject);
     procedure DoScrollChange(Sender: TObject);
 
     procedure UpdateScrollBars;
@@ -89,7 +89,7 @@ type
     procedure MoveTo(ImageXY: TPoint);
     function IsPointVisible(ImageXY: TPoint): Boolean;
 
-    property Background: TBitmap read FBackground;
+    procedure BackgroundResized;
   end;
 
   TImageBoxPaintEvent = procedure(Sender: TSimbaImageBox; Canvas: TSimbaImageBoxCanvas; R: TRect) of object;
@@ -105,6 +105,7 @@ type
     FImageScrollBox: TSimbaImageScrollBox;
     FStatusBar: TSimbaStatusBar;
     FBackground: TBitmap;
+    FBackgroundOwner: Boolean;
     FPixelFormat: ELazPixelFormat;
     FMouseX: Integer;
     FMouseY: Integer;
@@ -148,8 +149,10 @@ type
     procedure SetStatus(Value: String);
     procedure SetShowScrollbars(AValue: Boolean);
     procedure SetShowStatusBar(AValue: Boolean);
+    procedure SetBackground(AValue: TBitmap);
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     function FindDTM(DTM: TDTM): TPointArray;
     function FindColor(AColor: TColor; Tolerance: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray;
@@ -160,11 +163,7 @@ type
     function IsPointVisible(ImageXY: TPoint): Boolean;
     procedure MoveTo(ImageXY: TPoint);
 
-    procedure SetBackground(Img: TSimbaImage);
-    procedure SetBackgroundFromFile(FileName: String);
-    procedure SetBackgroundFromWindow(Window: TWindowHandle);
-    procedure SetBackgroundFromTarget(Target: TSimbaTarget; Bounds: TBox); overload;
-    procedure SetBackgroundFromTarget(Target: TSimbaTarget); overload;
+    procedure SetImage(Img: TSimbaImage; DoFree: Boolean = True);
 
     property ShowStatusBar: Boolean read GetShowStatusBar write SetShowStatusBar;
     property ShowScrollbars: Boolean read GetShowScrollbars write SetShowScrollbars;
@@ -173,14 +172,14 @@ type
     property StatusBar: TSimbaStatusBar read FStatusBar;
     property Status: String read GetStatus write SetStatus;
     property PixelFormat: ELazPixelFormat read FPixelFormat;
-    property Background: TBitmap read FBackground;
+    property Background: TBitmap read FBackground write SetBackground;
+    property BackgroundOwner: Boolean read FBackgroundOwner write FBackgroundOwner;
     property MouseX: Integer read FMouseX;
     property MouseY: Integer read FMouseY;
     property MousePoint: TPoint read GetMousePoint;
 
     property OnImgKeyDown: TImageBoxKeyEvent read FOnImgKeyDown write FOnImgKeyDown;
     property OnImgKeyUp: TImageBoxKeyEvent read FOnImgKeyUp write FOnImgKeyUp;
-
     property OnImgMouseEnter: TImageBoxEvent read FOnImgMouseEnter write FOnImgMouseEnter;
     property OnImgMouseLeave: TImageBoxEvent read FOnImgMouseLeave write FOnImgMouseLeave;
     property OnImgMouseDown: TImageBoxMouseEvent read FOnImgMouseDown write FOnImgMouseDown;
@@ -316,6 +315,11 @@ end;
 function TSimbaImageScrollBox.VisibleTopY: Integer;
 begin
   Result := Max(0, FVertScroll.Position + ((FZoomPixels - FVertScroll.Position) mod FZoomPixels));
+end;
+
+procedure TSimbaImageScrollBox.MyInvalidate(Data: PtrInt);
+begin
+  Invalidate;
 end;
 
 procedure TSimbaImageScrollBox.WMEraseBkgnd(var Message: TLMEraseBkgnd);
@@ -490,27 +494,6 @@ begin
     ImgDoubleClick(FMouseX, FMouseY);
 end;
 
-procedure TSimbaImageScrollBox.DoBackgroundChange(Sender: TObject);
-begin
-  if (FBackground.Width <> FImageWidth) or (FBackground.Height <> FImageHeight) then
-  begin
-    FImageWidth := FBackground.Width;
-    FImageHeight := FBackground.Height;
-
-    FZoomLevel := 100;
-    FZoomPixels := 1;
-
-    FHorzScroll.Position := 0;
-    FVertScroll.Position := 0;
-
-    UpdateScrollBars();
-  end;
-
-  Invalidate();
-
-  FImageBox.StatusBar.PanelText[1] := Format('%d x %d', [FImageWidth, FImageHeight]);
-end;
-
 procedure TSimbaImageScrollBox.DoScrollChange(Sender: TObject);
 begin
   Invalidate();
@@ -582,7 +565,7 @@ begin
     LocalRect.Width, LocalRect.Height
   );
 
-  RenderNoZoom(background, LocalRect.Left, LocalRect.Top, LocalRect.Width, LocalRect.Height, FCanvas.Bitmap);
+  RenderNoZoom(FImageBox.FBackground, LocalRect.Left, LocalRect.Top, LocalRect.Width, LocalRect.Height, FCanvas.Bitmap);
 
   FImageBox.ImgPaintArea(FCanvas, LocalRect);
 
@@ -716,6 +699,27 @@ begin
               (Y < ClientHeight - IfThen(FHorzScroll.Visible, FHorzScroll.Height, 0));
 end;
 
+procedure TSimbaImageScrollBox.BackgroundResized;
+begin
+  if (FImageBox.FBackground.Width <> FImageWidth) or
+     (FImageBox.FBackground.Height <> FImageHeight) then
+  begin
+    FImageWidth := FImageBox.FBackground.Width;
+    FImageHeight := FImageBox.FBackground.Height;
+
+    FZoomLevel := 100;
+    FZoomPixels := 1;
+
+    FHorzScroll.Position := 0;
+    FVertScroll.Position := 0;
+
+    UpdateScrollBars();
+    Invalidate();
+
+    FImageBox.StatusBar.PanelText[1] := Format('%d x %d', [FImageWidth, FImageHeight]);
+  end;
+end;
+
 constructor TSimbaImageScrollBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -745,14 +749,12 @@ begin
 
   FCanvas := TSimbaImageBoxCanvas.Create();
   FResizeBuffer := TBitmap.Create();
-  FBackground := TBitmap.Create();
-  FBackground.OnChange := @DoBackgroundChange;
+
 end;
 
 destructor TSimbaImageScrollBox.Destroy;
 begin
   FreeAndNil(FCanvas);
-  FreeAndNil(FBackground);
   FreeAndNil(FResizeBuffer);
 
   inherited Destroy();
@@ -775,11 +777,21 @@ begin
   FStatusBar.PanelTextMeasure[2] := '1000%';
   FStatusBar.PanelText[2] := '100%';
 
-  FBackground := FImageScrollBox.Background;
+  FBackground := TBitmap.Create();
+  FBackgroundOwner := True;
+
   FPixelFormat := LazImage_PixelFormat(FBackground);
 
   FShowStatusBar := True;
   FShowScrollBars := True;
+end;
+
+destructor TSimbaImageBox.Destroy;
+begin
+  if FBackgroundOwner then
+    FreeAndNil(FBackground);
+
+  inherited Destroy();
 end;
 
 function TSimbaImageBox.FindDTM(DTM: TDTM): TPointArray;
@@ -844,65 +856,16 @@ begin
   FImageScrollBox.MoveTo(ImageXY);
 end;
 
+procedure TSimbaImageBox.SetImage(Img: TSimbaImage; DoFree: Boolean);
+begin
+  LazImage_FromSimbaImage(FBackground, Img);
+  if DoFree then
+    Img.Free();
+end;
+
 procedure TSimbaImageBox.SetStatus(Value: String);
 begin
   FStatusBar.PanelText[3] := Value;
-end;
-
-procedure TSimbaImageBox.SetBackground(Img: TSimbaImage);
-begin
-  LazImage_FromData(FBackground, Img.Data, Img.Width, Img.Height);
-end;
-
-procedure TSimbaImageBox.SetBackgroundFromFile(FileName: String);
-var
-  SimbaImage: TSimbaImage;
-begin
-  SimbaImage := TSimbaImage.Create(FileName);
-  try
-    LazImage_FromSimbaImage(FBackground, SimbaImage);
-  finally
-    SimbaImage.Free();
-  end;
-end;
-
-procedure TSimbaImageBox.SetBackgroundFromWindow(Window: TWindowHandle);
-var
-  Image: TSimbaImage;
-begin
-  if Window.IsValid() then
-  begin
-    Image := TSimbaImage.CreateFromWindow(Window);
-    try
-      SetBackground(Image);
-    finally
-      Image.Free();
-    end;
-  end;
-end;
-
-procedure TSimbaImageBox.SetBackgroundFromTarget(Target: TSimbaTarget; Bounds: TBox);
-var
-  Image: TSimbaImage;
-begin
-  Image := Target.GetImage(Bounds);
-  try
-    SetBackground(Image);
-  finally
-    Image.Free();
-  end;
-end;
-
-procedure TSimbaImageBox.SetBackgroundFromTarget(Target: TSimbaTarget);
-var
-  Image: TSimbaImage;
-begin
-  Image := Target.GetImage(TBox.Create(-1,-1,-1,-1));
-  try
-    SetBackground(Image);
-  finally
-    Image.Free();
-  end;
 end;
 
 function TSimbaImageBox.GetShowScrollbars: Boolean;
@@ -928,6 +891,12 @@ begin
   FShowStatusBar := AValue;
 
   FStatusBar.Visible := FShowStatusBar;
+end;
+
+procedure TSimbaImageBox.SetBackground(AValue: TBitmap);
+begin
+  FBackground := AValue;
+  FImageScrollBox.BackgroundResized();
 end;
 
 procedure TSimbaImageBox.Paint;
