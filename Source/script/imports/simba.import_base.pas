@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,
-  lptypes, lpvartypes, lpparser, lptree, ffi,
+  lptypes, lpvartypes, lpparser, ffi,
   simba.base, simba.script;
 
 procedure ImportBase(Script: TSimbaScript);
@@ -596,16 +596,6 @@ begin
   TSimbaBaseClass(Params^[0]^).Name := PString(Params^[1])^;
 end;
 
-procedure _LapeBaseClass_Ref_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PInteger(Result)^ := TSimbaBaseClass(Params^[0]^).Ref;
-end;
-
-procedure _LapeBaseClass_Ref_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  TSimbaBaseClass(Params^[0]^).Ref := PInteger(Params^[1])^;
-end;
-
 procedure _LapeBaseClass_FreeOnTerminate_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PBoolean(Result)^ := TSimbaBaseClass(Params^[0]^).FreeOnTerminate;
@@ -816,51 +806,6 @@ begin
   PBoxArray(Result)^ := PBoxArray(Params^[0])^.SymmetricDifference(PBoxArray(Params^[1])^);
 end;
 
-procedure _Lape_BaseClassAssign(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-var
-  Left, Right: TSimbaBaseClass;
-begin
-  Left := TSimbaBaseClass(PPointer(Params^[0])^);
-  Right := TSimbaBaseClass(PPointer(Params^[1])^);
-
-  if (Left <> Right) and (Left <> nil) and (Right <> nil) then
-  begin
-    Left.Ref := Left.Ref - 1;
-    if (Left.Ref <= 0) then
-      FreeAndNil(Left);
-    Right.Ref := Right.Ref + 1;
-  end;
-end;
-
-type
-  TBaseClass = class(TLapeType_StrictPointer)
-  public
-    function Eval(Op: EOperator; var Dest: TResVar; Left, Right: TResVar; Flags: ELapeEvalFlags; var Offset: Integer; Pos: PDocPos=nil): TResVar; override;
-  end;
-
-function TBaseClass.Eval(Op: EOperator; var Dest: TResVar; Left, Right: TResVar; Flags: ELapeEvalFlags; var Offset: Integer; Pos: PDocPos): TResVar;
-var
-  Ptr: TResVar;
-begin
-  if (op = op_Assign) and (not (lefAssigningParam in Flags)) then
-    with TLapeTree_Invoke.Create('_BaseClassAssign', FCompiler, Pos) do
-    try
-      Ptr := Left;
-      Ptr.VarType := FCompiler.getBaseType(ltPointer);
-      addParam(TLapeTree_ResVar.Create(Ptr, FCompiler, Pos));
-
-      Ptr := Right;
-      Ptr.VarType := FCompiler.getBaseType(ltPointer);
-      addParam(TLapeTree_ResVar.Create(Ptr, FCompiler, Pos));
-
-      Compile(Offset);
-    finally
-      Free();
-    end;
-
-  Result := inherited Eval(Op, Dest, Left, Right, Flags, Offset, Pos);
-end;
-
 procedure ImportBase(Script: TSimbaScript);
 begin
   with Script.Compiler do
@@ -936,10 +881,7 @@ begin
 
     DumpSection := '';
 
-    addGlobalType(TBaseClass.Create(Script.Compiler, nil, False), 'TBaseClass');
-    addGlobalFunc('procedure _BaseClassAssign(Left, Right: Pointer);', @_Lape_BaseClassAssign);
-
-    addProperty('TBaseClass', 'Ref', 'Int32', @_LapeBaseClass_Ref_Read, @_LapeBaseClass_Ref_Write);
+    addClass('TBaseClass', 'Pointer');
     addProperty('TBaseClass', 'Name', 'String', @_LapeBaseClass_Name_Read, @_LapeBaseClass_Name_Write);
     addProperty('TBaseClass', 'FreeOnTerminate', 'Boolean', @_LapeBaseClass_FreeOnTerminate_Read, @_LapeBaseClass_FreeOnTerminate_Write);
 
