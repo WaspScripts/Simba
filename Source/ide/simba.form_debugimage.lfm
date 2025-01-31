@@ -1,10 +1,9 @@
 object SimbaDebugImageForm: TSimbaDebugImageForm
-  Left = 825
-  Height = 376
-  Top = 750
-  Width = 500
+  Left = 970
+  Height = 301
+  Top = 718
+  Width = 400
   Caption = 'Debug Image'
-  DesignTimePPI = 120
   Font.CharSet = ANSI_CHARSET
   Font.Color = clBlack
   Font.Name = 'Segoe UI'
@@ -12,7 +11,8 @@ object SimbaDebugImageForm: TSimbaDebugImageForm
   Font.Quality = fqDraft
   KeyPreview = True
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '3.0.0.3'
+  LCLVersion = '3.6.0.0'
 end

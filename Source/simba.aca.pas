@@ -169,14 +169,12 @@ end;
 
 procedure TSimbaACAForm.LoadHSLCircle(Radius: Integer);
 var
-  Bitmap: TSimbaImage;
+  Img: TSimbaImage;
 begin
-  Bitmap := TSimbaImage.Create(Radius*2, Radius*2);
-  Bitmap.DrawHSLCircle(Bitmap.Center, Radius);
+  Img := TSimbaImage.Create(Radius*2, Radius*2);
+  Img.DrawHSLCircle(Img.Center, Radius);
 
-  FImageBox.SetBackground(Bitmap);
-
-  Bitmap.Free();
+  FImageBox.SetImage(Img);
 end;
 
 procedure TSimbaACAForm.DoPaintArea(Sender: TSimbaImageBox; ACanvas: TSimbaImageBoxCanvas; R: TRect);
@@ -220,7 +218,7 @@ procedure TSimbaACAForm.ButtonUpdateImageClick(Sender: TObject);
 begin
   if (not FWindow.IsValid()) then
     FWindow := GetDesktopWindow();
-  FImageBox.SetBackgroundFromWindow(FWindow);
+  FImageBox.SetImage(TSimbaImage.CreateFromWindow(FWindow));
 end;
 
 procedure TSimbaACAForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -402,7 +400,7 @@ begin
     try
       InitialDir := Application.Location;
       if Execute() then
-        FImageBox.SetBackgroundFromFile(FileName);
+        FImageBox.SetImage(TSimbaImage.Create(FileName));
     finally
       Free();
     end;
@@ -449,7 +447,7 @@ begin
   FImageBox.OnImgMouseDown := @ClientImageMouseDown;
   FImageBox.OnImgMouseMove := @ClientImageMouseMove;
   FImageBox.OnImgPaint := @DoPaintArea;
-  FImageBox.SetBackgroundFromWindow(FWindow);
+  FImageBox.SetImage(TSimbaImage.CreateFromWindow(FWindow));
 
   FZoomPanel := TSimbaImageBoxZoomPanel.Create(Self);
   FZoomPanel.Parent := PanelRight;

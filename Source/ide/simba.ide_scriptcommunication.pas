@@ -172,100 +172,23 @@ end;
 procedure TSimbaScriptInstanceCommunication.DebugImage_Show;
 var
   EnsureVisible: Boolean;
-
-  procedure Execute;
-  begin
-    DebugImage_Update();
-
-    with SimbaDebugImageForm.ImageBox do
-      SimbaDebugImageForm.SetSize(Background.Width, Background.Height, False, EnsureVisible);
-  end;
-
+  Width, Height: Integer;
 begin
   FInputStream.Read(EnsureVisible, SizeOf(Boolean));
-
-  RunInMainThread(@Execute);
-end;
-
-// Chunked data (row by row) is sent.
-procedure TSimbaScriptInstanceCommunication.DebugImage_Update;
-var
-  Bitmap: TBitmap;
-  Width, Height: Integer;
-
-  procedure Execute;
-  var
-    Source, Dest: PByte;
-    SourceUpper: PtrUInt;
-    DestBytesPerLine, SourceBytesPerLine: Integer;
-
-    procedure BGR;
-    var
-      Y: Integer;
-    begin
-      for Y := 0 to Height - 1 do
-      begin
-        FInputStream.Read(Source^, SourceBytesPerLine);
-        LazImage_CopyRow_BGR(PColorBGRA(Source), SourceUpper, PColorBGR(Dest));
-        Inc(Dest, DestBytesPerLine);
-      end;
-    end;
-
-    procedure BGRA;
-    var
-      Y: Integer;
-    begin
-      for Y := 0 to Height - 1 do
-      begin
-        FInputStream.Read(Source^, SourceBytesPerLine);
-        LazImage_CopyRow_BGRA(PColorBGRA(Source), SourceUpper, PColorBGRA(Dest));
-        Inc(Dest, DestBytesPerLine);
-      end;
-    end;
-
-    procedure ARGB;
-    var
-      Y: Integer;
-    begin
-      for Y := 0 to Height - 1 do
-      begin
-        FInputStream.Read(Source^, SourceBytesPerLine);
-        LazImage_CopyRow_ARGB(PColorBGRA(Source), SourceUpper, PColorARGB(Dest));
-        Inc(Dest, DestBytesPerLine);
-      end;
-    end;
-
-  begin
-    Bitmap.BeginUpdate();
-    Bitmap.SetSize(Width, Height);
-
-    DestBytesPerLine := Bitmap.RawImage.Description.BytesPerLine;
-    Dest             := Bitmap.RawImage.Data;
-
-    SourceBytesPerLine := Width * SizeOf(TColorBGRA);
-    Source             := GetMem(SourceBytesPerLine);
-    SourceUpper        := PtrUInt(Source + SourceBytesPerLine);
-
-    case SimbaDebugImageForm.ImageBox.PixelFormat of
-      ELazPixelFormat.BGR:  BGR();
-      ELazPixelFormat.BGRA: BGRA();
-      ELazPixelFormat.ARGB: ARGB();
-      else
-        SimbaException('Not supported');
-    end;
-
-    FreeMem(Source);
-
-    Bitmap.EndUpdate();
-  end;
-
-begin
-  Bitmap := SimbaDebugImageForm.ImageBox.Background;
-
   FInputStream.Read(Width, SizeOf(Integer));
   FInputStream.Read(Height, SizeOf(Integer));
 
-  RunInMainThread(@Execute);
+  SimbaDebugImageForm.UpdateFromStream(Width, Height, FInputStream, True, EnsureVisible);
+end;
+
+procedure TSimbaScriptInstanceCommunication.DebugImage_Update;
+var
+  Width, Height: Integer;
+begin
+  FInputStream.Read(Width, SizeOf(Integer));
+  FInputStream.Read(Height, SizeOf(Integer));
+
+  SimbaDebugImageForm.UpdateFromStream(Width, Height, FInputStream);
 end;
 
 procedure TSimbaScriptInstanceCommunication.DebugImage_Hide;

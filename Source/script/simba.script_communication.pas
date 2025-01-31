@@ -163,17 +163,14 @@ begin
   end;
 end;
 
-// Send chunked ... faster & less memory needed.
 procedure TSimbaScriptCommunication.DebugImage_Show(Bitmap: TSimbaImage; EnsureVisible: Boolean);
 var
   Header: TSimbaIPCHeader;
-  Y: Integer;
 begin
   if (Bitmap = nil) or (Bitmap.Width = 0) or (Bitmap.Height = 0) then
     Exit;
 
   BeginInvoke(Integer(ESimbaCommunicationMessage.DEBUGIMAGE_SHOW));
-
   try
     Header.Size      := 0;
     Header.MessageID := FMessageID;
@@ -182,9 +179,7 @@ begin
     FOutputStream.Write(EnsureVisible, SizeOf(Boolean));
     FOutputStream.Write(Bitmap.Width, SizeOf(Integer));
     FOutputStream.Write(Bitmap.Height, SizeOf(Integer));
-
-    for Y := 0 to Bitmap.Height - 1 do
-      FOutputStream.Write(Bitmap.Data[Y * Bitmap.Width], Bitmap.Width * SizeOf(TColorBGRA));
+    FOutputStream.Write(Bitmap.Data^, Bitmap.DataSize);
 
     // Read result
     FInputStream.Read(Header, SizeOf(TSimbaIPCHeader));
@@ -198,8 +193,6 @@ begin
   end;
 end;
 
-// Send chunked ... faster & less memory needed.
-// Data is sent row by row
 procedure TSimbaScriptCommunication.DebugImage_Update(Bitmap: TSimbaImage);
 var
   Header: TSimbaIPCHeader;
@@ -209,7 +202,6 @@ begin
     Exit;
 
   BeginInvoke(Integer(ESimbaCommunicationMessage.DEBUGIMAGE_UPDATE));
-
   try
     Header.Size      := 0;
     Header.MessageID := FMessageID;
@@ -217,9 +209,7 @@ begin
     FOutputStream.Write(Header, SizeOf(TSimbaIPCHeader));
     FOutputStream.Write(Bitmap.Width, SizeOf(Integer));
     FOutputStream.Write(Bitmap.Height, SizeOf(Integer));
-
-    for Y := 0 to Bitmap.Height - 1 do
-      FOutputStream.Write(Bitmap.Data[Y * Bitmap.Width], Bitmap.Width * SizeOf(TColorBGRA));
+    FOutputStream.Write(Bitmap.Data^, Bitmap.DataSize);
 
     // Read result
     FInputStream.Read(Header, SizeOf(TSimbaIPCHeader));
