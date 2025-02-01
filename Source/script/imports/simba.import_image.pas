@@ -16,7 +16,7 @@ uses
   Graphics,
   lptypes,
   simba.image, simba.image_textdrawer, simba.colormath,
-  simba.vartype_polygon, simba.vartype_quad, simba.vartype_circle;
+  simba.vartype_polygon, simba.vartype_quad, simba.vartype_circle, simba.containers;
 
 type
   PBitmap = ^TBitmap;
@@ -1822,6 +1822,49 @@ property TImage.Target: TTarget;
 Returns a target which is targetted to the image.
 *)
 
+type
+  TImagePool = class(TSimbaBaseClass)
+  protected type
+    TList = specialize TSimbaList<TSimbaImage>;
+  protected
+    FList: TList;
+
+    procedure DoSimbaObjectCreate(Obj: TSimbaBaseClass);
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Clear(but: TSimbaImageArray);
+    procedure Delete(Index: Integer);
+  end;
+  PImagePool = ^TImagePool;
+
+procedure _LapeImagePool_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PImagePool(Result)^ := TImagePool.Create();
+end;
+
+procedure _LapeImagePool_Free(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PImagePool(Params^[0])^.Clear(PSimbaImageArray(Params^[1])^);
+  PImagePool(Params^[0])^.Free();
+end;
+
+procedure _LapeImagePool_Count(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PInteger(Result)^ := PImagePool(Params^[0])^.FList.Count;
+end;
+
+procedure _LapeImagePool_Image(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSimbaImage(Result)^ := PImagePool(Params^[0])^.FList[PInteger(Params^[1])^];
+end;
+
+procedure _LapeImagePool_Delete(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PImagePool(Params^[0])^.Delete(PInteger(Params^[1])^);
+end;
+
 procedure ImportSimbaImage(Script: TSimbaScript);
 begin
   with Script.Compiler do
@@ -1994,10 +2037,66 @@ begin
     addGlobalFunc('function TImage.FindColor(Color: TColor; Tolerance: Single = 0): TPointArray;', @_LapeImage_FindColor);
     addGlobalFunc('function TImage.FindImage(Image: TImage; Tolerance: Single = 0): TPoint;', @_LapeImage_FindImage);
 
+    addClass('TImagePool', 'TBaseClass');
+    addGlobalFunc('function TImagePool.Create: TImagePool; static;', @_LapeImagePool_Create);
+    addGlobalFunc('property TImagePool.Count: Integer;', @_LapeImagePool_Count);
+    addGlobalFunc('property TImagePool.Image(Index: Integer): TImage;', @_LapeImagePool_Image);
+    addGlobalFunc('procedure TImagePool.Delete(Index: Integer);', @_LapeImagePool_Delete);
+    addGlobalFunc('procedure TImagePool.Free(Skip: TImageArray = []);', @_LapeImagePool_Free);
+
     DumpSection := '';
 
     addGlobalFunc('function GetLoadedImages: TImageArray', @_LapeImage_GetLoadedImages);
   end;
+end;
+
+procedure TImagePool.DoSimbaObjectCreate(Obj: TSimbaBaseClass);
+begin
+  if (Obj is TSimbaImage) then
+    FList.Add(TSimbaImage(Obj));
+end;
+
+constructor TImagePool.Create;
+begin
+  inherited Create();
+
+  FList := TList.Create();
+  AddHandlerOnSimbaObjectCreate(@DoSimbaObjectCreate);
+end;
+
+destructor TImagePool.Destroy;
+begin
+  RemoveHandlerOnSimbaObjectCreate(@DoSimbaObjectCreate);
+  if (FList <> nil) then
+    FreeAndNil(FList);
+
+  inherited Destroy;
+end;
+
+procedure TImagePool.Clear(but: TSimbaImageArray);
+
+  function ShouldFree(img: TSimbaImage): Boolean;
+  var i: Integer;
+  begin
+    for i:=0 to High(but) do
+      if (but[i] = img) then
+        Exit(False);
+    Result := True;
+  end;
+
+var
+  i: Integer;
+begin
+  for i := FList.Count - 1 downto 0 do
+    if ShouldFree(FList[i]) then
+      FList[i].Free();
+
+  FList.Clear();
+end;
+
+procedure TImagePool.Delete(Index: Integer);
+begin
+  FList.Delete(Index);
 end;
 
 end.

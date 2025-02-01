@@ -45,6 +45,28 @@ type
     property Last: _T read GetLast;
   end;
 
+  generic TSimbaThreadsafeList<_T> = class(TObject)
+  protected type
+    TList = specialize TSimbaList<_T>;
+  protected
+    FList: TList;
+    FLock: TCriticalSection;
+
+    function GetCount: Integer;
+    function GetItem(Index: Integer): _T;
+  public
+    procedure Add(Item: _T);
+    procedure Delete(Index: Integer);
+    procedure Lock;
+    procedure UnLock;
+
+    property Count: Integer read GetCount;
+    property Items[Index: Integer]: _T read GetItem; default;
+
+    constructor Create; reintroduce;
+    destructor Destroy; override;
+  end;
+
   generic TSimbaObjectList<_T: class> = class(specialize TSimbaList<_T>)
   protected
     FFreeObjects: Boolean;
@@ -236,6 +258,60 @@ begin
   SetLength(Result, FCount);
   if (FCount > 0) then
     Move(FArr[0], Result[0], FCount * SizeOf(_T));
+end;
+
+function TSimbaThreadsafeList.GetCount: Integer;
+begin
+  Result := FList.Count;
+end;
+
+function TSimbaThreadsafeList.GetItem(Index: Integer): _T;
+begin
+  Result := FList[Index];
+end;
+
+procedure TSimbaThreadsafeList.Add(Item: _T);
+begin
+  FLock.Enter();
+  try
+    FList.Add(Item);
+  finally
+    FLock.Leave();
+  end;
+end;
+
+procedure TSimbaThreadsafeList.Delete(Index: Integer);
+begin
+  FLock.Enter();
+  try
+    FList.Delete(Index);
+  finally
+    FLock.Leave();
+  end;
+end;
+
+procedure TSimbaThreadsafeList.Lock;
+begin
+  FLock.Enter();
+end;
+
+procedure TSimbaThreadsafeList.UnLock;
+begin
+  FLock.Leave();
+end;
+
+constructor TSimbaThreadsafeList.Create;
+begin
+  FList := TList.Create();
+  FLock := TCriticalSection.Create();
+end;
+
+destructor TSimbaThreadsafeList.Destroy;
+begin
+  FreeAndNil(FList);
+  FreeAndNil(FLock);
+
+  inherited Destroy;
 end;
 
 // Object list
