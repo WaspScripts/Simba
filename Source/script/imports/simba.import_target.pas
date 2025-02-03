@@ -990,6 +990,7 @@ begin
       '  end;',
       '  FCustomClientArea: TBox;',
       '  FAutoFocus: Boolean;',
+      '  FLastSize: TSize;',
       '  {%CODETOOLS ON}',
       '',
       '  MouseOptions: record',
@@ -1024,6 +1025,10 @@ begin
     addGlobalType([
       'record',
       '  EventType: ETargetEventType;',
+      '',
+      '  TargetResize: record',
+      '    { nothing }',
+      '  end;',
       '',
       '  TargetChange: record',
       '    { nothing }',

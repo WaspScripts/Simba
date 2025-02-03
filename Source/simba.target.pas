@@ -68,7 +68,7 @@ type
 
   {$scopedenums on}
   ETargetEventType = (
-    TARGET_CHANGE, TARGET_INVALID,
+    TARGET_CHANGE, TARGET_INVALID, TARGET_RESIZE,
     MOUSE_TELEPORT, MOUSE_BUTTON
   );
   {$scopedenums off}
@@ -76,6 +76,9 @@ type
   TTargetEventData = record
     EventType: ETargetEventType;
 
+    TargetResize: record
+      { nothing }
+    end;
     TargetChange: record
       { nothing }
     end;
@@ -111,6 +114,7 @@ type
     end;
     FCustomClientArea: TBox;
     FAutoFocus: Boolean;
+    FLastSize: TSize;
 
     function HasEvent(EventType: ETargetEventType): Boolean;
     procedure CallEvent(var Data: TTargetEventData);
@@ -121,6 +125,7 @@ type
     procedure TargetChanged;
 
     procedure CheckMethod(Method: Pointer; Name: String);
+    procedure CheckResize(NewSize: TSize);
     procedure CheckInvalidTarget;
     procedure CheckAutoFocus;
 
@@ -699,6 +704,20 @@ begin
     SimbaException('Target "%s" cannot %s', [TargetName[FTarget.Kind], Name]);
 end;
 
+procedure TSimbaTarget.CheckResize(NewSize: TSize);
+var
+  EventData: TTargetEventData;
+begin
+  if (FLastSize = NewSize) or (not HasEvent(ETargetEventType.TARGET_RESIZE)) then
+    Exit;
+
+  EventData := Default(TTargetEventData);
+  EventData.EventType := ETargetEventType.TARGET_RESIZE;
+  CallEvent(EventData);
+
+  FLastSize := NewSize;
+end;
+
 function TSimbaTarget.GetMouseX: Integer;
 begin
   Result := MouseXY.X;
@@ -854,6 +873,7 @@ begin
   CheckInvalidTarget();
 
   FTarget.GetDimensions(FTarget.Target, Result.cx, Result.cy);
+  CheckResize(Result);
 end;
 
 function TSimbaTarget.GetWidth: Integer;
