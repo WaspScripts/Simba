@@ -64,9 +64,9 @@ begin
   PPoint(Result)^ := PSimbaImageBox(Params^[0])^.MousePoint;
 end;
 
-procedure _LapeSimbaImageBox_SetBackground(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeSimbaImageBox_SetImage(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaImageBox(Params^[0])^.SetImage(PSimbaImage(Params^[1])^);
+  PSimbaImageBox(Params^[0])^.SetImage(PSimbaImage(Params^[1])^, PBoolean(Params^[2])^);
 end;
 
 procedure _LapeSimbaImageBox_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -442,7 +442,7 @@ begin
     addGlobalFunc('function TImageBox.MouseY: Integer;', @_LapeSimbaImageBox_MouseY);
     addGlobalFunc('function TImageBox.MousePoint: TPoint;', @_LapeSimbaImageBox_MousePoint);
 
-    addGlobalFunc('procedure TImageBox.SetBackground(Image: TImage)', @_LapeSimbaImageBox_SetBackground);
+    addGlobalFunc('procedure TImageBox.SetImage(Image: TImage; DoFree: Boolean = True)', @_LapeSimbaImageBox_SetImage);
 
     addClassConstructor('TImageBox', '(Owner: TLazComponent)', @_LapeSimbaImageBox_Create);
   end;

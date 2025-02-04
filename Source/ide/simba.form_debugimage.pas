@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, ExtCtrls,
-  simba.component_imagebox, simba.image_lazbridge;
+  simba.component_imagebox, simba.image_lazbridge, simba.threading;
 
 type
   TSimbaDebugImageForm = class(TForm)
@@ -20,6 +20,7 @@ type
   protected
     FImageBox: TSimbaImageBox;
     FBackBuffer: TBitmap;
+    FUpdating: TEnterableLock;
 
     FLastRepaint: Double;
     FNeedRepaint: Boolean;
@@ -51,7 +52,7 @@ implementation
 
 uses
   simba.base, simba.ide_dockinghelpers,
-  simba.colormath, simba.threading, simba.datetime;
+  simba.colormath, simba.datetime;
 
 procedure TSimbaDebugImageForm.Close;
 var
@@ -151,10 +152,8 @@ var
     Temp: TBitmap;
   begin
     Temp := FImageBox.Background;
-    Temp.OnChange := nil;
     FImageBox.Background := FBackBuffer;
     FBackBuffer := Temp;
-    FBackBuffer.OnChange := nil;
 
     if AResize then
       SimbaDebugImageForm.SetSize(FImageBox.Background.Width, FImageBox.Background.Height, AEnsureVisible)
@@ -165,35 +164,40 @@ var
   end;
 
 begin
-  Source := nil;
-
-  if (FBackBuffer = nil) then
-    FBackBuffer := TBitmap.Create();
-  FBackBuffer.BeginUpdate();
+  FUpdating.Enter();
   try
-    FBackBuffer.SetSize(AWidth, AHeight);
+    Source := nil;
 
-    DestBytesPerLine := FBackBuffer.RawImage.Description.BytesPerLine;
-    Dest             := FBackBuffer.RawImage.Data;
+    if (FBackBuffer = nil) then
+      FBackBuffer := TBitmap.Create();
+    FBackBuffer.BeginUpdate();
+    try
+      FBackBuffer.SetSize(AWidth, AHeight);
 
-    SourceBytesPerLine := Width * SizeOf(TColorBGRA);
-    Source             := GetMem(SourceBytesPerLine);
-    SourceUpper        := PtrUInt(Source + SourceBytesPerLine);
+      DestBytesPerLine := FBackBuffer.RawImage.Description.BytesPerLine;
+      Dest             := FBackBuffer.RawImage.Data;
 
-    case FImageBox.PixelFormat of
-      ELazPixelFormat.BGR:  BGR();
-      ELazPixelFormat.BGRA: BGRA();
-      ELazPixelFormat.ARGB: ARGB();
-      else
-        SimbaException('Not supported');
+      SourceBytesPerLine := AWidth * SizeOf(TColorBGRA);
+      Source             := GetMem(SourceBytesPerLine);
+      SourceUpper        := PtrUInt(Source + SourceBytesPerLine);
+
+      case FImageBox.PixelFormat of
+        ELazPixelFormat.BGR:  BGR();
+        ELazPixelFormat.BGRA: BGRA();
+        ELazPixelFormat.ARGB: ARGB();
+        else
+          SimbaException('Not supported');
+      end;
+    finally
+      FBackBuffer.EndUpdate();
+      if (Source <> nil) then
+        FreeMem(Source);
     end;
-  finally
-    FBackBuffer.EndUpdate();
-    if (Source <> nil) then
-      FreeMem(Source);
-  end;
 
-  RunInMainThread(@SwapBuffers);
+    RunInMainThread(@SwapBuffers);
+  finally
+    FUpdating.Leave();
+  end;
 end;
 
 procedure TSimbaDebugImageForm.UpdateFromStream(AWidth, AHeight: Integer; Stream: TStream);

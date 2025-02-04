@@ -749,7 +749,6 @@ begin
 
   FCanvas := TSimbaImageBoxCanvas.Create();
   FResizeBuffer := TBitmap.Create();
-
 end;
 
 destructor TSimbaImageScrollBox.Destroy;
