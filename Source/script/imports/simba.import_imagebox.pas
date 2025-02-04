@@ -21,7 +21,6 @@ uses
   simba.vartype_quad;
 
 type
-  PSimbaTarget = ^TSimbaTarget;
   PComponent = ^TComponent;
   PBitmap = ^TBitmap;
 

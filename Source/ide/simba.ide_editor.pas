@@ -13,7 +13,7 @@ uses
   Classes, SysUtils, Graphics, Controls, ComCtrls, LCLType,
   SynEdit, SynEditTypes, SynGutterLineOverview, SynEditMouseCmds, SynEditMiscClasses, SynEditKeyCmds, SynEditHighlighter, SynEditMarkupCtrlMouseLink, SynEditMarkupHighAll,
   simba.base, simba.settings,
-  simba.ide_editor_autocomplete, simba.ide_editor_paramhint, simba.ide_editor_attributes,
+  simba.ide_editor_completionbox, simba.ide_editor_paramhint, simba.ide_editor_attributes,
   simba.ide_editor_modifiedlinegutter, simba.component_synedit;
 
 type
@@ -25,7 +25,7 @@ type
     FMarkupCtrlMouse: TSynEditMarkupCtrlMouseLink;
 
     FUseSimbaColors: Boolean;
-    FAutoComplete: TSimbaAutoComplete;
+    FCompletionBox: TSimbaCompletionBox;
     FParamHint: TSimbaParamHint;
 
     FAttributes: TSimbaEditor_Attributes;
@@ -72,7 +72,7 @@ type
     procedure SetUseSimbaColors(Value: Boolean);
   public
     property TextView;
-    property AutoComplete: TSimbaAutoComplete read FAutoComplete;
+    property CompletionBox: TSimbaCompletionBox read FCompletionBox;
     property ParamHint: TSimbaParamHint read FParamHint;
     property ModifiedLinesGutter: TSimbaEditorModifiedLinesGutter read FModifiedLinesGutter;
     property Attributes: TSimbaEditor_Attributes read FAttributes;
@@ -123,7 +123,7 @@ uses
   simba.misc, simba.ide_editor_blockcompletion,
   simba.ide_editor_docgenerator, simba.ide_editor_commentblock,
   simba.ide_editor_mousewheelzoom, simba.ide_editor_multicaret,
-  simba.ide_theme, simba.vartype_string;
+  simba.ide_theme, simba.vartype_string, simba.ide_editor_codecomplete;
 
 function TSimbaEditor.IsHighlighterAttribute(Values: TStringArray): Boolean;
 var
@@ -299,8 +299,8 @@ procedure TSimbaEditor.FontChanged(Sender: TObject);
 begin
   inherited FontChanged(Sender);
 
-  if (FAutoComplete <> nil) then
-    FAutoComplete.Form.Hide();
+  if (FCompletionBox <> nil) then
+    FCompletionBox.Form.Hide();
   if (FParamHint <> nil) then
     FParamHint.Form.Hide();
 end;
@@ -487,11 +487,11 @@ begin
   FParamHint := TSimbaParamHint.Create(nil);
   FParamHint.Editor := Self;
 
-  FAutoComplete := TSimbaAutoComplete.Create(nil);
-  FAutoComplete.Editor := Self;
-  FAutoComplete.AutoUseSingleIdent := False;
-  FAutoComplete.ExecCommandID := ecNone;
-  FAutoComplete.ShowSizeDrag := True;
+  FCompletionBox := TSimbaCompletionBox.Create(nil);
+  FCompletionBox.Editor := Self;
+  FCompletionBox.AutoUseSingleIdent := False;
+  FCompletionBox.ExecCommandID := ecNone;
+  FCompletionBox.ShowSizeDrag := True;
 
   with TSynEditMarkupHighlightAllCaret(MarkupByClass[TSynEditMarkupHighlightAllCaret]) do
   begin
@@ -517,6 +517,7 @@ begin
   TSimbaEditorPlugin_DocGenerator.Create(Self);
   TSimbaEditorPlugin_CommentBlock.Create(Self);
   TSimbaEditorPlugin_MouseWheelZoom.Create(Self);
+  TSimbaCodeComplete.Create(Self);
 
   Keystrokes.Delete(KeyStrokes.FindCommand(ecInsertLine));
   Keystrokes.Delete(KeyStrokes.FindCommand(ecNormalSelect));

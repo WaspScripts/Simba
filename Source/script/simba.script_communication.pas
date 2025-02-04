@@ -196,7 +196,6 @@ end;
 procedure TSimbaScriptCommunication.DebugImage_Update(Bitmap: TSimbaImage);
 var
   Header: TSimbaIPCHeader;
-  Y: Integer;
 begin
   if (Bitmap = nil) or (Bitmap.Width = 0) or (Bitmap.Height = 0) then
     Exit;

@@ -5,7 +5,7 @@
 
   Auto complete form (Ctrl + Space)
 }
-unit simba.ide_editor_autocomplete;
+unit simba.ide_editor_completionbox;
 
 {$i simba.inc}
 {$WARN 4046 OFF} // stop compiling on creating a class with an abstract method
@@ -20,7 +20,7 @@ uses
   simba.ide_codetools_parser, simba.ide_codetools_insight;
 
 type
-  TSimbaAutoComplete_Form = class(TSynCompletionForm)
+  TSimbaCompletionBox_Form = class(TSynCompletionForm)
   protected
     procedure FontChanged(Sender: TObject); override;
 
@@ -32,7 +32,7 @@ type
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
   end;
 
-  TSimbaAutoComplete_Hint = class(TSynCompletionHint)
+  TSimbaCompletionBox_Hint = class(TSynCompletionHint)
   protected
     function UseBGThemes: Boolean; override;
     function UseFGThemes: Boolean; override;
@@ -41,7 +41,7 @@ type
     function CalcHintRect: TRect; override;
   end;
 
-  TSimbaAutoComplete = class(TSynCompletion)
+  TSimbaCompletionBox = class(TSynCompletion)
   protected
     FCodeinsight: TCodeinsight;
     FDecls: TDeclarationArray;
@@ -95,13 +95,13 @@ uses
 function SetClassLong(Handle: HWND; Index: Integer = -26; Value: Integer = 0): UInt32; stdcall; external 'user32' name 'SetClassLongA';
 {$ENDIF}
 
-procedure TSimbaAutoComplete_Hint.Paint;
+procedure TSimbaCompletionBox_Hint.Paint;
 var
-  AutoComplete: TSimbaAutoComplete;
+  AutoComplete: TSimbaCompletionBox;
   Decl: TDeclaration;
   R: TRect;
 begin
-  AutoComplete := Completion as TSimbaAutoComplete;
+  AutoComplete := Completion as TSimbaCompletionBox;
 
   Decl := AutoComplete.GetDecl(Index);
   if (Decl = nil) then
@@ -122,23 +122,23 @@ begin
   end;
 end;
 
-function TSimbaAutoComplete_Hint.UseBGThemes: Boolean;
+function TSimbaCompletionBox_Hint.UseBGThemes: Boolean;
 begin
   Result := False;
 end;
 
-function TSimbaAutoComplete_Hint.UseFGThemes: Boolean;
+function TSimbaCompletionBox_Hint.UseFGThemes: Boolean;
 begin
   Result := False;
 end;
 
-function TSimbaAutoComplete_Hint.CalcHintRect: TRect;
+function TSimbaCompletionBox_Hint.CalcHintRect: TRect;
 var
-  AutoComplete: TSimbaAutoComplete;
+  AutoComplete: TSimbaCompletionBox;
   Decl: TDeclaration;
   HintWidth: Integer;
 begin
-  AutoComplete := Completion as TSimbaAutoComplete;
+  AutoComplete := Completion as TSimbaCompletionBox;
 
   Decl := AutoComplete.GetDecl(Index);
   if (Decl = nil) then
@@ -160,15 +160,15 @@ begin
   Result.Width := HintWidth;
 end;
 
-procedure TSimbaAutoComplete_Form.FontChanged(Sender: TObject);
+procedure TSimbaCompletionBox_Form.FontChanged(Sender: TObject);
 begin
   inherited FontChanged(Sender);
 
   if (FHint <> nil) then
     FHint.Font := Self.Font;
 
-  if (Completion is TSimbaAutoComplete) then
-    TSimbaAutoComplete(Completion).FColumnWidth := Canvas.TextWidth('procedure ');
+  if (Completion is TSimbaCompletionBox) then
+    TSimbaCompletionBox(Completion).FColumnWidth := Canvas.TextWidth('procedure ');
 
   with TBitmap.Create() do
   try
@@ -181,15 +181,15 @@ begin
   end;
 end;
 
-procedure TSimbaAutoComplete_Form.Paint;
+procedure TSimbaCompletionBox_Form.Paint;
 var
-  AutoComplete: TSimbaAutoComplete;
+  AutoComplete: TSimbaCompletionBox;
   I: Integer;
   ItemIndex: Integer;
   ItemRect: TRect;
   Decl: TDeclaration;
 begin
-  AutoComplete := Completion as TSimbaAutoComplete;
+  AutoComplete := Completion as TSimbaCompletionBox;
 
   // update ScrollBar bar
   ScrollBar.Enabled := FItemCount > NbLinesInWindow;
@@ -249,7 +249,7 @@ begin
   end;
 end;
 
-procedure TSimbaAutoComplete_Form.DoShow;
+procedure TSimbaCompletionBox_Form.DoShow;
 begin
   Width           := SimbaSettings.Editor.AutoCompleteWidth.Value;
   NbLinesInWindow := SimbaSettings.Editor.AutoCompleteLines.Value;
@@ -257,7 +257,7 @@ begin
   inherited DoShow();
 end;
 
-procedure TSimbaAutoComplete_Form.DoHide;
+procedure TSimbaCompletionBox_Form.DoHide;
 begin
   inherited DoHide();
 
@@ -265,7 +265,7 @@ begin
   SimbaSettings.Editor.AutoCompleteLines.Value := NbLinesInWindow;
 end;
 
-procedure TSimbaAutoComplete_Form.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TSimbaCompletionBox_Form.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   OldPosition: Integer;
 begin
@@ -276,7 +276,7 @@ begin
     OnValidate(Self, '', Shift);
 end;
 
-procedure TSimbaAutoComplete_Form.MouseMove(Shift: TShiftState; X, Y: Integer);
+procedure TSimbaCompletionBox_Form.MouseMove(Shift: TShiftState; X, Y: Integer);
 begin
   if ((ScrollBar.Visible) and (X > ScrollBar.Left)) or (Y < DrawBorderWidth) or (Y >= ClientHeight - DrawBorderWidth) then
     Exit;
@@ -286,7 +286,7 @@ begin
   inherited MouseMove(Shift, X, Y);
 end;
 
-procedure TSimbaAutoComplete_Form.KeyDown(var Key: Word; Shift: TShiftState);
+procedure TSimbaCompletionBox_Form.KeyDown(var Key: Word; Shift: TShiftState);
 begin
   if (Key = VK_OEM_COMMA) then
   begin
@@ -297,12 +297,12 @@ begin
   inherited KeyDown(Key, Shift);
 end;
 
-procedure TSimbaAutoComplete.ContinueCompletion(Data: PtrInt);
+procedure TSimbaCompletionBox.ContinueCompletion(Data: PtrInt);
 begin
   Editor.CommandProcessor(TSynEditorCommand(Data), #0, nil);
 end;
 
-procedure TSimbaAutoComplete.DoCodeCompletion(var Value: String; SourceValue: String; var SourceStart, SourceEnd: TPoint; KeyChar: TUTF8Char; Shift: TShiftState);
+procedure TSimbaCompletionBox.DoCodeCompletion(var Value: String; SourceValue: String; var SourceStart, SourceEnd: TPoint; KeyChar: TUTF8Char; Shift: TShiftState);
 var
   Decl: TDeclaration;
 begin
@@ -316,7 +316,7 @@ begin
     Value := SourceValue;
   Value := Value + KeyChar;
   case KeyChar of
-    '.':      Application.QueueAsyncCall(@ContinueCompletion, TSimbaEditor(Editor).AutoComplete.AutoCompleteCommand);
+    '.':      Application.QueueAsyncCall(@ContinueCompletion, TSimbaEditor(Editor).CompletionBox.AutoCompleteCommand);
     ',', '(': Application.QueueAsyncCall(@ContinueCompletion, TSimbaEditor(Editor).ParamHint.ParamHintCommand);
   end;
 end;
@@ -326,7 +326,7 @@ begin
   Result := CompareText(A.Name, B.Name);
 end;
 
-procedure TSimbaAutoComplete.DoFiltering(var NewPosition: Integer);
+procedure TSimbaCompletionBox.DoFiltering(var NewPosition: Integer);
 var
   Filter: String;
   Count: Integer;
@@ -406,13 +406,13 @@ begin
   ItemCount := Count;
 end;
 
-procedure TSimbaAutoComplete.DoTabPressed(Sender: TObject);
+procedure TSimbaCompletionBox.DoTabPressed(Sender: TObject);
 begin
   if (OnValidate <> nil) then
     OnValidate(Form, '', []);
 end;
 
-procedure TSimbaAutoComplete.DoExecute(Sender: TObject);
+procedure TSimbaCompletionBox.DoExecute(Sender: TObject);
 begin
   if (Editor <> nil) then
   begin
@@ -426,7 +426,7 @@ begin
   end;
 end;
 
-procedure TSimbaAutoComplete.DoSettingChanged_CompletionKey(Setting: TSimbaSetting);
+procedure TSimbaCompletionBox.DoSettingChanged_CompletionKey(Setting: TSimbaSetting);
 var
   Index: Integer;
 begin
@@ -438,7 +438,7 @@ begin
   end;
 end;
 
-function TSimbaAutoComplete.GetHintText(Decl: TDeclaration; IsHint: Boolean): String;
+function TSimbaCompletionBox.GetHintText(Decl: TDeclaration; IsHint: Boolean): String;
 
   function GetMethodText(Decl: TDeclaration_Method): String;
   begin
@@ -498,7 +498,7 @@ begin
     Result := #0;
 end;
 
-function TSimbaAutoComplete.GetDecl(Index: Integer): TDeclaration;
+function TSimbaCompletionBox.GetDecl(Index: Integer): TDeclaration;
 begin
   if (Index >= 0) and (Index < ItemCount) then
     Result := FFilteredDecls[Index]
@@ -506,17 +506,17 @@ begin
     Result := nil;
 end;
 
-function TSimbaAutoComplete.GetCompletionFormClass: TSynCompletionFormClass;
+function TSimbaCompletionBox.GetCompletionFormClass: TSynCompletionFormClass;
 begin
-  Result := TSimbaAutoComplete_Form;
+  Result := TSimbaCompletionBox_Form;
 end;
 
-function TSimbaAutoComplete.GetCompletionHintClass: TSynCompletionHintClass;
+function TSimbaCompletionBox.GetCompletionHintClass: TSynCompletionHintClass;
 begin
-  Result := TSimbaAutoComplete_Hint;
+  Result := TSimbaCompletionBox_Hint;
 end;
 
-procedure TSimbaAutoComplete.DoEditorCommand(Sender: TObject; AfterProcessing: Boolean; var Handled: Boolean; var Command: TSynEditorCommand; var AChar: TUTF8Char; Data: Pointer; HandlerData: Pointer);
+procedure TSimbaCompletionBox.DoEditorCommand(Sender: TObject; AfterProcessing: Boolean; var Handled: Boolean; var Command: TSynEditorCommand; var AChar: TUTF8Char; Data: Pointer; HandlerData: Pointer);
 var
   Expression, Filter: String;
   LastDot: Integer;
@@ -577,7 +577,7 @@ begin
     end;
 end;
 
-procedure TSimbaAutoComplete.DoEditorAdded(Value: TCustomSynEdit);
+procedure TSimbaCompletionBox.DoEditorAdded(Value: TCustomSynEdit);
 begin
   inherited DoEditorAdded(Value);
 
@@ -595,7 +595,7 @@ begin
     end;
 end;
 
-procedure TSimbaAutoComplete.DoEditorRemoving(Value: TCustomSynEdit);
+procedure TSimbaCompletionBox.DoEditorRemoving(Value: TCustomSynEdit);
 begin
   if (Value is TSimbaEditor) then
     with TSimbaEditor(Value) do
@@ -604,7 +604,7 @@ begin
   inherited DoEditorRemoving(Value);
 end;
 
-procedure TSimbaAutoComplete.PaintColumn(Canvas: TCanvas; var R: TRect; Decl: TDeclaration);
+procedure TSimbaCompletionBox.PaintColumn(Canvas: TCanvas; var R: TRect; Decl: TDeclaration);
 type
   TColumnFormat = record
     Text: String;
@@ -642,7 +642,7 @@ begin
   R.Left += FColumnWidth;
 end;
 
-procedure TSimbaAutoComplete.PaintName(Canvas: TCanvas; var R: TRect; AName: String);
+procedure TSimbaCompletionBox.PaintName(Canvas: TCanvas; var R: TRect; AName: String);
 
   procedure DrawText(const Str: String);
   begin
@@ -689,7 +689,7 @@ begin
   Canvas.Font.Bold := False;
 end;
 
-procedure TSimbaAutoComplete.PaintText(Canvas: TCanvas; var R: TRect; AText: String);
+procedure TSimbaCompletionBox.PaintText(Canvas: TCanvas; var R: TRect; AText: String);
 var
   Highlighter: TSynCustomHighlighter;
   TokStart: PChar;
@@ -728,7 +728,7 @@ begin
   end;
 end;
 
-procedure TSimbaAutoComplete.DoPaintSizeDrag(Sender: TObject);
+procedure TSimbaCompletionBox.DoPaintSizeDrag(Sender: TObject);
 var
   I: Integer;
 begin
@@ -750,7 +750,7 @@ begin
   end;
 end;
 
-constructor TSimbaAutoComplete.Create(AOwner: TComponent);
+constructor TSimbaCompletionBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
@@ -774,7 +774,7 @@ begin
   SimbaSettings.RegisterChangeHandler(Self, SimbaSettings.CodeTools.CompletionKeyModifiers, @DoSettingChanged_CompletionKey);
 end;
 
-destructor TSimbaAutoComplete.Destroy;
+destructor TSimbaCompletionBox.Destroy;
 begin
   if (FCodeinsight <> nil) then
     FreeAndNil(FCodeinsight);
@@ -782,12 +782,12 @@ begin
   inherited Destroy();
 end;
 
-class function TSimbaAutoComplete.IsAutoCompleteCommand(Command: TSynEditorCommand; AChar: TUTF8Char): Boolean;
+class function TSimbaCompletionBox.IsAutoCompleteCommand(Command: TSynEditorCommand; AChar: TUTF8Char): Boolean;
 begin
   Result := (SimbaSettings.CodeTools.CompletionOpenAutomatically.Value and (Command = ecChar) and (AChar = '.')) or (Command = AutoCompleteCommand);
 end;
 
-class constructor TSimbaAutoComplete.Create;
+class constructor TSimbaCompletionBox.Create;
 begin
   AutoCompleteCommand := AllocatePluginKeyRange(1);
 end;
