@@ -88,8 +88,12 @@ var
 begin
   inherited CalculatePreferredSize(PreferredWidth, PreferredHeight, WithThemeSpace);
 
-  W := 0; H := 0;
+  W := 0;
+  H := 0;
   TLabelProtectedAccess(QuestionLabel).CalculateSize(Monitor.Width div 2, W, H);
+  if (W < ButtonYes.Width + ButtonNo.Width + ButtonCancel.Width) then
+    W := ButtonYes.Width + ButtonNo.Width + ButtonCancel.Width;
+
   PreferredWidth := QuestionLabel.Left + QuestionLabel.BorderSpacing.Right + W;
 end;
 

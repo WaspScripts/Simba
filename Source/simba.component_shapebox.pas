@@ -10,7 +10,7 @@ unit simba.component_shapebox;
 interface
 
 uses
-  Classes, SysUtils, Controls, Graphics, ComCtrls, StdCtrls, ExtCtrls, Dialogs, fgl,
+  Classes, SysUtils, Controls, Graphics, ComCtrls, StdCtrls, ExtCtrls, Dialogs, fgl, Menus,
   simba.base, simba.component_imagebox, simba.component_imageboxcanvas;
 
 type
@@ -195,17 +195,12 @@ type
 
     FPanel: TPanel;
     FListBox: TListBox;
+    FListPopup: TPopupMenu;
 
-    FPointButton: TButton;
-    FBoxButton: TButton;
-    FPolyButton: TButton;
-    FPathButton: TButton;
-
-    FNameButton: TButton;
-    FDeleteButton: TButton;
-    FDeleteAllButton: TButton;
+    FNewButton: TButton;
+    FNewPopup: TPopupMenu;
+    FClearButton: TButton;
     FPrintButton: TButton;
-    FCopyButton: TButton;
 
     FUserDataSize: Integer;
     FQueryName: Boolean;
@@ -235,12 +230,19 @@ type
     procedure ImgPaintArea(ACanvas: TSimbaImageBoxCanvas; R: TRect); override;
 
     procedure DoSelectionChanged(Sender: TObject; User: Boolean);
+    procedure DoListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure DoShapeAddButtonClick(Sender: TObject);
-    procedure DoShapeDeleteClick(Sender: TObject);
+    procedure DoShapeDelete(Sender: TObject);
     procedure DoShapeDeleteAllClick(Sender: TObject);
-    procedure DoShapeNameClick(Sender: TObject);
-    procedure DoShapePrintClick(Sender: TObject);
-    procedure DoShapeCopyClick(Sender: TObject);
+    procedure DoShapeName(Sender: TObject);
+    procedure DoShapePrint(Sender: TObject);
+    procedure DoShapeDuplicate(Sender: TObject);
+    procedure DoPrintShapesClick(Sender: TObject);
+
+    procedure DoAddPointClick(Sender: TObject);
+    procedure DoAddBoxClick(Sender: TObject);
+    procedure DoAddPathClick(Sender: TObject);
+    procedure DoAddPolyClick(Sender: TObject);
   public
     constructor Create(AOwner: TComponent; AUserDataSize: Integer = 0); reintroduce;
     destructor Destroy; override;
@@ -274,15 +276,9 @@ type
     property QueryName: Boolean read FQueryName write FQueryName;
     property Panel: TPanel read FPanel;
 
-    property PointButton: TButton read FPointButton;
-    property BoxButton: TButton read FBoxButton;
-    property PolyButton: TButton read FPolyButton;
-    property PathButton: TButton read FPathButton;
-    property NameButton: TButton read FNameButton;
-    property DeleteButton: TButton read FDeleteButton;
-    property DeleteAllButton: TButton read FDeleteAllButton;
+    property NewButton: TButton read FNewButton;
+    property ClearButton: TButton read FClearButton;
     property PrintButton: TButton read FPrintButton;
-    property CopyButton: TButton read FCopyButton;
 
     property Count: Integer read GetCount;
     property Shape[Index: Integer]: TShapeBoxShape read GetShape;
@@ -295,7 +291,8 @@ implementation
 
 uses
   LCLType, simba.geometry, simba.vartype_pointarray,
-  simba.vartype_box, simba.vartype_string, simba.vartype_point, simba.vartype_polygon;
+  simba.vartype_box, simba.vartype_string, simba.vartype_point, simba.vartype_polygon,
+  simba.dialog;
 
 const
   CLOSE_DISTANCE = 4;
@@ -335,7 +332,7 @@ begin
     Color := clLime;
 
   for P in Points do
-    ACanvas.DrawBoxFilled(TBox.Create(P.X - 2, P.Y - 2, P.X + 3, P.Y + 3), Color, 0.65);
+    ACanvas.DrawBoxFilled(TBox.Create(P.X - 2, P.Y - 2, P.X + 2, P.Y + 2), Color, 0.65);
 end;
 
 procedure TSimbaShapeBoxShape.DrawLines(ACanvas: TSimbaImageBoxCanvas; Box: TBox; Flags: EPaintShapeFlags);
@@ -886,49 +883,18 @@ begin
   end;
 end;
 
-procedure TSimbaShapeBox.DoShapeAddButtonClick(Sender: TObject);
-var
-  NewShape: TSimbaShapeBoxShape;
-  NewName: String = '';
+procedure TSimbaShapeBox.DoListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  NewShape := nil;
-  if FQueryName and (not InputQuery('Simba', 'Enter name', NewName)) then
-    Exit;
-
-  if (Sender = FPathButton) then
-  begin
-    NewShape := TSimbaShapeBoxShape_Path.Create(Self);
-    StatusBar.PanelText[3] := 'Selecting path: Click to set points and press ENTER to finish';
-  end;
-
-  if (Sender = FPolyButton) then
-  begin
-    NewShape := TSimbaShapeBoxShape_Poly.Create(Self);
-    StatusBar.PanelText[3] := 'Selecting polygon: Click to set points and press ENTER to finish';
-  end;
-
-  if (Sender = FPointButton) then
-  begin
-    NewShape := TSimbaShapeBoxShape_Point.Create(Self);
-    StatusBar.PanelText[3] := 'Selecting point: Click to set';
-  end;
-
-  if (Sender = FBoxButton) then
-  begin
-    NewShape := TSimbaShapeBoxShape_Box.Create(Self);
-    StatusBar.PanelText[3] := 'Selecting box: Click to set top left then again for bottom left';
-  end;
-
-  if (NewShape <> nil) then
-  begin
-    if FQueryName then
-      NewShape.FName := NewName;
-
-    InternalAddShape(NewShape, True);
-  end;
+  if (Button = mbRight) then
+    FListBox.ItemIndex := FListBox.GetIndexAtY(Y);
 end;
 
-procedure TSimbaShapeBox.DoShapeDeleteClick(Sender: TObject);
+procedure TSimbaShapeBox.DoShapeAddButtonClick(Sender: TObject);
+begin
+  FNewPopup.PopUp();
+end;
+
+procedure TSimbaShapeBox.DoShapeDelete(Sender: TObject);
 begin
   InternalDeleteShape(FListBox.ItemIndex);
 
@@ -937,13 +903,16 @@ end;
 
 procedure TSimbaShapeBox.DoShapeDeleteAllClick(Sender: TObject);
 begin
-  FShapes.Clear();
-  FListBox.Clear();
+  if SimbaQuestionDlg('Simba', 'Delete all shapes?', []) = ESimbaDialogResult.YES then
+  begin
+    FShapes.Clear();
+    FListBox.Clear();
 
-  Paint();
+    Paint();
+  end;
 end;
 
-procedure TSimbaShapeBox.DoShapeNameClick(Sender: TObject);
+procedure TSimbaShapeBox.DoShapeName(Sender: TObject);
 var
   Value: String = '';
 begin
@@ -952,15 +921,88 @@ begin
       InternalNameShape(FListBox.ItemIndex, Value);
 end;
 
-procedure TSimbaShapeBox.DoShapePrintClick(Sender: TObject);
+procedure TSimbaShapeBox.DoShapePrint(Sender: TObject);
 begin
   if CheckIndex(FListBox.ItemIndex) then
     DebugLn([EDebugLn.FOCUS], FShapes[FListBox.ItemIndex].ToStr);
 end;
 
-procedure TSimbaShapeBox.DoShapeCopyClick(Sender: TObject);
+procedure TSimbaShapeBox.DoShapeDuplicate(Sender: TObject);
 begin
   CopyShape(FListBox.ItemIndex);
+end;
+
+procedure TSimbaShapeBox.DoPrintShapesClick(Sender: TObject);
+begin
+  PrintShapes();
+end;
+
+procedure TSimbaShapeBox.DoAddPointClick(Sender: TObject);
+var
+  ShapeName: String = '';
+  NewShape: TSimbaShapeBoxShape;
+begin
+  NewShape := nil;
+  if FQueryName and (not InputQuery('Simba', 'Enter name', ShapeName)) then
+    Exit;
+
+  NewShape := TSimbaShapeBoxShape_Point.Create(Self);
+  if FQueryName then
+    NewShape.FName := ShapeName;
+  InternalAddShape(NewShape, True);
+
+  StatusBar.PanelText[3] := 'Selecting point: Click to set';
+end;
+
+procedure TSimbaShapeBox.DoAddBoxClick(Sender: TObject);
+var
+  ShapeName: String = '';
+  NewShape: TSimbaShapeBoxShape;
+begin
+  NewShape := nil;
+  if FQueryName and (not InputQuery('Simba', 'Enter name', ShapeName)) then
+    Exit;
+
+  NewShape := TSimbaShapeBoxShape_Box.Create(Self);
+  if FQueryName then
+    NewShape.FName := ShapeName;
+  InternalAddShape(NewShape, True);
+
+  StatusBar.PanelText[3] := 'Selecting box: Click to set top left then again for bottom left';
+end;
+
+procedure TSimbaShapeBox.DoAddPathClick(Sender: TObject);
+var
+  ShapeName: String = '';
+  NewShape: TSimbaShapeBoxShape;
+begin
+  NewShape := nil;
+  if FQueryName and (not InputQuery('Simba', 'Enter name', ShapeName)) then
+    Exit;
+
+  NewShape := TSimbaShapeBoxShape_Path.Create(Self);
+  if FQueryName then
+    NewShape.FName := ShapeName;
+  InternalAddShape(NewShape, True);
+
+  StatusBar.PanelText[3] := 'Selecting path: Click to set points and press ENTER to finish';
+end;
+
+procedure TSimbaShapeBox.DoAddPolyClick(Sender: TObject);
+var
+  ShapeName: String = '';
+  NewShape: TSimbaShapeBoxShape;
+begin
+  NewShape := nil;
+  if FQueryName and (not InputQuery('Simba', 'Enter name', ShapeName)) then
+    Exit;
+
+  NewShape := TSimbaShapeBoxShape_Poly.Create(Self);
+  if FQueryName then
+    NewShape.FName := ShapeName;
+  InternalAddShape(NewShape, True);
+
+  StatusBar.PanelText[3] := 'Selecting polygon: Click to set points and press ENTER to finish';
 end;
 
 function TSimbaShapeBox.GetShapeAt(P: TPoint): TSimbaShapeBoxShape;
@@ -1400,6 +1442,14 @@ begin
 end;
 
 constructor TSimbaShapeBox.Create(AOwner: TComponent; AUserDataSize: Integer);
+
+  function NewMenuItem(AText: String; AOnClick: TNotifyEvent): TMenuItem;
+  begin
+    Result := TMenuItem.Create(Self);
+    Result.Caption := AText;
+    Result.OnClick := AOnClick;
+  end;
+
 begin
   inherited Create(AOwner);
 
@@ -1420,63 +1470,45 @@ begin
     Free();
   end;
 
+  FListPopup := TPopupMenu.Create(Self);
+  FListPopup.Items.Add(NewMenuItem('Delete', @DoShapeDelete));
+  FListPopup.Items.Add(NewMenuItem('Duplicate', @DoShapeDuplicate));
+  FListPopup.Items.Add(NewMenuItem('Name', @DoShapeName));
+  FListPopup.Items.Add(NewMenuItem('Print', @DoShapePrint));
+
   FListBox := TListBox.Create(FPanel);
   FListBox.Parent := FPanel;
   FListBox.BorderSpacing.Around := 5;
   FListBox.Align := alClient;
   FListBox.OnSelectionChange := @DoSelectionChanged;
+  FListBox.OnMouseDown := @DoListMouseDown;
+  FListBox.PopupMenu := FListPopup;
 
-  FPointButton := TButton.Create(FPanel);
-  with FPointButton do
+  FNewButton := TButton.Create(FPanel);
+  with FNewButton do
   begin
     Parent := FPanel;
     Align := alTop;
-    Caption := 'New Point';
+    Caption := 'New Shape';
     OnClick := @DoShapeAddButtonClick;
     AutoSize := True;
     BorderSpacing.Around := 5;
   end;
 
-  FBoxButton := TButton.Create(FPanel);
-  with FBoxButton do
-  begin
-    Parent := FPanel;
-    Align := alTop;
-    Caption := 'New Box';
-    OnClick := @DoShapeAddButtonClick;
-    AutoSize := True;
-    BorderSpacing.Around := 5;
-  end;
+  FNewPopup := TPopupMenu.Create(Self);
+  FNewPopup.Parent := FPanel;
+  FNewPopup.Items.Add(NewMenuItem('Point', @DoAddPointClick));
+  FNewPopup.Items.Add(NewMenuItem('Box', @DoAddBoxClick));
+  FNewPopup.Items.Add(NewMenuItem('Poly', @DoAddPolyClick));
+  FNewPopup.Items.Add(NewMenuItem('Path', @DoAddPathClick));
 
-  FPolyButton := TButton.Create(FPanel);
-  with FPolyButton do
-  begin
-    Parent := FPanel;
-    Align := alTop;
-    Caption := 'New Poly';
-    OnClick := @DoShapeAddButtonClick;
-    AutoSize := True;
-    BorderSpacing.Around := 5;
-  end;
-
-  FPathButton := TButton.Create(FPanel);
-  with FPathButton do
-  begin
-    Parent := FPanel;
-    Align := alTop;
-    Caption := 'New Path';
-    OnClick := @DoShapeAddButtonClick;
-    AutoSize := True;
-    BorderSpacing.Around := 5;
-  end;
-
-  FCopyButton := TButton.Create(FPanel);
-  with FCopyButton do
+  FClearButton := TButton.Create(FPanel);
+  with FClearButton do
   begin
     Parent := FPanel;
     Align := alBottom;
-    Caption := 'Copy Shape';
-    OnClick := @DoShapeCopyClick;
+    Caption := 'Clear Shapes';
+    OnClick := @DoShapeDeleteAllClick;
     AutoSize := True;
     BorderSpacing.Around := 5;
   end;
@@ -1486,41 +1518,8 @@ begin
   begin
     Parent := FPanel;
     Align := alBottom;
-    Caption := 'Print Shape';
-    OnClick := @DoShapePrintClick;
-    AutoSize := True;
-    BorderSpacing.Around := 5;
-  end;
-
-  FNameButton := TButton.Create(FPanel);
-  with FNameButton do
-  begin
-    Parent := FPanel;
-    Align := alBottom;
-    Caption := 'Name Shape';
-    OnClick := @DoShapeNameClick;
-    AutoSize := True;
-    BorderSpacing.Around := 5;
-  end;
-
-  FDeleteButton := TButton.Create(FPanel);
-  with FDeleteButton do
-  begin
-    Parent := FPanel;
-    Align := alBottom;
-    Caption := 'Delete Shape';
-    OnClick := @DoShapeDeleteClick;
-    AutoSize := True;
-    BorderSpacing.Around := 5;
-  end;
-
-  FDeleteAllButton := TButton.Create(FPanel);
-  with FDeleteAllButton do
-  begin
-    Parent := FPanel;
-    Align := alBottom;
-    Caption := 'Delete All Shapes';
-    OnClick := @DoShapeDeleteAllClick;
+    Caption := 'Print Shapes';
+    OnClick := @DoPrintShapesClick;
     AutoSize := True;
     BorderSpacing.Around := 5;
   end;

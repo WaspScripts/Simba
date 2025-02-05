@@ -37,19 +37,9 @@ begin
   PSimbaShapeBox(Params^[0])^.LoadFromFile(PString(Params^[1])^);
 end;
 
-procedure _LapeSimbaShapeBox_PointButton(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeSimbaShapeBox_NewButton(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PButton(Result)^ := PSimbaShapeBox(Params^[0])^.PointButton;
-end;
-
-procedure _LapeSimbaShapeBox_BoxButton(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PButton(Result)^ := PSimbaShapeBox(Params^[0])^.BoxButton;
-end;
-
-procedure _LapeSimbaShapeBox_PathButton(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PButton(Result)^ := PSimbaShapeBox(Params^[0])^.PathButton;
+  PButton(Result)^ := PSimbaShapeBox(Params^[0])^.NewButton;
 end;
 
 procedure _LapeSimbaShapeBox_PrintButton(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -57,29 +47,9 @@ begin
   PButton(Result)^ := PSimbaShapeBox(Params^[0])^.PrintButton;
 end;
 
-procedure _LapeSimbaShapeBox_PolyButton(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeSimbaShapeBox_ClearButton(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PButton(Result)^ := PSimbaShapeBox(Params^[0])^.PolyButton;
-end;
-
-procedure _LapeSimbaShapeBox_NameButton(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PButton(Result)^ := PSimbaShapeBox(Params^[0])^.NameButton;
-end;
-
-procedure _LapeSimbaShapeBox_CopyButton(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PButton(Result)^ := PSimbaShapeBox(Params^[0])^.CopyButton;
-end;
-
-procedure _LapeSimbaShapeBox_DeleteButton(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PButton(Result)^ := PSimbaShapeBox(Params^[0])^.DeleteButton;
-end;
-
-procedure _LapeSimbaShapeBox_DeleteAllButton(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PButton(Result)^ := PSimbaShapeBox(Params^[0])^.DeleteAllButton;
+  PButton(Result)^ := PSimbaShapeBox(Params^[0])^.ClearButton;
 end;
 
 procedure _LapeSimbaShapeBox_Panel(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -232,10 +202,10 @@ begin
     addProperty('TShapeBox', 'QueryName', 'Boolean', @_LapeSimbaShapeBox_QueryName_Read, @_LapeSimbaShapeBox_QueryName_Write);
     addProperty('TShapeBox', 'SelectedIndex', 'Integer', @_LapeSimbaShapeBox_SelectedIndex_Read, @_LapeSimbaShapeBox_SelectedIndex_Write);
 
-    addGlobalFunc('function TShapeBox.HasSelection: Boolean', @_LapeSimbaShapeBox_HasSelection);
-    addGlobalFunc('function TShapeBox.GetSelectedShape: TShapeBoxShape', @_LapeSimbaShapeBox_GetSelectedShape);
-    addGlobalFunc('function TShapeBox.GetShape(Index: Integer): TShapeBoxShape', @_LapeSimbaShapeBox_GetShape);
-    addGlobalFunc('function TShapeBox.GetCount: Integer', @_LapeSimbaShapeBox_GetCount);
+    addGlobalFunc('property TShapeBox.HasSelection: Boolean', @_LapeSimbaShapeBox_HasSelection);
+    addGlobalFunc('property TShapeBox.Selected: TShapeBoxShape', @_LapeSimbaShapeBox_GetSelectedShape);
+    addGlobalFunc('property TShapeBox.Shape(Index: Integer): TShapeBoxShape', @_LapeSimbaShapeBox_GetShape);
+    addGlobalFunc('property TShapeBox.Count: Integer', @_LapeSimbaShapeBox_GetCount);
 
     addGlobalFunc('function TShapeBox.CopyShape(Index: Integer): Integer;', @_LapeSimbaShapeBox_CopyShape);
     addGlobalFunc('procedure TShapeBox.DeleteShape(Index: Integer);', @_LapeSimbaShapeBox_DeleteShape);
@@ -247,15 +217,10 @@ begin
     addGlobalFunc('procedure TShapeBox.SaveToFile(FileName: String);', @_LapeSimbaShapeBox_SaveToFile);
     addGlobalFunc('procedure TShapeBox.LoadFromFile(FileName: String);', @_LapeSimbaShapeBox_LoadFromFile);
 
-    addGlobalFunc('function TShapeBox.PointButton: TLazButton;', @_LapeSimbaShapeBox_PointButton);
-    addGlobalFunc('function TShapeBox.BoxButton: TLazButton;', @_LapeSimbaShapeBox_BoxButton);
-    addGlobalFunc('function TShapeBox.PolyButton: TLazButton;', @_LapeSimbaShapeBox_PolyButton);
-    addGlobalFunc('function TShapeBox.PathButton: TLazButton;', @_LapeSimbaShapeBox_PathButton);
-    addGlobalFunc('function TShapeBox.PrintButton: TLazButton;', @_LapeSimbaShapeBox_PrintButton);
-    addGlobalFunc('function TShapeBox.NameButton: TLazButton;', @_LapeSimbaShapeBox_NameButton);
-    addGlobalFunc('function TShapeBox.CopyButton: TLazButton;', @_LapeSimbaShapeBox_CopyButton);
-    addGlobalFunc('function TShapeBox.DeleteButton: TLazButton;', @_LapeSimbaShapeBox_DeleteButton);
-    addGlobalFunc('function TShapeBox.DeleteAllButton: TLazButton;', @_LapeSimbaShapeBox_DeleteAllButton);
+    addGlobalFunc('property TShapeBox.NewButton: TLazButton;', @_LapeSimbaShapeBox_NewButton);
+    addGlobalFunc('property TShapeBox.PrintButton: TLazButton;', @_LapeSimbaShapeBox_PrintButton);
+    addGlobalFunc('property TShapeBox.ClearButton: TLazButton;', @_LapeSimbaShapeBox_ClearButton);
+    addGlobalFunc('property TShapeBox.Panel: TLazPanel;', @_LapeSimbaShapeBox_Panel);
 
     addGlobalFunc('procedure TShapeBox.ManualAddPoint(Point: TPoint; AName: String = ""); overload', @_LapeSimbaShapeBox_ManualAddPoint1);
     addGlobalFunc('procedure TShapeBox.ManualAddPoint(Point: TPoint; AName: String; constref UserData); overload; ', @_LapeSimbaShapeBox_ManualAddPoint2);
@@ -265,8 +230,6 @@ begin
     addGlobalFunc('procedure TShapeBox.ManualAddPoly(Point: TPointArray; AName: String; constref UserData); overload; ', @_LapeSimbaShapeBox_ManualAddPoly2);
     addGlobalFunc('procedure TShapeBox.ManualAddPath(Path: TPointArray; AName: String = "");', @_LapeSimbaShapeBox_ManualAddPath1);
     addGlobalFunc('procedure TShapeBox.ManualAddPath(Point: TPointArray; AName: String; constref UserData); overload; ', @_LapeSimbaShapeBox_ManualAddPath2);
-
-    addGlobalFunc('function TShapeBox.Panel: TLazPanel;', @_LapeSimbaShapeBox_Panel);
   end;
 end;
 

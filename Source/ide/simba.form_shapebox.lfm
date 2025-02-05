@@ -1,20 +1,19 @@
 object SimbaShapeBoxForm: TSimbaShapeBoxForm
-  Left = 2592
-  Height = 240
-  Top = 1075
-  Width = 320
+  Left = 1284
+  Height = 509
+  Top = 673
+  Width = 748
   Caption = 'Shape Box '
-  DesignTimePPI = 120
   Menu = MainMenu1
   OnCreate = FormCreate
   OnHide = FormHide
   OnShow = FormShow
   Position = poScreenCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '3.0.0.3'
+  LCLVersion = '3.6.0.0'
   object MainMenu1: TMainMenu
-    Left = 70
-    Top = 63
+    Left = 56
+    Top = 50
     object MenuItem1: TMenuItem
       Caption = 'File'
       object MenuItem3: TMenuItem
@@ -32,10 +31,14 @@ object SimbaShapeBoxForm: TSimbaShapeBoxForm
         Caption = 'Load Image'
         OnClick = MenuItemLoadImageClick
       end
+      object MenuItemLoadTargetImage: TMenuItem
+        Caption = 'Load Target Image'
+        OnClick = MenuItemLoadTargetImageClick
+      end
     end
   end
   object OpenDialog: TOpenDialog
-    Left = 184
-    Top = 67
+    Left = 147
+    Top = 54
   end
 end

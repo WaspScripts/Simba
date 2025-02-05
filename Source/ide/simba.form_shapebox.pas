@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus,
-  simba.base, simba.component_shapebox, simba.env, simba.image;
+  simba.base, simba.component_shapebox, simba.env, simba.image, simba.ide_maintoolbar;
 
 type
   TSimbaShapeBoxForm = class(TForm)
@@ -20,13 +20,16 @@ type
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
+    MenuItemLoadTargetImage: TMenuItem;
     MenuItemLoadImage: TMenuItem;
     OpenDialog: TOpenDialog;
+
     procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure MenuItemLoadTargetImageClick(Sender: TObject);
     procedure MenuItemLoadImageClick(Sender: TObject);
   public
     ShapeBox: TSimbaShapeBox;
@@ -56,7 +59,7 @@ end;
 procedure TSimbaShapeBoxForm.FormShow(Sender: TObject);
 begin
   if (ShapeBox.Background.Width = 0) and (ShapeBox.Background.Height = 0) then
-    ShapeBox.Background.SetSize(1000, 1000);
+    ShapeBox.SetImage(TSimbaImage.Create(1500, 1500));
 
   ShapeBox.LoadFromFile(SimbaEnv.DataPath + 'shapes');
 end;
@@ -71,6 +74,12 @@ procedure TSimbaShapeBoxForm.MenuItem4Click(Sender: TObject);
 begin
   if OpenDialog.Execute() then
     ShapeBox.SaveToFile(OpenDialog.FileName);
+end;
+
+procedure TSimbaShapeBoxForm.MenuItemLoadTargetImageClick(Sender: TObject);
+begin
+  if (SimbaMainToolBar.WindowSelection > 0) then
+    ShapeBox.SetImage(TSimbaImage.CreateFromWindow(SimbaMainToolBar.WindowSelection));
 end;
 
 procedure TSimbaShapeBoxForm.MenuItemLoadImageClick(Sender: TObject);

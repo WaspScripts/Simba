@@ -10,7 +10,7 @@ unit simba.ide_theme;
 interface
 
 uses
-  Classes, SysUtils, Graphics, Forms,
+  Classes, SysUtils, Graphics, Forms, LCLType,
   ATScrollBar;
 
 type
@@ -63,7 +63,7 @@ end;
 
 function TSimbaTheme.GetScrollBarSize: Integer;
 begin
-  Result := ATScrollbarTheme.InitialSize;
+  Result := MulDiv(ATScrollbarTheme.InitialSize + 4, Screen.PixelsPerInch, 96);
 end;
 
 procedure TSimbaTheme.SetScrollBarArrowSize(Value: Integer);
@@ -73,7 +73,7 @@ end;
 
 procedure TSimbaTheme.SetScrollBarSize(Value: Integer);
 begin
-  ATScrollbarTheme.InitialSize := Value;
+  ATScrollbarTheme.InitialSize := MulDiv(Value, Screen.PixelsPerInch, 96);
 end;
 
 procedure TSimbaTheme.AddNativeWindowColoring(Sender: TObject);

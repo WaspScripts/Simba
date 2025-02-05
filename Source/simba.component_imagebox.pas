@@ -860,6 +860,8 @@ begin
   LazImage_FromSimbaImage(FBackground, Img);
   if DoFree then
     Img.Free();
+
+  FImageScrollBox.BackgroundResized();
 end;
 
 procedure TSimbaImageBox.SetStatus(Value: String);
