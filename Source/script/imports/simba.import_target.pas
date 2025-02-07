@@ -13,7 +13,6 @@ procedure ImportTarget(Script: TSimbaScript);
 implementation
 
 uses
-  TypInfo,
   lptypes, lpvartypes, ffi,
   simba.colormath, simba.dtm, simba.misc,
   simba.image, simba.target, simba.externalcanvas, simba.finder_image, simba.finder_color,
@@ -23,6 +22,7 @@ type
   PSimbaTarget = ^TSimbaTarget;
   PMouseButton = ^EMouseButton;
   PKeyCode = ^EKeyCode;
+  PTargetEvent = ^ETargetEvent;
 
 (*
 Target
@@ -348,24 +348,32 @@ end;
 TTarget.AddEvent
 ----------------
 ```
-function TTarget.AddEvent(EventType: ETargetEventType; Event: TMouseEvent): TMouseEvent;
+function TTarget.AddEvent(EventType: ETargetEvent; Event: TTargetEvent): TTargetEvent;
 ```
+
+Add an event. Valid events are:
+
+  - `ETargetEvent.TARGET_CHANGE`
+  - `ETargetEvent.TARGET_INVALID`
+  - `ETargetEvent.TARGET_RESIZE`
+  - `ETargetEvent.MOUSE_TELEPORT`
+  - `ETargetEvent.MOUSE_BUTTON`
 *)
 procedure _LapeTarget_AddEvent(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  TSimbaTarget.TEvent(Result^) := PSimbaTarget(Params^[0])^.AddEvent(ETargetEventType(Params^[1]^), TSimbaTarget.TEvent(Params^[2]^));
+  TSimbaTarget.TEvent(Result^) := PSimbaTarget(Params^[0])^.AddEvent(PTargetEvent(Params^[1])^, TSimbaTarget.TEvent(Params^[2]^));
 end;
 
 (*
 TTarget.RemoveEvent
 -------------------
 ```
-procedure TTarget.RemoveEvent(EventType: ETargetEventType; Event: TMouseEvent);
+procedure TTarget.RemoveEvent(EventType: ETargetEvent; Event: TTargetEvent);
 ```
 *)
 procedure _LapeTarget_RemoveEvent(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(Params^[0])^.RemoveEvent(ETargetEventType(Params^[1]^), TSimbaTarget.TEvent(Params^[2]^));
+  PSimbaTarget(Params^[0])^.RemoveEvent(PTargetEvent(Params^[1])^, TSimbaTarget.TEvent(Params^[2]^));
 end;
 
 (*
@@ -901,7 +909,7 @@ end;
 TTarget.GetPixelDifference
 --------------------------
 ```
-function TTarget.GetPixelDifference(WaitTime: Integer; Area: TBox = [-1,-1,-1,-1]): Integer;
+function TTarget.GetPixelDifference(WaitTime: Integer; Bounds: TBox = [-1,-1,-1,-1]): Integer;
 ```
 *)
 procedure _LapeFinder_GetPixelDifference1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -913,7 +921,7 @@ end;
 TTarget.GetPixelDifference
 --------------------------
 ```
-function TTarget.GetPixelDifference(WaitTime, Tolerance: Single; Area: TBox = [-1,-1,-1,-1]): Integer;
+function TTarget.GetPixelDifference(WaitTime, Tolerance: Single; Bounds: TBox = [-1,-1,-1,-1]): Integer;
 ```
 *)
 procedure _LapeFinder_GetPixelDifference2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -925,7 +933,7 @@ end;
 TTarget.GetPixelDifferenceTPA
 -----------------------------
 ```
-function TTarget.GetPixelDifferenceTPA(WaitTime: Integer; Area: TBox = [-1,-1,-1,-1]): TPointArray;
+function TTarget.GetPixelDifferenceTPA(WaitTime: Integer; Bounds: TBox = [-1,-1,-1,-1]): TPointArray;
 ```
 *)
 procedure _LapeFinder_GetPixelDifferenceTPA1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -937,7 +945,7 @@ end;
 TTarget.GetPixelDifferenceTPA
 -----------------------------
 ```
-function TTarget.GetPixelDifferenceTPA(WaitTime, Tolerance: Single; Area: TBox = [-1,-1,-1,-1]): TPointArray;
+function TTarget.GetPixelDifferenceTPA(WaitTime, Tolerance: Single; Bounds: TBox = [-1,-1,-1,-1]): TPointArray;
 ```
 *)
 procedure _LapeFinder_GetPixelDifferenceTPA2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -949,7 +957,7 @@ end;
 TTarget.AverageBrightness
 -------------------------
 ```
-function TTarget.AverageBrightness(Area: TBox = [-1,-1,-1,-1]): Integer;
+function TTarget.AverageBrightness(Bounds: TBox = [-1,-1,-1,-1]): Integer;
 ```
 *)
 procedure _LapeFinder_AverageBrightness(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -961,7 +969,7 @@ end;
 TTarget.PeakBrightness
 ----------------------
 ```
-function TTarget.PeakBrightness(Area: TBox = [-1,-1,-1,-1]): Integer;
+function TTarget.PeakBrightness(Bounds: TBox = [-1,-1,-1,-1]): Integer;
 ```
 *)
 procedure _LapeFinder_PeakBrightness(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -1018,16 +1026,16 @@ begin
     end;
 
     addGlobalType(specialize GetEnumDecl<ESimbaTargetKind>(True, False), 'ETargetKind');
-    addGlobalType(specialize GetEnumDecl<ETargetEventType>(True, False), 'ETargetEventType');
+    addGlobalType(specialize GetEnumDecl<ETargetEvent>(True, False), 'ETargetEvent');
     addGlobalType(specialize GetEnumDecl<EMouseButton>(True, False), 'EMouseButton');
     addGlobalType(specialize GetEnumDecl<EKeyCode>(True, True), 'EKeyCode');
 
     addGlobalType([
       'record',
-      '  EventType: ETargetEventType;',
+      '  EventType: ETargetEvent;',
       '',
       '  TargetResize: record',
-      '    { nothing }',
+      '    Width, Height: Integer;',
       '  end;',
       '',
       '  TargetChange: record',
@@ -1053,8 +1061,8 @@ begin
 
     addGlobalType('procedure(var Target: TTarget; Data: TTargetEventData) of object', 'TTargetEvent', FFI_DEFAULT_ABI);
 
-    addGlobalFunc('function TTarget.AddEvent(EventType: ETargetEventType; Event: TTargetEvent): TTargetEvent', @_LapeTarget_AddEvent);
-    addGlobalFunc('procedure TTarget.RemoveEvent(EventType: ETargetEventType; Event: TTargetEvent)', @_LapeTarget_RemoveEvent);
+    addGlobalFunc('function TTarget.AddEvent(EventType: ETargetEvent; Event: TTargetEvent): TTargetEvent', @_LapeTarget_AddEvent);
+    addGlobalFunc('procedure TTarget.RemoveEvent(EventType: ETargetEvent; Event: TTargetEvent)', @_LapeTarget_RemoveEvent);
 
     addGlobalFunc('procedure TTarget.SetDesktop', @_LapeTarget_SetDesktop);
     addGlobalFunc('procedure TTarget.SetImage(TImage: TImage)', @_LapeTarget_SetImage);
@@ -1071,7 +1079,6 @@ begin
     addGlobalFunc('function TTarget.IsValid: Boolean', @_LapeTarget_IsValid);
     addGlobalFunc('function TTarget.IsFocused: Boolean', @_LapeTarget_IsFocused);
     addGlobalFunc('function TTarget.Focus: Boolean', @_LapeTarget_Focus);
-
     addGlobalFunc('function TTarget.ToString: String;', @_LapeTarget_ToString);
 
     addProperty('TTarget', 'AutoFocus', 'Boolean', @_LapeTarget_GetAutoFocus, @_LapeTarget_SetAutoFocus);
@@ -1139,16 +1146,16 @@ begin
     addGlobalFunc('function TTarget.FindDTMRotated(DTM: TDTM; StartDegrees, EndDegrees: Double; Step: Double; out FoundDegrees: TDoubleArray; Bounds: TBox = [-1,-1,-1,-1]): TPoint', @_LapeTarget_FindDTMRotated);
     addGlobalFunc('function TTarget.FindDTMRotatedEx(DTM: TDTM; StartDegrees, EndDegrees: Double; Step: Double; out FoundDegrees: TDoubleArray; MaxToFind: Integer = -1; Bounds: TBox = [-1,-1,-1,-1]): TPointArray', @_LapeTarget_FindDTMRotatedEx);
 
-    addGlobalFunc('function TTarget.GetPixelDifference(WaitTime: Integer; Area: TBox): Integer; overload;', @_LapeFinder_GetPixelDifference1);
-    addGlobalFunc('function TTarget.GetPixelDifference(WaitTime: Integer; Tolerance: Single; Area: TBox): Integer; overload;', @_LapeFinder_GetPixelDifference2);
-    addGlobalFunc('function TTarget.GetPixelDifferenceTPA(WaitTime: Integer; Area: TBox): TPointArray; overload;', @_LapeFinder_GetPixelDifferenceTPA1);
-    addGlobalFunc('function TTarget.GetPixelDifferenceTPA(WaitTime: Integer; Tolerance: Single; Area: TBox): TPointArray; overload;', @_LapeFinder_GetPixelDifferenceTPA2);
+    addGlobalFunc('function TTarget.GetPixelDifference(WaitTime: Integer; Bounds: TBox = [-1,-1,-1,-1]): Integer; overload;', @_LapeFinder_GetPixelDifference1);
+    addGlobalFunc('function TTarget.GetPixelDifference(WaitTime: Integer; Tolerance: Single; Bounds: TBox = [-1,-1,-1,-1]): Integer; overload;', @_LapeFinder_GetPixelDifference2);
+    addGlobalFunc('function TTarget.GetPixelDifferenceTPA(WaitTime: Integer; Bounds: TBox = [-1,-1,-1,-1]): TPointArray; overload;', @_LapeFinder_GetPixelDifferenceTPA1);
+    addGlobalFunc('function TTarget.GetPixelDifferenceTPA(WaitTime: Integer; Tolerance: Single; Bounds: TBox = [-1,-1,-1,-1]): TPointArray; overload;', @_LapeFinder_GetPixelDifferenceTPA2);
 
     addGlobalFunc('function TTarget.FindEdges(MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; Bounds: TBox = [-1,-1,-1,-1]): TPointArray; overload;', @_LapeFinder_FindEdges1);
     addGlobalFunc('function TTarget.FindEdges(MinDiff: Single; Bounds: TBox = [-1,-1,-1,-1]): TPointArray; overload;', @_LapeFinder_FindEdges2);
 
-    addGlobalFunc('function TTarget.AverageBrightness(Area: TBox = [-1,-1,-1,-1]): Integer;', @_LapeFinder_AverageBrightness);
-    addGlobalFunc('function TTarget.PeakBrightness(Area: TBox = [-1,-1,-1,-1]): Integer;', @_LapeFinder_PeakBrightness);
+    addGlobalFunc('function TTarget.AverageBrightness(Bounds: TBox = [-1,-1,-1,-1]): Integer;', @_LapeFinder_AverageBrightness);
+    addGlobalFunc('function TTarget.PeakBrightness(Bounds: TBox = [-1,-1,-1,-1]): Integer;', @_LapeFinder_PeakBrightness);
 
     addDelayedCode([
       'function ToString(constref Target: TTarget): String; override;',

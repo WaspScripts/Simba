@@ -67,17 +67,17 @@ type
   end;
 
   {$scopedenums on}
-  ETargetEventType = (
+  ETargetEvent = (
     TARGET_CHANGE, TARGET_INVALID, TARGET_RESIZE,
     MOUSE_TELEPORT, MOUSE_BUTTON
   );
   {$scopedenums off}
 
   TTargetEventData = record
-    EventType: ETargetEventType;
+    Event: ETargetEvent;
 
     TargetResize: record
-      { nothing }
+      Width, Height: Integer;
     end;
     TargetChange: record
       { nothing }
@@ -109,14 +109,14 @@ type
       Data: array of TColorBGRA;
     end;
     FEvents: array of record
-      EventType: ETargetEventType;
+      Event: ETargetEvent;
       Method: TEvent;
     end;
     FCustomClientArea: TBox;
     FAutoFocus: Boolean;
     FLastSize: TSize;
 
-    function HasEvent(EventType: ETargetEventType): Boolean;
+    function HasEvent(Event: ETargetEvent): Boolean;
     procedure CallEvent(var Data: TTargetEventData);
 
     function ValidateBounds(var ABounds: TBox): Boolean;
@@ -156,8 +156,8 @@ type
       MaxPressTime: Integer;
     end;
 
-    function AddEvent(EventType: ETargetEventType; Method: TEvent): TEvent;
-    procedure RemoveEvent(EventType: ETargetEventType; Method: TEvent);
+    function AddEvent(Event: ETargetEvent; Method: TEvent): TEvent;
+    procedure RemoveEvent(Event: ETargetEvent; Method: TEvent);
 
     // target
     procedure SetDesktop;
@@ -317,7 +317,7 @@ begin
   CheckMethod(FTarget.MouseTeleport, 'MouseTeleport');
 
   EventData := Default(TTargetEventData);
-  EventData.EventType := ETargetEventType.MOUSE_TELEPORT;
+  EventData.Event := ETargetEvent.MOUSE_TELEPORT;
   EventData.MouseTeleport.X := P.X;
   EventData.MouseTeleport.Y := P.Y;
   CallEvent(EventData);
@@ -333,7 +333,7 @@ begin
   CheckAutoFocus();
 
   EventData := Default(TTargetEventData);
-  EventData.EventType := ETargetEventType.MOUSE_BUTTON;
+  EventData.Event := ETargetEvent.MOUSE_BUTTON;
   EventData.MouseButton.Button := Button;
   EventData.MouseButton.Down := True;
 
@@ -350,7 +350,7 @@ begin
   CheckAutoFocus();
 
   EventData := Default(TTargetEventData);
-  EventData.EventType := ETargetEventType.MOUSE_BUTTON;
+  EventData.Event := ETargetEvent.MOUSE_BUTTON;
   EventData.MouseButton.Button := Button;
   EventData.MouseButton.Down := False;
 
@@ -708,11 +708,13 @@ procedure TSimbaTarget.CheckResize(NewSize: TSize);
 var
   EventData: TTargetEventData;
 begin
-  if (FLastSize = NewSize) or (not HasEvent(ETargetEventType.TARGET_RESIZE)) then
+  if (FLastSize = NewSize) or (not HasEvent(ETargetEvent.TARGET_RESIZE)) then
     Exit;
 
   EventData := Default(TTargetEventData);
-  EventData.EventType := ETargetEventType.TARGET_RESIZE;
+  EventData.Event := ETargetEvent.TARGET_RESIZE;
+  EventData.TargetResize.Width := NewSize.Width;
+  EventData.TargetResize.Height := NewSize.Height;
   CallEvent(EventData);
 
   FLastSize := NewSize;
@@ -750,12 +752,12 @@ begin
   MouseTeleport(Value);
 end;
 
-function TSimbaTarget.HasEvent(EventType: ETargetEventType): Boolean;
+function TSimbaTarget.HasEvent(Event: ETargetEvent): Boolean;
 var
   I: Integer;
 begin
   for I := 0 to High(FEvents) do
-    if (FEvents[I].EventType = EventType) then
+    if (FEvents[I].Event = Event) then
       Exit(True);
   Result := False;
 end;
@@ -765,25 +767,25 @@ var
   I: Integer;
 begin
   for I := 0 to High(FEvents) do
-    if (FEvents[I].EventType = Data.EventType) then
+    if (FEvents[I].Event = Data.Event) then
       FEvents[I].Method(Self, Data);
 end;
 
-function TSimbaTarget.AddEvent(EventType: ETargetEventType; Method: TEvent): TEvent;
+function TSimbaTarget.AddEvent(Event: ETargetEvent; Method: TEvent): TEvent;
 begin
   SetLength(FEvents, Length(FEvents) + 1);
-  FEvents[High(FEvents)].EventType := EventType;
+  FEvents[High(FEvents)].Event := Event;
   FEvents[High(FEvents)].Method := Method;
 
   Result := Method;
 end;
 
-procedure TSimbaTarget.RemoveEvent(EventType: ETargetEventType; Method: TEvent);
+procedure TSimbaTarget.RemoveEvent(Event: ETargetEvent; Method: TEvent);
 var
   I: Integer;
 begin
   for I := High(FEvents) downto 0 do
-    if (FEvents[I].EventType = EventType) and (FEvents[I].Method = Method) then
+    if (FEvents[I].Event = Event) and (FEvents[I].Method = Method) then
       Delete(FEvents, I, 1);
 end;
 
@@ -798,7 +800,7 @@ var
   EventData: TTargetEventData;
 begin
   EventData := Default(TTargetEventData);
-  EventData.EventType := ETargetEventType.TARGET_CHANGE;
+  EventData.Event := ETargetEvent.TARGET_CHANGE;
 
   CallEvent(EventData);
 end;
@@ -811,10 +813,10 @@ begin
   if IsValid() then
     Exit;
 
-  if HasEvent(ETargetEventType.TARGET_INVALID) then
+  if HasEvent(ETargetEvent.TARGET_INVALID) then
   begin
     EventData := Default(TTargetEventData);
-    EventData.EventType := ETargetEventType.TARGET_INVALID;
+    EventData.Event := ETargetEvent.TARGET_INVALID;
 
     for Attempt := 1 to 5 do
     begin
