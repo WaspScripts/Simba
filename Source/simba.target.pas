@@ -710,14 +710,13 @@ var
 begin
   if (FLastSize = NewSize) or (not HasEvent(ETargetEvent.TARGET_RESIZE)) then
     Exit;
+  FLastSize := NewSize;
 
   EventData := Default(TTargetEventData);
   EventData.Event := ETargetEvent.TARGET_RESIZE;
   EventData.TargetResize.Width := NewSize.Width;
   EventData.TargetResize.Height := NewSize.Height;
   CallEvent(EventData);
-
-  FLastSize := NewSize;
 end;
 
 function TSimbaTarget.GetMouseX: Integer;
