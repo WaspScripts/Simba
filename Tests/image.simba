@@ -135,6 +135,45 @@ begin
   img2.Free();
 end;
 
+procedure TestFindAlpha;
+var
+  img: TImage;
+  tpa: TPointArray;
+begin
+  img := TImage.Create(500,500);
+  img.Alpha[10,10] := 1;
+  img.Alpha[100,100] := 1;
+  img.Alpha[499,499] := 1;
+  img.Alpha[123,123] := 1;
+
+  tpa := img.FindAlpha(1);
+  Assert(tpa.Length = 4);
+  Assert(tpa[0] = [10,10]);
+  Assert(tpa[1] = [100,100]);
+  Assert(tpa[2] = [123,123]);
+  Assert(tpa[3] = [499,499]);
+
+  img.Free();
+end;
+
+procedure TestFindImage;
+var
+  img: TImage := TImage.CreateFromString('IMG:AQAAAD4AAAAyAAAAAAAAADB6HggAAAAAwPtcBwAAAAAATtwGAAAAAABO3AYAAAAAcP1cBwAAAAD5ZAgAAQAAAAAAAAAAAAAAkLAgCAAAAAAAAAAAAAAAAHDFHggAAAAAMgAAAAAAAACYj9gGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAODQXQABiVBORw0KGgoAAAANSUhEUgAAAD4AAAAyCAIAAACLYf9oAAADu0lEQVR4nO2Zb0tTYRjGh73oRdCrehEFfQFZ0TtFMaIXIREqlaDRJwjKyD8bW5uaZamZ4aQ/FJKClsZwOsecWioV9Km61zWvPXvOebYz3Xa2En4cpjuw3zl77vu5zj3P71+74OfeNgk9uGbLxnqUrMe+ENP5yx96yezre+T9804yNdhBXvhvkBF/axZfMwn2NACPrfre9w1BldjeWBOKUk8uBsuufuHicai3eU9AXV7AXoB0seriXSp10TvbflLAi0udp3V10YW6/CkcRh3eJVGHDNThDdLq4nr+zCksEtxsOfVbah1HwaSbikaI6h2d7SOq7sfxLqLqPhu4TsZClwmWh2Z8tetcRr1vX10QV1HHVVahuvjwArLqQF0nvADX1WFCeOOz6lwqBN6uq4O6Y3Wqm3in1XGbUaNYM7vbyc1kjJh0Vz9PAq1G5yP3iao7PXyTjPS2ZlEUh/ubSNjXSERUlnR3cxq/rwF42EnEGOqCc3VrW3RHnThUt3rH5nxlUiclULfdQd1RZ11qpbkVe0PiS6+Arffiu4fCp8k7JEdX2dhVRW7sgv+Rgs+e8GMvqHF1tHMxlgKFurzIo27Kia6po7dgHxVqQF2KUvoOShNtUbylInHUSjO2MCGY1K3RanyojeQEV7XscnWtOdEf9vYH6lXwVkZdyzBuqZtyouadVQf4FxoiL6DC6qacqKrznIw6lwqx7eUVU9dyor06WwozjJRmLLpAEstTRJ4eTN5gYfruzNgtosYptTRN5WjKiT2BesJ3PfJ57OXMMG6po3VoObFf8SZyjgcfqW1DJvX83uDw6gLDFhaJVV2ofXUrqZUZwFxuGxWtTD3tIKOBFpKnl2cJe4lamv+NOu2P1MugzvFQOdQd5pbDqidWl4XSrvXyqof2R6FQB/R2S92aH/Ot9epRN+VHe3W568n4V6I+XhSrPvmknRi3obzqpvxYS+pafjSudSfqsTlfBdSd5MecDlM96kDLjzZlWnCAoakXtC+VuvREhjD75vhvqsvXBHV5+IB6+imkkH0J1QtsSQXV8dwk3lhzVaS+s5UA6oh0bWVRkO9LjvGlV6IuR/GOz/txFJxsSUXHLwVt9mKlgLo2n6kZdZCR/juy4wXUgDqXCoF3Vahz+qX+tMscps5nUtEIf8vNM9V4O3GbvBy8QoYDTcR21G8aiwoHUU+nyGiE85naUydH6iVS/7GzCdSfwVKJFaKOk5wE4NnpbqKWrDpOGh1qIeolhUONJBhosGUgmOHg6qY9tWLqfwD+5bNjLEzDrgAAAABJRU5ErkJggg==');
+  templ: TImage := TImage.CreateFromString('IMG:AQAAAAkAAAAJAAAAAAAAAIDjPwEAAAAA7joBAAEAAACQ4z8BAAAAALEMAQABAAAAFBpxCQAAAAB0G3EJAAAAACQAAAAkAAAAFBpxCQAAAAABAAAACQAAAAkAAAAgAAAAAAAAAAAAAAAAAAAAAwAAACAIEAgICAAIGAEAAAIAAAAAAAAAAAAAAAAAAAAAiVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAIAAABv85FHAAAABnRSTlMAAAAAAABupgeRAAAATElEQVR4nGNgYGDQN2CXDuQDIgjDKFyUAQKAfLgcRAKCQHJoQi5RMljkgLrhKqByEDPhCK6VAQ6YmJmQVTCgAXlJkWhbEEKXICCHCQBkcxj8Wm6Q0QAAAABJRU5ErkJggg==');
+  img2: TImage;
+begin
+  Assert(img.FindImage(templ) = [47, 16]);
+
+  img2 := img.Brightness(25);
+  Assert(img2.FindImage(templ, 1) = [-1, -1]);
+  Assert(img2.FindImage(templ, 10) = [47, 16]);
+  Assert(img2.FindImage(templ, 100) = [0,0]);
+
+  img.Free();
+  img2.Free();
+  templ.Free();
+end;
+
 begin
   img := TImage.Create(100,100);
 
@@ -149,6 +188,8 @@ begin
   TestAlphaDraw();
   TestDifference();
   TestToString();
+  TestFindAlpha();
+  TestFindImage();
 
   img.Free();
 end.

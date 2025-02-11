@@ -508,8 +508,7 @@ var
   Level, Max, Min, I, J, NumPixels: Integer;
   Mean, Variance: Single;
   Mu, Omega, LevelMean, LargestMu: Single;
-  Upper: PtrUInt;
-  Ptr: PColorBGRA;
+  Ptr, Upper: PColorBGRA;
 begin
   Result := Image.GreyScale();
 
@@ -520,9 +519,9 @@ begin
   NumPixels := Result.Width * Result.Height;
 
   // Compute histogram and determine min and max pixel values
-  Upper := PtrUInt(Result.Data) + Result.DataSize;
   Ptr := Result.Data;
-  while (PtrUInt(Ptr) < Upper) do
+  Upper := Result.DataUpper;
+  while (Ptr <= Upper) do
   begin
     Histogram[Ptr^.R] := Histogram[Ptr^.R] + 1.0;
     if (Ptr^.R < Min) then
@@ -577,7 +576,7 @@ begin
 
   // Do thresholding using computed level
   Ptr := Result.Data;
-  while (PtrUInt(Ptr) < Upper) do
+  while (Ptr <= Upper) do
   begin
     if (Invert and (Ptr^.R <= Level)) or ((not Invert) and (Ptr^.R >= Level)) then
       Ptr^.AsInteger := $FFFFFFFF
@@ -698,8 +697,9 @@ begin
   Old := TSimbaColorConversion.ColorToBGRA(OldColor);
   New := TSimbaColorConversion.ColorToBGRA(NewColor, ALPHA_OPAQUE);
 
-  Image.DataRange(Ptr, Upper);
-  while (PtrUInt(Ptr) < PtrUInt(Upper)) do
+  Ptr := Image.Data;
+  Upper := Image.DataUpper;
+  while (Ptr <= Upper) do
   begin
     if SimilarRGB(Old, Ptr^, Tol) then
       Ptr^ := New;
@@ -717,8 +717,9 @@ var
 begin
   Col := TSimbaColorConversion.ColorToBGRA(Color);
 
-  Image.DataRange(Ptr, Upper);
-  while (PtrUInt(Ptr) < PtrUInt(Upper)) do
+  Ptr := Image.Data;
+  Upper := Image.DataUpper;
+  while (Ptr <= Upper) do
   begin
     if SimilarRGB(Col, Ptr^, Tol) then
       Ptr^ := WHITE
@@ -744,8 +745,9 @@ begin
   for I := 0 to High(Colors) do
     Cols[I] := TSimbaColorConversion.ColorToBGRA(Colors[I]);
 
-  Image.DataRange(Ptr, Upper);
-  while (PtrUInt(Ptr) < PtrUInt(Upper)) do
+  Ptr := Image.Data;
+  Upper := Image.DataUpper;
+  while (Ptr <= Upper) do
   begin
     for I := 0 to High(Cols) do
       if SimilarRGB(Cols[I], Ptr^, Tol) then

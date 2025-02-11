@@ -42,7 +42,7 @@ type
     FCenter: TPoint;
 
     FData: PColorBGRA;
-    FDataSize: SizeUInt;
+    FDataUpper: PColorBGRA;
     FDataOwner: Boolean;
 
     FLineStarts: TSimbaImageLineStarts;
@@ -68,6 +68,7 @@ type
     function GetFontItalic: Boolean;
     function GetLineStart(const Y: Integer): PColorBGRA;
     function GetDrawColorAsBGRA: TColorBGRA;
+    function GetDataSize: SizeUInt;
 
     procedure SetPixel(const X, Y: Integer; const Color: TColor);
     procedure SetAlpha(const X, Y: Integer; const Value: Byte);
@@ -93,9 +94,11 @@ type
     constructor CreateFromMatrix(Mat: TSingleMatrix; ColorMapType: Integer = 0); overload;
     destructor Destroy; override;
 
-    property Data: PColorBGRA read FData;
-    property DataSize: SizeUInt read FDataSize;
     property DataOwner: Boolean read FDataOwner;
+    property Data: PColorBGRA read FData; // @data[0]
+    property DataUpper: PColorBGRA read FDataUpper; // @data[high(data)]
+    property DataSize: SizeUInt read GetDataSize; // width*height*4
+
     property Width: Integer read FWidth;
     property Height: Integer read FHeight;
     property Center: TPoint read FCenter;
@@ -116,7 +119,6 @@ type
     property Pixel[X, Y: Integer]: TColor read GetPixel write SetPixel; default;
     property Alpha[X, Y: Integer]: Byte read GetAlpha write SetAlpha;
 
-    procedure DataRange(out Lo, Hi: PColorBGRA);
     function InImage(const X, Y: Integer): Boolean;
 
     procedure SetSize(NewWidth, NewHeight: Integer);
@@ -263,6 +265,7 @@ type
     // Basic finders, use Target.SetTarget(img) for all
     function FindColor(Color: TColor; Tolerance: Single): TPointArray;
     function FindImage(Image: TSimbaImage; Tolerance: Single): TPoint;
+    function FindAlpha(Value: Byte): TPointArray;
   end;
 
   PSimbaImage = ^TSimbaImage;
@@ -286,8 +289,7 @@ uses
   simba.zip,
   simba.nativeinterface,
   simba.containers,
-  simba.threading,
-  simba.target;
+  simba.threading;
 
 function TSimbaImage.Copy: TSimbaImage;
 begin
@@ -723,7 +725,6 @@ end;
 
 function TSimbaImage.PixelDifference(Other: TSimbaImage; Tolerance: Single): Integer;
 var
-  Upper: PtrUInt;
   P1, P2: PColorBGRA;
 begin
   Result := 0;
@@ -732,9 +733,7 @@ begin
 
   P1 := Data;
   P2 := Other.Data;
-
-  Upper := PtrUInt(P1) + FDataSize;
-  while (PtrUInt(P1) < PtrUInt(Upper)) do
+  while (P1 <= FDataUpper) do
   begin
     if (not SimilarRGB(P1^, P2^, Tolerance)) then
       Inc(Result);
@@ -746,8 +745,8 @@ end;
 
 function TSimbaImage.PixelDifferenceTPA(Other: TSimbaImage; Tolerance: Single): TPointArray;
 var
-  I: Integer;
   P1, P2: PColorBGRA;
+  I: Integer;
   Buffer: TSimbaPointBuffer;
 begin
   if (FWidth <> Other.Width) or (FHeight <> Other.Height) then
@@ -785,18 +784,108 @@ end;
 
 function TSimbaImage.FindColor(Color: TColor; Tolerance: Single): TPointArray;
 var
-  Target: TSimbaTarget;
+  Col: TColorBGRA;
+  Ptr: PColorBGRA;
+  X,Y,W,H: Integer;
+  Buffer: TSimbaPointBuffer;
 begin
-  Target.SetImage(Self);
-  Result := Target.FindColor(Color, Tolerance, Target.Bounds);
+  Col := TSimbaColorConversion.ColorToBGRA(Color);
+  Ptr := FData;
+
+  W := FWidth - 1;
+  H := FHeight - 1;
+  for Y := 0 to H do
+    for X := 0 to W do
+    begin
+      if SimilarRGB(Col, Ptr^, Tolerance) then
+        Buffer.Add(X, Y);
+
+      Inc(Ptr);
+    end;
+
+  Result := Buffer.ToArray(False);
 end;
 
 function TSimbaImage.FindImage(Image: TSimbaImage; Tolerance: Single): TPoint;
+
+  function Match(const Ptr: TColorBGRA; const ImagePtr: TColorBGRA): Boolean; inline;
+  begin
+    Result := (ImagePtr.A = ALPHA_TRANSPARENT) or SimilarRGB(Ptr, ImagePtr, Tolerance);
+  end;
+
+  function Hit(Ptr: PColorBGRA): Boolean;
+  var
+    X, Y: Integer;
+    ImagePtr: PColorBGRA;
+  begin
+    ImagePtr := Image.Data;
+
+    for Y := 0 to Image.Height - 1 do
+    begin
+      for X := 0 to Image.Width - 1 do
+      begin
+        if (not Match(Ptr^, ImagePtr^)) then
+          Exit(False);
+        Inc(ImagePtr);
+        Inc(Ptr);
+      end;
+
+      Inc(Ptr, FWidth - Image.Width);
+    end;
+
+    Result := True;
+  end;
+
 var
-  Target: TSimbaTarget;
+  SearchWidth, SearchHeight: Integer;
+  Ptr: PColorBGRA;
+  X, Y: Integer;
 begin
-  Target.SetImage(Self);
-  Result := Target.FindImage(Image, Tolerance, Target.Bounds);
+  SearchWidth := (FWidth - Image.Width) - 1;
+  SearchHeight := (FHeight - Image.Height) - 1;
+  Ptr := FData;
+
+  for Y := 0 to SearchHeight do
+  begin
+    Ptr := @FData[Y * FWidth];
+    for X := 0 to SearchWidth do
+    begin
+      if Hit(Ptr) then
+      begin
+        Result.X := X;
+        Result.Y := Y;
+
+        Exit;
+      end;
+
+      Inc(Ptr);
+    end;
+  end;
+
+  Result.X := -1;
+  Result.Y := -1;
+end;
+
+function TSimbaImage.FindAlpha(Value: Byte): TPointArray;
+var
+  Ptr: PColorBGRA;
+  X,Y,W,H: Integer;
+  Buffer: TSimbaPointBuffer;
+begin
+  Ptr := FData;
+
+  W := FWidth-1;
+  H := FHeight-1;
+  for Y := 0 to H do
+    for X := 0 to W do
+    begin
+      if (Ptr^.A = Value) then
+        Buffer.Add(X, Y);
+
+      Inc(Ptr);
+    end;
+
+  Result := Buffer.ToArray(False);
 end;
 
 procedure TSimbaImage.DrawTPA(TPA: TPointArray);
@@ -1114,13 +1203,10 @@ end;
 
 procedure TSimbaImage.FillWithAlpha(Value: Byte);
 var
-  Upper: PtrUInt;
   Ptr: PColorBGRA;
 begin
-  Upper := PtrUInt(@FData[FWidth * FHeight]);
   Ptr := FData;
-
-  while (PtrUInt(Ptr) < Upper) do
+  while (Ptr <= FDataUpper) do
   begin
     Ptr^.A := Value;
 
@@ -1169,7 +1255,6 @@ end;
 
 procedure TSimbaImage.SplitChannels(var B,G,R: TByteArray);
 var
-  Upper: PtrUInt;
   Src: PColorBGRA;
   DestB, DestG, DestR: PByte;
 begin
@@ -1182,8 +1267,7 @@ begin
   DestR := @R[0];
 
   Src := FData;
-  Upper := PtrUInt(FData) + FDataSize;
-  while (PtrUInt(Src) < Upper) do
+  while (Src <= FDataUpper) do
   begin
     DestB^ := Src^.B;
     DestG^ := Src^.G;
@@ -1200,7 +1284,6 @@ procedure TSimbaImage.FromChannels(const B,G,R: TByteArray; W, H: Integer);
 var
   Dst: PColorBGRA;
   SrcB, SrcG, SrcR: PByte;
-  Upper: PtrUInt;
 begin
   SetSize(W, H);
   if (Length(B) <> W*H) or (Length(G) <> W*H) or (Length(R) <> W*H) then
@@ -1211,8 +1294,7 @@ begin
   SrcG := @G[0];
   SrcR := @R[0];
 
-  Upper := PtrUInt(FData) + FDataSize;
-  while (PtrUInt(Dst) < Upper) do
+  while (Dst <= FDataUpper) do
   begin
     Dst^.A := ALPHA_OPAQUE;
     Dst^.B := SrcB^;
@@ -1509,6 +1591,11 @@ begin
     Result := TSimbaColorConversion.ColorToBGRA(FDrawColor, FDrawAlpha);
 end;
 
+function TSimbaImage.GetDataSize: SizeUInt;
+begin
+  Result := (FWidth * FHeight) * SizeOf(TColorBGRA);
+end;
+
 procedure TSimbaImage.SetFontAntialiasing(Value: Boolean);
 begin
   FTextDrawer.Antialiased := Value;
@@ -1604,7 +1691,7 @@ begin
       FreeMem(FData);
 
     FData := NewData;
-    FDataSize := (NewWidth * NewHeight) * SizeOf(TColorBGRA);
+    FDataUpper := @NewData[(NewWidth * NewHeight) - 1];
     FWidth := NewWidth;
     FHeight := NewHeight;
     FCenter := TPoint.Create(FWidth div 2, FHeight div 2);
@@ -1804,17 +1891,11 @@ end;
 function TSimbaImage.isBinary: Boolean;
 var
   Ptr: PColorBGRA;
-  Upper: PtrUInt;
 begin
-  if (FDataSize = 0) then
-    Exit(False);
-
   Ptr := FData;
-  Upper := PtrUInt(FData) + FDataSize;
-  while (PtrUInt(Ptr) < Upper) and ((Ptr^.R = 0) and (Ptr^.G = 0) and (Ptr^.B = 0)) or ((Ptr^.R = 255) and (Ptr^.G = 255) and (Ptr^.B = 255)) do
+  while (Ptr <= FDataUpper) and ((Ptr^.R = 0) and (Ptr^.G = 0) and (Ptr^.B = 0)) or ((Ptr^.R = 255) and (Ptr^.G = 255) and (Ptr^.B = 255)) do
     Inc(Ptr);
-
-  Result := PtrUInt(Ptr) = Upper;
+  Result := Ptr > FDataUpper;
 end;
 
 function TSimbaImage.DetachData: TDetachedImageData;
@@ -1978,12 +2059,6 @@ begin
   FreeAndNil(FTextDrawer);
 
   inherited Destroy();
-end;
-
-procedure TSimbaImage.DataRange(out Lo, Hi: PColorBGRA);
-begin
-  Lo := Pointer(FData);
-  Hi := Pointer(FData) + FDataSize;
 end;
 
 end.

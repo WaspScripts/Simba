@@ -1719,6 +1719,11 @@ begin
   PStringArray(Result)^ := TSimbaImage.Fonts();
 end;
 
+procedure _LapeImage_FindAlpha(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPointArray(Result)^ := PSimbaImage(Params^[0])^.FindAlpha(PByte(Params^[1])^);
+end;
+
 (*
 TImage.FindColor
 ----------------
@@ -2034,6 +2039,7 @@ begin
     addGlobalFunc('function TImage.Fonts: TStringArray; static;', @_LapeImage_Fonts);
     addGlobalFunc('function TImage.LoadFonts(Dir: String): Boolean; static;', @_LapeImage_LoadFonts);
 
+    addGlobalFunc('function TImage.FindAlpha(Value: Byte): TPointArray;', @_LapeImage_FindAlpha);
     addGlobalFunc('function TImage.FindColor(Color: TColor; Tolerance: Single = 0): TPointArray;', @_LapeImage_FindColor);
     addGlobalFunc('function TImage.FindImage(Image: TImage; Tolerance: Single = 0): TPoint;', @_LapeImage_FindImage);
 
