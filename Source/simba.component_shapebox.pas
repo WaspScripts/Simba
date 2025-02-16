@@ -275,6 +275,7 @@ type
     property OnSelectionChange: TNotifyEvent read FOnSelectionChange write FOnSelectionChange;
     property QueryName: Boolean read FQueryName write FQueryName;
     property Panel: TPanel read FPanel;
+    property ListBox: TListBox read FListBox;
 
     property NewButton: TButton read FNewButton;
     property ClearButton: TButton read FClearButton;
@@ -1484,6 +1485,13 @@ begin
   FListBox.OnMouseDown := @DoListMouseDown;
   FListBox.PopupMenu := FListPopup;
 
+  FNewPopup := TPopupMenu.Create(Self);
+  FNewPopup.Parent := FPanel;
+  FNewPopup.Items.Add(NewMenuItem('Point', @DoAddPointClick));
+  FNewPopup.Items.Add(NewMenuItem('Box', @DoAddBoxClick));
+  FNewPopup.Items.Add(NewMenuItem('Poly', @DoAddPolyClick));
+  FNewPopup.Items.Add(NewMenuItem('Path', @DoAddPathClick));
+
   FNewButton := TButton.Create(FPanel);
   with FNewButton do
   begin
@@ -1493,14 +1501,10 @@ begin
     OnClick := @DoShapeAddButtonClick;
     AutoSize := True;
     BorderSpacing.Around := 5;
+    PopupMenu := FNewPopup;
   end;
 
-  FNewPopup := TPopupMenu.Create(Self);
-  FNewPopup.Parent := FPanel;
-  FNewPopup.Items.Add(NewMenuItem('Point', @DoAddPointClick));
-  FNewPopup.Items.Add(NewMenuItem('Box', @DoAddBoxClick));
-  FNewPopup.Items.Add(NewMenuItem('Poly', @DoAddPolyClick));
-  FNewPopup.Items.Add(NewMenuItem('Path', @DoAddPathClick));
+
 
   FClearButton := TButton.Create(FPanel);
   with FClearButton do

@@ -421,7 +421,6 @@ begin
   PAnchorSide(Result)^ := PControl(Params^[0])^.AnchorSideBottom;
 end;
 
-
 procedure _LapeControl_BorderSpacing_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PControlBorderSpacing(Result)^ := PControl(Params^[0])^.BorderSpacing;

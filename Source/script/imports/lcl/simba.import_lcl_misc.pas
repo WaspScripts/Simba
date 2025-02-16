@@ -13,7 +13,7 @@ procedure ImportLCLMisc(Script: TSimbaScript);
 implementation
 
 uses
-  Spin, Menus, Graphics, ListFilterEdit, StdCtrls, Buttons, ButtonPanel,
+  Controls, Spin, Menus, Graphics, ListFilterEdit, StdCtrls, Buttons, ButtonPanel,
   lptypes, ffi;
 
 type
@@ -27,6 +27,7 @@ type
   PSpinEdit = ^TSpinEdit;
 
   PMenu = ^TMenu;
+  PPopupMenu = ^TPopupMenu;
   PMainMenu = ^TMainMenu;
   PMenuItem = ^TMenuItem;
 
@@ -34,6 +35,7 @@ type
   PListBox = ^TListBox;
   PButtonPanel = ^TButtonPanel;
   PPanelButtons = ^TPanelButtons;
+  PControl = ^TControl;
 
 procedure _LapeCustomFloatSpinEdit_DecimalPlaces_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -426,6 +428,61 @@ begin
   PMenu(Params^[0])^.Items.Add(PMenuItem(Result)^);
 end;
 
+procedure _LapePopupMenu_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPopupMenu(Result)^ := TPopupMenu.Create(PComponent(Params^[0])^);
+end;
+
+procedure _LapePopupMenu_PopupComponent_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PComponent(Result)^ := PPopupMenu(Params^[0])^.PopupComponent;
+end;
+
+procedure _LapePopupMenu_PopupComponent_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPopupMenu(Params^[0])^.PopupComponent := PComponent(Params^[1])^;
+end;
+
+procedure _LapePopupMenu_PopupPoint_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPoint(Result)^ := PPopupMenu(Params^[0])^.PopupPoint;
+end;
+
+procedure _LapePopupMenu_OnPopup_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PNotifyEvent(Result)^ := PPopupMenu(Params^[0])^.OnPopup;
+end;
+
+procedure _LapePopupMenu_OnPopup_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPopupMenu(Params^[0])^.OnPopup := PNotifyEvent(Params^[1])^;
+end;
+
+procedure _LapePopupMenu_OnClose_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PNotifyEvent(Result)^ := PPopupMenu(Params^[0])^.OnClose;
+end;
+
+procedure _LapePopupMenu_OnClose_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPopupMenu(Params^[0])^.OnClose := PNotifyEvent(Params^[1])^;
+end;
+
+procedure _LapePopupMenu_Popup1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPopupMenu(Params^[0])^.PopUp();
+end;
+
+procedure _LapePopupMenu_Popup2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPopupMenu(Params^[0])^.Popup(PInteger(Params^[1])^, PInteger(Params^[2])^);
+end;
+
+procedure _LapePopupMenu_Close(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPopupMenu(Params^[0])^.Close();
+end;
+
 procedure _LapeMainMenu_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PMainMenu(Result)^ := TMainMenu.Create(PComponent(Params^[0])^);
@@ -541,6 +598,16 @@ begin
   PButtonPanel(Params^[0])^.ShowGlyphs := PPanelButtons(Params^[1])^;
 end;
 
+procedure _LapeControl_PopupMenu_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPopupMenu(Result)^ := PControl(Params^[0])^.PopupMenu;
+end;
+
+procedure _LapeControl_PopupMenu_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PControl(Params^[0])^.PopupMenu := PPopupMenu(Params^[1])^;
+end;
+
 procedure ImportLCLMisc(Script: TSimbaScript);
 begin
   with Script.Compiler do
@@ -588,7 +655,7 @@ begin
     addGlobalFunc('function TLazMenuItem.HasBitmap: Boolean;', @_LapeMenuItem_HasBitmap);
     addGlobalFunc('function TLazMenuItem.AddMenu(s: string): TLazMenuItem;', @_LapeMenuItem_AddMenu);
     addProperty('TLazMenuItem', 'Count', 'Integer', @_LapeMenuItem_Count_Read);
-    addProperty('TLazMenuItem', 'Items', 'TLazMenuItem', @_LapeMenuItem_Items_Read);
+    addPropertyIndexed('TLazMenuItem', 'Items', 'Index: Integer', 'TLazMenuItem', @_LapeMenuItem_Items_Read);
     addProperty('TLazMenuItem', 'Hint', 'String', @_LapeMenuItem_Hint_Read, @_LapeMenuItem_Hint_Write);
     addProperty('TLazMenuItem', 'Checked', 'Boolean', @_LapeMenuItem_Checked_Read, @_LapeMenuItem_Checked_Write);
     addProperty('TLazMenuItem', 'MenuIndex', 'Integer', @_LapeMenuItem_MenuIndex_Read, @_LapeMenuItem_MenuIndex_Write);
@@ -610,6 +677,16 @@ begin
     addProperty('TLazMenu', 'Items', 'TLazMenuItem', @_LapeMenu_Items_Read);
     addClassConstructor('TLazMenu', '(AOwner: TLazComponent)', @_LapeMenu_Create);
 
+    addClass('TLazPopupMenu', 'TLazMenu');
+    addClassConstructor('TLazPopupMenu', '(AOwner: TLazComponent)', @_LapePopupMenu_Create);
+    addProperty('TLazPopupMenu', 'PopupComponent', 'TLazComponent', @_LapePopupMenu_PopupComponent_Read, @_LapePopupMenu_PopupComponent_Write);
+    addProperty('TLazPopupMenu', 'PopupPoint', 'TPoint', @_LapePopupMenu_PopupPoint_Read);
+    addProperty('TLazPopupMenu', 'OnPopup', 'TLazNotifyEvent', @_LapePopupMenu_OnPopup_Read, @_LapePopupMenu_OnPopup_Write);
+    addProperty('TLazPopupMenu', 'OnClose', 'TLazNotifyEvent', @_LapePopupMenu_OnClose_Read, @_LapePopupMenu_OnClose_Write);
+    addGlobalFunc('procedure TLazPopupMenu.PopUp; overload', @_LapePopupMenu_Popup1);
+    addGlobalFunc('procedure TLazPopupMenu.PopUp(X, Y: Integer); overload', @_LapePopupMenu_Popup2);
+    addGlobalFunc('procedure TLazPopupMenu.Close', @_LapePopupMenu_Close);
+
     addClass('TLazMainMenu', 'TLazMenu');
     addClassConstructor('TLazMainMenu', '(AOwner: TLazComponent)', @_LapeMainMenu_Create);
 
@@ -629,6 +706,8 @@ begin
     addClassConstructor('TLazButtonPanel', '(AOwner: TLazComponent)', @_LapeButtonPanel_Create);
     addProperty('TLazButtonPanel', 'ShowButtons', 'ELazButtonPanelButtons', @_LapeButtonPanel_ShowButtons_Read, @_LapeButtonPanel_ShowButtons_Write);
     addProperty('TLazButtonPanel', 'ShowGlyphs', 'ELazButtonPanelButtons', @_LapeButtonPanel_ShowGlyphs_Read, @_LapeButtonPanel_ShowGlyphs_Write);
+
+    addProperty('TLazControl', 'PopupMenu', 'TLazPopupMenu', @_LapeControl_PopupMenu_Read, @_LapeControl_PopupMenu_Write);
   end;
 end;
 
