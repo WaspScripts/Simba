@@ -22,7 +22,6 @@ type
   PButton = ^TButton;
   PNotifyEvent = ^TNotifyEvent;
   PListBox = ^TListBox;
-  PPopupMenu = ^TPopupMenu;
 
 procedure _LapeSimbaShapeBox_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin

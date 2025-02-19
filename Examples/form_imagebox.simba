@@ -30,7 +30,7 @@ begin
   ImgBox := TImageBox.Create(Form);
   ImgBox.Parent := Form;
   ImgBox.Align := ELazAlign.Client;
-  ImgBox.SetBackgroundFromTarget(Target);
+  ImgBox.SetImage(TImage.CreateFromTarget());
   ImgBox.OnImgPaint := @ImgBoxPaint;
   ImgBox.OnImgMouseMove := @ImgBoxMouseMove;
 

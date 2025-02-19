@@ -401,14 +401,9 @@ begin
   PMenu(Params^[0])^.Parent := PComponent(Params^[1])^;
 end;
 
-procedure _LapeMenu_Count(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeMenu_Items_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PMenu(Params^[0])^.Items.Count;
-end;
-
-procedure _LapeMenu_Item_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PMenuItem(Result)^ := PMenu(Params^[0])^.Items[PInteger(Params^[1])^];
+  PMenuItem(Result)^ := PMenu(Params^[0])^.Items;
 end;
 
 procedure _LapeMenu_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -669,8 +664,7 @@ begin
     addGlobalFunc('function TLazMenu.DispatchCommand(ACommand: Int16): Boolean;', @_LapeMenu_DispatchCommand);
     addGlobalFunc('function TLazMenu.AddMenu(Name: string): TLazMenuItem;', @_LapeMenu_AddMenu);
     addProperty('TLazMenu', 'Parent', 'TLazComponent', @_LapeMenu_Parent_Read, @_LapeMenu_Parent_Write);
-    addProperty('TLazMenu', 'Count', 'Integer', @_LapeMenu_Count);
-    addPropertyIndexed('TLazMenu', 'Item', 'Index: Integer', 'TLazMenuItem', @_LapeMenu_Item_Read);
+    addProperty('TLazMenu', 'Items', 'TLazMenuItem', @_LapeMenu_Items_Read);
     addClassConstructor('TLazMenu', '(AOwner: TLazComponent)', @_LapeMenu_Create);
 
     addClass('TLazPopupMenu', 'TLazMenu');

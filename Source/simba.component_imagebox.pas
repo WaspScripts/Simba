@@ -12,8 +12,15 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ComCtrls, ExtCtrls,
   ATScrollBar, LCLType, LMessages,
-  simba.base, simba.component_statusbar, simba.image_lazbridge, simba.component_imageboxcanvas,
-  simba.image, simba.dtm, simba.colormath, simba.target;
+  simba.base,
+  simba.component_statusbar,
+  simba.component_scrollbar,
+  simba.image_lazbridge,
+  simba.component_imageboxcanvas,
+  simba.image,
+  simba.dtm,
+  simba.colormath,
+  simba.target;
 
 const
   ZOOM_LEVELS: TIntegerArray = (
@@ -40,8 +47,8 @@ type
     FZoomLevel: Integer;
     FZoomPixels: Integer;
 
-    FVertScroll: TATScrollbar;
-    FHorzScroll: TATScrollbar;
+    FVertScroll: TSimbaScrollBar;
+    FHorzScroll: TSimbaScrollBar;
 
     FDragging: record
       X, Y: Integer;
@@ -49,8 +56,6 @@ type
     end;
 
     FPaintTime: Double;
-
-    procedure MyInvalidate(Data: PtrInt);
 
     procedure WMEraseBkgnd(var Message: TLMEraseBkgnd); message LM_ERASEBKGND;
 
@@ -99,7 +104,6 @@ type
   TImageBoxMouseEvent = procedure(Sender: TSimbaImageBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer) of object;
   TImageBoxMouseMoveEvent = procedure(Sender: TSimbaImageBox; Shift: TShiftState; X, Y: Integer) of object;
 
-  PSimbaImageBox = ^TSimbaImageBox;
   TSimbaImageBox = class(TCustomControl)
   protected
     FImageScrollBox: TSimbaImageScrollBox;
@@ -315,11 +319,6 @@ end;
 function TSimbaImageScrollBox.VisibleTopY: Integer;
 begin
   Result := Max(0, FVertScroll.Position + ((FZoomPixels - FVertScroll.Position) mod FZoomPixels));
-end;
-
-procedure TSimbaImageScrollBox.MyInvalidate(Data: PtrInt);
-begin
-  Invalidate;
 end;
 
 procedure TSimbaImageScrollBox.WMEraseBkgnd(var Message: TLMEraseBkgnd);
@@ -734,13 +733,13 @@ begin
   FZoomLevel := 100;
   FZoomPixels := 1;
 
-  FVertScroll := TATScrollbar.Create(Self);
+  FVertScroll := TSimbaScrollBar.Create(Self);
   FVertScroll.Parent := Self;
   FVertScroll.Kind := sbVertical;
   FVertScroll.Align := alRight;
   FVertScroll.OnChange := @DoScrollChange;
 
-  FHorzScroll := TATScrollbar.Create(Self);
+  FHorzScroll := TSimbaScrollBar.Create(Self);
   FHorzScroll.Parent := Self;
   FHorzScroll.Kind := sbHorizontal;
   FHorzScroll.Align := alBottom;

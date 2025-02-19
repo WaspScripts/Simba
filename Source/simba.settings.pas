@@ -11,10 +11,8 @@ unit simba.settings;
 interface
 
 uses
-  classes, sysutils, inifiles, lazmethodlist, variants, fgl, controls, graphics;
-
-const
-  SETTINGS_VERSION = 2; // Increase if settings become incompatible
+  Classes, SysUtils, IniFiles, LazMethodList, Variants, Controls,
+  simba.containers;
 
 type
   TSimbaSettings = class;
@@ -79,11 +77,10 @@ type
   TSimbaSettings = class
   protected
   type
-    TSettingList = specialize TFPGObjectList<TSimbaSetting>;
+    TSettingList = specialize TSimbaObjectList<TSimbaSetting>;
   protected
     FList: TSettingList;
     FFirstLaunch: Boolean;
-    FIsLoading: Boolean;
   public
     General: record
       TrayIconVisible: TSimbaSetting;
@@ -173,7 +170,6 @@ type
     end;
 
     property FirstLaunch: Boolean read FFirstLaunch;
-    property IsLoading: Boolean read FIsLoading;
 
     class function GetINIFile: TINIFile;
     class procedure SetSimpleSetting(AName, Value: String);
@@ -226,7 +222,7 @@ end;
 
 procedure TSimbaSetting_Integer.ReadValue(INI: TINIFile);
 begin
-  Value := INI.ReadInt64(FSection, FName, Value);
+  FValue := INI.ReadInt64(FSection, FName, Value);
 end;
 
 procedure TSimbaSetting_Integer.WriteValue(INI: TINIFile);
@@ -242,7 +238,7 @@ end;
 
 procedure TSimbaSetting_BinaryString.ReadValue(INI: TINIFile);
 begin
-  Value := BaseDecode(EBaseEncoding.b64, INI.ReadString(FSection, FName, Value));
+  FValue := BaseDecode(EBaseEncoding.b64, INI.ReadString(FSection, FName, Value));
 end;
 
 procedure TSimbaSetting_BinaryString.WriteValue(INI: TINIFile);
@@ -258,7 +254,7 @@ end;
 
 procedure TSimbaSetting_String.ReadValue(INI: TINIFile);
 begin
-  Value := INI.ReadString(FSection, FName, Value);
+  FValue := INI.ReadString(FSection, FName, Value);
 end;
 
 procedure TSimbaSetting_String.WriteValue(INI: TINIFile);
@@ -274,7 +270,7 @@ end;
 
 procedure TSimbaSetting_Boolean.ReadValue(INI: TINIFile);
 begin
-  Value := INI.ReadBool(FSection, FName, Value);
+  FValue := INI.ReadBool(FSection, FName, Value);
 end;
 
 procedure TSimbaSetting_Boolean.WriteValue(INI: TINIFile);
@@ -325,11 +321,6 @@ procedure TSimbaSetting.Changed;
 var
   I: Integer;
 begin
-  if FSettings.IsLoading then
-    Exit;
-
-  // DebugLn('[TSimbaSettings] Setting changed: ' + FName);
-
   I := FChangeEventList.Count;
   while FChangeEventList.NextDownIndex(I) do
     TSimbaSettingChangedEvent(FChangeEventList.Items[I])(Self);
@@ -390,34 +381,21 @@ var
   INI: TIniFile;
   Setting: TSimbaSetting;
 begin
-  FIsLoading := True;
-
   INI := GetINIFile();
   try
-    if (INI.ReadInteger('Settings', 'Version', 0) <> SETTINGS_VERSION) then
-    begin
-      DeleteFile(INI.FileName + '.old');
-      RenameFile(INI.FileName, INI.FileName + '.old');
-
-      Exit;
-    end;
-
     if FileExists(SimbaSettingFileName) then
     begin
       FFirstLaunch := False;
 
-      for Setting in FList do
-      begin
-        if not INI.ValueExists(Setting.FSection, Setting.FName) then
-          Continue;
-
-        Setting.ReadValue(INI);
-      end;
+      for Setting in FList.ToArray() do
+        if INI.ValueExists(Setting.FSection, Setting.FName) then
+          Setting.ReadValue(INI);
     end;
-  finally
-    INI.Free();
-    FIsLoading := False;
+  except
+    on E: Exception do
+      DebugLn('TSimbaSettings.Load: %s', [E.Message]);
   end;
+  INI.Free();
 end;
 
 procedure TSimbaSettings.Save;
@@ -426,16 +404,13 @@ var
   Setting: TSimbaSetting;
 begin
   INI := GetINIFile();
-  INI.WriteInteger('Settings', 'Version', SETTINGS_VERSION);
-
-  for Setting in FList do
+  for Setting in FList.ToArray() do
     Setting.WriteValue(INI);
 
   try
     INI.UpdateFile();
   except
   end;
-
   INI.Free();
 end;
 
@@ -484,7 +459,7 @@ begin
   SynDefaultFontSize := SynDefaultFontSize + 1;
 
   FFirstLaunch := True;
-  FList := TSettingList.Create();
+  FList := TSettingList.Create(True);
 
   // General
   General.TrayIconVisible    := TSimbaSetting_Boolean.Create(Self, 'General', 'TrayIconVisible', True);
@@ -573,14 +548,9 @@ begin
   inherited Destroy();
 end;
 
-procedure CreateSimbaSettings;
-begin
+initialization
   SimbaSettingsInstance := TSimbaSettings.Create();
   SimbaSettingsInstance.Load();
-end;
-
-initialization
-  SimbaIDEInitialization_AddBeforeCreate(@CreateSimbaSettings, 'Create SimbaSettings');
 
 finalization
   if (SimbaSettingsInstance <> nil) then
