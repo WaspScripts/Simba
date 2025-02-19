@@ -242,7 +242,7 @@ begin
   PInteger(Result)^ := PMenuItem(Params^[0])^.Count;
 end;
 
-procedure _LapeMenuItem_Items_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeMenuItem_Item_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PMenuItem(Result)^ := PMenuItem(Params^[0])^.Items[PInteger(Params^[1])^];
 end;
@@ -401,19 +401,14 @@ begin
   PMenu(Params^[0])^.Parent := PComponent(Params^[1])^;
 end;
 
-procedure _LapeMenu_ParentBidiMode_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeMenu_Count(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PMenu(Params^[0])^.ParentBidiMode;
+  PInteger(Result)^ := PMenu(Params^[0])^.Items.Count;
 end;
 
-procedure _LapeMenu_ParentBidiMode_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeMenu_Item_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PMenu(Params^[0])^.ParentBidiMode := PBoolean(Params^[1])^;
-end;
-
-procedure _LapeMenu_Items_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PMenuItem(Result)^ := PMenu(Params^[0])^.Items;
+  PMenuItem(Result)^ := PMenu(Params^[0])^.Items[PInteger(Params^[1])^];
 end;
 
 procedure _LapeMenu_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -655,7 +650,7 @@ begin
     addGlobalFunc('function TLazMenuItem.HasBitmap: Boolean;', @_LapeMenuItem_HasBitmap);
     addGlobalFunc('function TLazMenuItem.AddMenu(s: string): TLazMenuItem;', @_LapeMenuItem_AddMenu);
     addProperty('TLazMenuItem', 'Count', 'Integer', @_LapeMenuItem_Count_Read);
-    addPropertyIndexed('TLazMenuItem', 'Items', 'Index: Integer', 'TLazMenuItem', @_LapeMenuItem_Items_Read);
+    addPropertyIndexed('TLazMenuItem', 'Item', 'Index: Integer', 'TLazMenuItem', @_LapeMenuItem_Item_Read);
     addProperty('TLazMenuItem', 'Hint', 'String', @_LapeMenuItem_Hint_Read, @_LapeMenuItem_Hint_Write);
     addProperty('TLazMenuItem', 'Checked', 'Boolean', @_LapeMenuItem_Checked_Read, @_LapeMenuItem_Checked_Write);
     addProperty('TLazMenuItem', 'MenuIndex', 'Integer', @_LapeMenuItem_MenuIndex_Read, @_LapeMenuItem_MenuIndex_Write);
@@ -674,7 +669,8 @@ begin
     addGlobalFunc('function TLazMenu.DispatchCommand(ACommand: Int16): Boolean;', @_LapeMenu_DispatchCommand);
     addGlobalFunc('function TLazMenu.AddMenu(Name: string): TLazMenuItem;', @_LapeMenu_AddMenu);
     addProperty('TLazMenu', 'Parent', 'TLazComponent', @_LapeMenu_Parent_Read, @_LapeMenu_Parent_Write);
-    addProperty('TLazMenu', 'Items', 'TLazMenuItem', @_LapeMenu_Items_Read);
+    addProperty('TLazMenu', 'Count', 'Integer', @_LapeMenu_Count);
+    addPropertyIndexed('TLazMenu', 'Item', 'Index: Integer', 'TLazMenuItem', @_LapeMenu_Item_Read);
     addClassConstructor('TLazMenu', '(AOwner: TLazComponent)', @_LapeMenu_Create);
 
     addClass('TLazPopupMenu', 'TLazMenu');
