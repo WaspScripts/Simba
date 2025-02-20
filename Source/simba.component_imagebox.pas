@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ComCtrls, ExtCtrls,
-  ATScrollBar, LCLType, LMessages,
+  LCLType, LMessages,
   simba.base,
   simba.component_statusbar,
   simba.component_scrollbar,

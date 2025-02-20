@@ -782,6 +782,61 @@ begin
   PButton(Result)^ := TButton.Create(PComponent(Params^[0])^);
 end;
 
+procedure _LapeButton_Click(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PButton(Params^[0])^.Click();
+end;
+
+procedure _LapeButton_OnMouseMove_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMouseMoveEvent(Result)^ := PButton(Params^[0])^.OnMouseMove;
+end;
+
+procedure _LapeButton_OnMouseMove_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PButton(Params^[0])^.OnMouseMove := PMouseMoveEvent(Params^[1])^;
+end;
+
+procedure _LapeButton_OnMouseDown_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PButton(Params^[0])^.OnMouseDown := PMouseEvent(Params^[1])^;
+end;
+
+procedure _LapeButton_OnMouseDown_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMouseEvent(Result)^ := PButton(Params^[0])^.OnMouseDown;
+end;
+
+procedure _LapeButton_OnMouseUp_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PButton(Params^[0])^.OnMouseUp := PMouseEvent(Params^[1])^;
+end;
+
+procedure _LapeButton_OnMouseUp_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMouseEvent(Result)^ := PButton(Params^[0])^.OnMouseUp;
+end;
+
+procedure _LapeButton_OnMouseLeave_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PNotifyEvent(Result)^ := PButton(Params^[0])^.OnMouseLeave;
+end;
+
+procedure _LapeButton_OnMouseLeave_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PButton(Params^[0])^.OnMouseLeave := PNotifyEvent(Params^[1])^;
+end;
+
+procedure _LapeButton_OnMouseEnter_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PNotifyEvent(Result)^ := PButton(Params^[0])^.OnMouseEnter;
+end;
+
+procedure _LapeButton_OnMouseEnter_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PButton(Params^[0])^.OnMouseEnter := PNotifyEvent(Params^[1])^;
+end;
+
 procedure _LapeCustomCheckBox_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PCustomCheckBox(Result)^ := TCustomCheckBox.Create(PComponent(Params^[0])^);
@@ -1210,6 +1265,12 @@ begin
 
     addClass('TLazButton', 'TLazWinControl');
     addClassConstructor('TLazButton', '(TheOwner: TLazComponent)', @_LapeButton_Create);
+    addGlobalFunc('procedure TLazButton.Click;', @_LapeButton_Click);
+    addProperty('TLazButton', 'OnMouseDown', 'TLazMouseEvent', @_LapeButton_OnMouseDown_Read, @_LapeButton_OnMouseDown_Write);
+    addProperty('TLazButton', 'OnMouseEnter', 'TLazNotifyEvent', @_LapeButton_OnMouseEnter_Read, @_LapeButton_OnMouseEnter_Write);
+    addProperty('TLazButton', 'OnMouseLeave', 'TLazNotifyEvent', @_LapeButton_OnMouseLeave_Read, @_LapeButton_OnMouseLeave_Write);
+    addProperty('TLazButton', 'OnMouseMove', 'TLazMouseMoveEvent', @_LapeButton_OnMouseMove_Read, @_LapeButton_OnMouseMove_Write);
+    addProperty('TLazButton', 'OnMouseUp', 'TLazMouseEvent', @_LapeButton_OnMouseUp_Read, @_LapeButton_OnMouseUp_Write);
 
     addClass('TLazCustomCheckBox', 'TLazWinControl');
     addClassConstructor('TLazCustomCheckBox', '(TheOwner: TLazComponent)', @_LapeCustomCheckBox_Create);

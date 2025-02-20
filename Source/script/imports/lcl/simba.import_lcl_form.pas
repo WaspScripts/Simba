@@ -13,7 +13,8 @@ procedure ImportLCLForm(Script: TSimbaScript);
 implementation
 
 uses
-  IniPropStorage, controls, extctrls, comctrls, graphics, forms, dialogs, lptypes, ffi;
+  IniPropStorage, controls, extctrls, comctrls, graphics, forms, dialogs, lptypes, ffi,
+  simba.settings;
 
 type
   PStrings = ^TStrings;
@@ -38,8 +39,6 @@ type
   PComponent = ^TComponent;
   PWinControl = ^TWinControl;
   PFormBorderStyle = ^TFormBorderStyle;
-  PKeyEvent = ^TKeyEvent;
-  PKeyPressEvent = ^TKeyPressEvent;
 
   PColorDialog = ^TColorDialog;
   PCommonDialog = ^TCommonDialog;
@@ -362,6 +361,7 @@ procedure _LapeForm_Create(const Params: PParamArray; const Result: Pointer); LA
 begin
   PForm(Result)^ := TForm.CreateNew(PComponent(Params^[0])^);
   PForm(Result)^.ShowInTaskBar := stAlways;
+  PForm(Result)^.Font.Size := SimbaSettings.General.CustomFontSize.Value;
 end;
 
 procedure _LapeFormThread_Run(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
@@ -688,36 +688,6 @@ end;
 procedure _LapeForm_OnMouseUp_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PMouseEvent(Result)^ := PForm(Params^[0])^.OnMouseUp;
-end;
-
-procedure _LapeForm_OnKeyUp_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PForm(Params^[0])^.OnKeyUp := PKeyEvent(Params^[1])^;
-end;
-
-procedure _LapeForm_OnKeyUp_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PKeyEvent(Result)^ := PForm(Params^[0])^.OnKeyUp;
-end;
-
-procedure _LapeForm_OnKeyDown_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PForm(Params^[0])^.OnKeyDown := PKeyEvent(Params^[1])^;
-end;
-
-procedure _LapeForm_OnKeyDown_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PKeyEvent(Result)^ := PForm(Params^[0])^.OnKeyDown;
-end;
-
-procedure _LapeForm_OnKeyPress_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PForm(Params^[0])^.OnKeyPress := PKeyPressEvent(Params^[1])^;
-end;
-
-procedure _LapeForm_OnKeyPress_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PKeyPressEvent(Result)^ := PForm(Params^[0])^.OnKeyPress;
 end;
 
 procedure _LapeScrollBox_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV

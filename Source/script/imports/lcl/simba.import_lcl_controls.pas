@@ -517,14 +517,29 @@ begin
   PWinControl(Params^[0])^.OnExit := PNotifyEvent(Params^[1])^;
 end;
 
+procedure _LapeWinControl_OnKeyDown_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PKeyEvent(Result)^ := PWinControl(Params^[0])^.OnKeyDown;
+end;
+
 procedure _LapeWinControl_OnKeyDown_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PWinControl(Params^[0])^.OnKeyDown := PKeyEvent(Params^[1])^;
 end;
 
+procedure _LapeWinControl_OnKeyPress_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PKeyPressEvent(Result)^ := PWinControl(Params^[0])^.OnKeyPress;
+end;
+
 procedure _LapeWinControl_OnKeyPress_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PWinControl(Params^[0])^.OnKeyPress := PKeyPressEvent(Params^[1])^;
+end;
+
+procedure _LapeWinControl_OnKeyUp_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PKeyEvent(Result)^ := PWinControl(Params^[0])^.OnKeyUp;
 end;
 
 procedure _LapeWinControl_OnKeyUp_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
@@ -874,9 +889,9 @@ begin
     addProperty('TLazWinControl', 'Handle', 'TLazHandle', @_LapeWinControl_Handle_Read, @_LapeWinControl_Handle_Write);
     addProperty('TLazWinControl', 'OnEnter', 'TLazNotifyEvent', @_LapeWinControl_OnEnter_Read, @_LapeWinControl_OnEnter_Write);
     addProperty('TLazWinControl', 'OnExit', 'TLazNotifyEvent', @_LapeWinControl_OnExit_Read, @_LapeWinControl_OnExit_Write);
-    addProperty('TLazWinControl', 'OnKeyDown', 'TLazKeyEvent', nil, @_LapeWinControl_OnKeyDown_Write);
-    addProperty('TLazWinControl', 'OnKeyPress', 'TLazKeyPressEvent', nil, @_LapeWinControl_OnKeyPress_Write);
-    addProperty('TLazWinControl', 'OnKeyUp', 'TLazKeyEvent', nil, @_LapeWinControl_OnKeyUp_Write);
+    addProperty('TLazWinControl', 'OnKeyDown', 'TLazKeyEvent', @_LapeWinControl_OnKeyDown_Read, @_LapeWinControl_OnKeyDown_Write);
+    addProperty('TLazWinControl', 'OnKeyPress', 'TLazKeyPressEvent', @_LapeWinControl_OnKeyPress_Read, @_LapeWinControl_OnKeyPress_Write);
+    addProperty('TLazWinControl', 'OnKeyUp', 'TLazKeyEvent', @_LapeWinControl_OnKeyUp_Read, @_LapeWinControl_OnKeyUp_Write);
     addProperty('TLazWinControl', 'ParentWindow', 'TLazHandle', @_LapeWinControl_ParentWindow_Read, @_LapeWinControl_ParentWindow_Write);
     addProperty('TLazWinControl', 'Showing', 'Boolean', @_LapeWinControl_Showing_Read);
     addClassConstructor('TLazWinControl', '(TheOwner: TLazComponent)', @_LapeWinControl_Create);
