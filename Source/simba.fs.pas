@@ -237,12 +237,19 @@ class function TSimbaDir.DirIsEmpty(Path: String): Boolean;
 var
   SearchRec: TSearchRec;
 begin
+  Path := CleanAndExpandDirectory(Path);
+
+  if (FindFirst(Path + AllFilesMask, faAnyFile and faDirectory, SearchRec) = 0) then
+  try
+    repeat
+      if (SearchRec.Name <> '') and (SearchRec.Name <> '.') and (SearchRec.Name <> '..') then
+        Exit(False);
+    until (FindNext(SearchRec) <> 0);
+  finally
+    SysUtils.FindClose(SearchRec);
+  end;
+
   Result := True;
-  if (FindFirst(Path, faAnyFile, SearchRec) = 0) then
-  repeat
-    Result := (SearchRec.Name = '.') or (SearchRec.Name = '..');
-  until Result and (FindNext(SearchRec) = 0);
-  SysUtils.FindClose(SearchRec);
 end;
 
 class function TSimbaDir.DirSize(Path: String): Int64;
