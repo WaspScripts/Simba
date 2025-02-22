@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, SysUtils, Controls, Graphics, ComCtrls, StdCtrls, ExtCtrls, Dialogs, fgl, Menus,
-  simba.base, simba.component_imagebox, simba.component_imageboxcanvas;
+  simba.base, simba.component_imagebox, simba.component_imageboxcanvas, simba.component_splitter;
 
 type
   TSimbaShapeBox = class;
@@ -194,6 +194,7 @@ type
     FUpdating: Integer;
 
     FPanel: TPanel;
+    FSplitter: TSimbaSplitter;
     FListBox: TListBox;
     FListPopup: TPopupMenu;
 
@@ -238,6 +239,7 @@ type
     procedure DoShapePrint(Sender: TObject);
     procedure DoShapeDuplicate(Sender: TObject);
     procedure DoPrintShapesClick(Sender: TObject);
+    procedure DoPanelVisibleChanged(Sender: TObject);
 
     procedure DoAddPointClick(Sender: TObject);
     procedure DoAddBoxClick(Sender: TObject);
@@ -938,6 +940,11 @@ begin
   PrintShapes();
 end;
 
+procedure TSimbaShapeBox.DoPanelVisibleChanged(Sender: TObject);
+begin
+  FSplitter.Visible := FPanel.Visible;
+end;
+
 procedure TSimbaShapeBox.DoAddPointClick(Sender: TObject);
 var
   ShapeName: String = '';
@@ -1461,6 +1468,11 @@ begin
   FPanel.Parent := Self;
   FPanel.Align := alLeft;
   FPanel.BevelOuter := bvNone;
+  FPanel.AddHandlerOnVisibleChanged(@DoPanelVisibleChanged);
+
+  FSplitter := TSimbaSplitter.Create(Self);
+  FSplitter.Parent := Self;
+  FSplitter.Align := alLeft;
 
   with TBitmap.Create() do
   try

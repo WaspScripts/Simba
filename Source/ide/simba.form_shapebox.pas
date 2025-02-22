@@ -40,6 +40,9 @@ var
 
 implementation
 
+uses
+  simba.vartype_windowhandle;
+
 procedure TSimbaShapeBoxForm.FormCreate(Sender: TObject);
 begin
   ShapeBox := TSimbaShapeBox.Create(Self);
@@ -78,8 +81,10 @@ end;
 
 procedure TSimbaShapeBoxForm.MenuItemLoadTargetImageClick(Sender: TObject);
 begin
-  if (SimbaMainToolBar.WindowSelection > 0) then
-    ShapeBox.SetImage(TSimbaImage.CreateFromWindow(SimbaMainToolBar.WindowSelection));
+  if SimbaMainToolBar.WindowSelection.IsValid then
+    ShapeBox.SetImage(TSimbaImage.CreateFromWindow(SimbaMainToolBar.WindowSelection))
+  else
+    ShapeBox.SetImage(TSimbaImage.CreateFromWindow(GetDesktopWindow()));
 end;
 
 procedure TSimbaShapeBoxForm.MenuItemLoadImageClick(Sender: TObject);
