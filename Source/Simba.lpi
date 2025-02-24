@@ -385,7 +385,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="76">
+    <Units Count="79">
       <Unit0>
         <Filename Value="Simba.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -744,6 +744,18 @@
         <Filename Value="simba.vartype_matrix.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit75>
+      <Unit76>
+        <Filename Value="simba.component_splitter.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit76>
+      <Unit77>
+        <Filename Value="simba.pixelocr.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit77>
+      <Unit78>
+        <Filename Value="script/imports/simba.import_pixelocr.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit78>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

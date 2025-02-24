@@ -263,8 +263,8 @@ type
     procedure FromLazBitmap(LazBitmap: TBitmap);
 
     // Basic finders, use Target.SetTarget(img) for all
-    function FindColor(Color: TColor; Tolerance: Single): TPointArray;
-    function FindImage(Image: TSimbaImage; Tolerance: Single): TPoint;
+    function FindColor(Color: TColor; Tolerance: Single = 0): TPointArray;
+    function FindImage(Image: TSimbaImage; Tolerance: Single = 0): TPoint;
     function FindAlpha(Value: Byte): TPointArray;
   end;
 

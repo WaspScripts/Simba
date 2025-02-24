@@ -63,7 +63,7 @@ type
 
   TSimbaStringHelper = type helper for String
   private
-    function IsInSet(Chars: TSysCharSet): Boolean;
+    function IsInSet(const Chars: TSysCharSet): Boolean; inline;
 
     function GetIsAlpha: Boolean;
     function GetIsAlphaNum: Boolean;
@@ -151,12 +151,12 @@ type
 
     function Format(Args: array of const): String;
 
-    function ToBoolean: Boolean; overload;
-    function ToBoolean(Default: Boolean): Boolean; overload;
-    function ToInt: Int64; overload;
-    function ToInt(Default: Int64): Int64; overload;
-    function ToFloat: Double; overload;
-    function ToFloat(Default: Double): Double; overload;
+    function ToBoolean: Boolean; overload; inline;
+    function ToBoolean(const Default: Boolean): Boolean; overload; inline;
+    function ToInt: Int64; overload; inline;
+    function ToInt(const Default: Int64): Int64; overload; inline;
+    function ToFloat: Double; overload; inline;
+    function ToFloat(const Default: Double): Double; overload; inline;
 
     function ToDateTime(Fmt: String; Def: TDateTime): TDateTime;
     function ToBytes: TByteArray;
@@ -486,7 +486,7 @@ begin
     Result := Length(ToLower().IndicesOf(Value.ToLower()));
 end;
 
-function TSimbaStringHelper.IsInSet(Chars: TSysCharSet): Boolean;
+function TSimbaStringHelper.IsInSet(const Chars: TSysCharSet): Boolean;
 var
   I: Integer;
 begin
@@ -1181,7 +1181,7 @@ begin
   Result := StrToBool(Self);
 end;
 
-function TSimbaStringHelper.ToBoolean(Default: Boolean): Boolean;
+function TSimbaStringHelper.ToBoolean(const Default: Boolean): Boolean;
 begin
   Result := StrToBoolDef(Self, Default);
 end;
@@ -1191,7 +1191,7 @@ begin
   Result := StrToInt64(Self);
 end;
 
-function TSimbaStringHelper.ToInt(Default: Int64): Int64;
+function TSimbaStringHelper.ToInt(const Default: Int64): Int64;
 begin
   Result := StrToInt64Def(Self, Default);
 end;
@@ -1201,7 +1201,7 @@ begin
   Result := StrToFloat(Self);
 end;
 
-function TSimbaStringHelper.ToFloat(Default: Double): Double;
+function TSimbaStringHelper.ToFloat(const Default: Double): Double;
 begin
   Result := StrToFloatDef(Self, Default);
 end;

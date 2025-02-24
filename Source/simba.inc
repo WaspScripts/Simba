@@ -9,7 +9,7 @@
   {$DEFINE SIMBA_HAS_DEBUGINFO}
 {$ENDIF}
 
-// Set in project options > custom options.. "-CfSSE"
+// Set in project options > custom options "-CfSSE"
 //{$IF Defined(CPU386)}
 //  {$FPUTYPE SSE3}
 //{$ELSEIF Defined(CPUX86_64)}
