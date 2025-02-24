@@ -67,6 +67,11 @@ begin
   TPA := img.FindColor(Colors.WHITE,0);
   Assert(TPA.Bounds = [0,0,img.Width-1,img.Height-1]);
   Assert(TPA.Length = 396);
+
+  img.DrawColor := Colors.WHITE;
+  img.DrawBoxFilled([20,20,40,40]);
+
+  Assert(img.FindColor(Colors.WHITE, 0, [30,30,50,50]).Bounds = [30,30,40,40]);
 end;
 
 procedure TestAlphaDraw;
@@ -162,7 +167,8 @@ var
   templ: TImage := TImage.CreateFromString('IMG:AQAAAAkAAAAJAAAAAAAAAIDjPwEAAAAA7joBAAEAAACQ4z8BAAAAALEMAQABAAAAFBpxCQAAAAB0G3EJAAAAACQAAAAkAAAAFBpxCQAAAAABAAAACQAAAAkAAAAgAAAAAAAAAAAAAAAAAAAAAwAAACAIEAgICAAIGAEAAAIAAAAAAAAAAAAAAAAAAAAAiVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAIAAABv85FHAAAABnRSTlMAAAAAAABupgeRAAAATElEQVR4nGNgYGDQN2CXDuQDIgjDKFyUAQKAfLgcRAKCQHJoQi5RMljkgLrhKqByEDPhCK6VAQ6YmJmQVTCgAXlJkWhbEEKXICCHCQBkcxj8Wm6Q0QAAAABJRU5ErkJggg==');
   img2: TImage;
 begin
-  Assert(img.FindImage(templ) = [47, 16]);
+  Assert(img.FindImage(templ, 0) = [47, 16]);
+  Assert(img.FindImage(templ, 0, [31,27,60,39]) = [49,30]);
 
   img2 := img.Brightness(25);
   Assert(img2.FindImage(templ, 1) = [-1, -1]);

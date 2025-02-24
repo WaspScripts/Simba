@@ -118,8 +118,8 @@ begin
     addGlobalFunc('function TPixelOCR.Locate(Image: TImage; constref Font: TPixelFont; Text: String): Single;', @_LapePixelOCR_Locate);
 
     addGlobalFunc('function TPixelOCR.Recognize(Image: TImage; constref Font: TPixelFont; P: TPoint): String; overload;', @_LapePixelOCR_Recognize1);
-    addGlobalFunc('function TPixelOCR.Recognize(Image: TImage; constref Font: TPixelFont; Bounds: TBox): String; overload;', @_LapePixelOCR_Recognize2);
-    addGlobalFunc('function TPixelOCR.RecognizeLines(Image: TImage; constref Font: TPixelFont; Bounds: TBox): TStringArray;', @_LapePixelOCR_RecognizeLines);
+    addGlobalFunc('function TPixelOCR.Recognize(Image: TImage; constref Font: TPixelFont; Bounds: TBox = [-1,-1,-1,-1]): String; overload;', @_LapePixelOCR_Recognize2);
+    addGlobalFunc('function TPixelOCR.RecognizeLines(Image: TImage; constref Font: TPixelFont; Bounds: TBox= [-1,-1,-1,-1]): TStringArray;', @_LapePixelOCR_RecognizeLines);
   end;
 end;
 

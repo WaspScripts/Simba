@@ -132,10 +132,10 @@ end;
 
 function SimbaImage_Sobel(Image: TSimbaImage): TSimbaImage;
 var
-  x,y,xx,yy,W,H,gx,gy:Int32;
-  color: Byte;
+  x,y,xx,yy,W,H,gx,gy: Integer;
   opx,opy: TIntegerMatrix;
-  Grey:TByteMatrix;
+  Grey: TByteMatrix;
+  Ptr: PColorBGRA;
 begin
   Grey := Image.ToGreyMatrix;
   Result := TSimbaImage.Create(Image.Width, Image.Height);
@@ -150,8 +150,8 @@ begin
   opy[1][0] :=  0; opy[1][1] :=  0; opy[1][2] := 0;
   opy[2][0] :=  1; opy[2][1] :=  2; opy[2][2] := 1;
 
-  W := Image.Width-1;
-  H := Image.Height-1;
+  W := Image.Width - 2;
+  H := Image.Height - 2;
   for y:=1 to H do
     for x:=1 to W do
     begin
@@ -164,13 +164,10 @@ begin
           gy := gy + (opy[yy][xx] * Grey[y + yy - 1][x + xx - 1]);
         end;
 
-      Color := EnsureRange(Trunc(Sqrt(gx*gx + gy*gy)), 0, 255);
-      with Result.Data[Y * Result.Width + X] do
-      begin
-        R := Color;
-        G := Color;
-        B := Color;
-      end;
+      Ptr := @Result.Data[Y * Result.Width + X];
+      Ptr^.B := Byte(EnsureRange(Trunc(Sqrt(gx*gx + gy*gy)), 0, 255));
+      Ptr^.G := Ptr^.B;
+      Ptr^.R := Ptr^.B;
     end;
 end;
 

@@ -710,6 +710,8 @@ TImage.GetColors
 ----------------
 ```
 function TImage.GetColors: TColorArray;
+function TImage.GetColors(Box: TBox): TColorArray;
+function TImage.GetColors(Points: TPointArray): TColorArray;
 ```
 *)
 procedure _LapeImage_GetColors1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -717,16 +719,14 @@ begin
   PColorArray(Result)^ := PSimbaImage(Params^[0])^.GetColors();
 end;
 
-(*
-TImage.GetColors
-----------------
-```
-function TImage.GetColors(Box: TBox): TColorArray;
-```
-*)
 procedure _LapeImage_GetColors2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PColorArray(Result)^ := PSimbaImage(Params^[0])^.GetColors(PBox(Params^[1])^);
+end;
+
+procedure _LapeImage_GetColors3(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PColorArray(Result)^ := PSimbaImage(Params^[0])^.GetColors(PPointArray(Params^[1])^);
 end;
 
 (*
@@ -1728,28 +1728,24 @@ end;
 TImage.FindColor
 ----------------
 ```
-function TImage.FindColor(Color: TColor; Tolerance: Single = 0): TPointArray;
+function TImage.FindColor(Color: TColor; Tolerance: Single; Bounds: TBox): TPointArray;
 ```
-
-Returns all the loaded font names.
 *)
 procedure _LapeImage_FindColor(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PSimbaImage(Params^[0])^.FindColor(PColor(Params^[1])^, PSingle(Params^[2])^);
+  PPointArray(Result)^ := PSimbaImage(Params^[0])^.FindColor(PColor(Params^[1])^, PSingle(Params^[2])^, PBox(Params^[3])^);
 end;
 
 (*
 TImage.FindImage
 ----------------
 ```
-function TImage.FindImage(Image: TImage; Tolerance: Single = 0): TPoint;
+function TImage.FindImage(Image: TImage; Tolerance: Single; Bounds: TBox): TPoint;
 ```
-
-Returns all the loaded font names.
 *)
 procedure _LapeImage_FindImage(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPoint(Result)^ := PSimbaImage(Params^[0])^.FindImage(PSimbaImage(Params^[1])^, PSingle(Params^[2])^);
+  PPoint(Result)^ := PSimbaImage(Params^[0])^.FindImage(PSimbaImage(Params^[1])^, PSingle(Params^[2])^, PBox(Params^[3])^);
 end;
 
 (*
@@ -1938,6 +1934,7 @@ begin
 
     addGlobalFunc('function TImage.GetColors: TColorArray; overload', @_LapeImage_GetColors1);
     addGlobalFunc('function TImage.GetColors(Box: TBox): TColorArray; overload', @_LapeImage_GetColors2);
+    addGlobalFunc('function TImage.GetColors(Points: TPointArray): TColorArray; overload', @_LapeImage_GetColors3);
 
     addGlobalFunc('procedure TImage.ReplaceColor(OldColor, NewColor: TColor; Tolerance: Single = 0)', @_LapeImage_ReplaceColor);
     addGlobalFunc('procedure TImage.ReplaceColorBinary(Color: TColor; Tolerance: Single = 0); overload', @_LapeImage_ReplaceColorBinary1);
@@ -2040,8 +2037,8 @@ begin
     addGlobalFunc('function TImage.LoadFonts(Dir: String): Boolean; static;', @_LapeImage_LoadFonts);
 
     addGlobalFunc('function TImage.FindAlpha(Value: Byte): TPointArray;', @_LapeImage_FindAlpha);
-    addGlobalFunc('function TImage.FindColor(Color: TColor; Tolerance: Single = 0): TPointArray;', @_LapeImage_FindColor);
-    addGlobalFunc('function TImage.FindImage(Image: TImage; Tolerance: Single = 0): TPoint;', @_LapeImage_FindImage);
+    addGlobalFunc('function TImage.FindColor(Color: TColor; Tolerance: Single; Bounds: TBox = [-1,-1,-1,-1]): TPointArray;', @_LapeImage_FindColor);
+    addGlobalFunc('function TImage.FindImage(Image: TImage; Tolerance: Single; Bounds: TBox = [-1,-1,-1,-1]): TPoint;', @_LapeImage_FindImage);
 
     addClass('TImagePool', 'TBaseClass');
     addGlobalFunc('function TImagePool.Create: TImagePool; static;', @_LapeImagePool_Create);

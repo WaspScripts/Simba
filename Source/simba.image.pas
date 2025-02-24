@@ -146,6 +146,7 @@ type
 
     function GetColors: TColorArray; overload;
     function GetColors(Box: TBox): TColorArray; overload;
+    function GetColors(Points: TPointArray): TColorArray; overload;
 
     procedure SplitChannels(var B,G,R: TByteArray);
     procedure FromChannels(const B,G,R: TByteArray; W, H: Integer);
@@ -263,8 +264,8 @@ type
     procedure FromLazBitmap(LazBitmap: TBitmap);
 
     // Basic finders, use Target.SetTarget(img) for all
-    function FindColor(Color: TColor; Tolerance: Single = 0): TPointArray;
-    function FindImage(Image: TSimbaImage; Tolerance: Single = 0): TPoint;
+    function FindColor(Color: TColor; Tolerance: Single; Bounds: TBox): TPointArray;
+    function FindImage(Image: TSimbaImage; Tolerance: Single; Bounds: TBox): TPoint;
     function FindAlpha(Value: Byte): TPointArray;
   end;
 
@@ -782,31 +783,36 @@ begin
   TempBitmap.Free();
 end;
 
-function TSimbaImage.FindColor(Color: TColor; Tolerance: Single): TPointArray;
+function TSimbaImage.FindColor(Color: TColor; Tolerance: Single; Bounds: TBox): TPointArray;
 var
   Col: TColorBGRA;
   Ptr: PColorBGRA;
-  X,Y,W,H: Integer;
+  X, Y: Integer;
   Buffer: TSimbaPointBuffer;
 begin
   Col := TSimbaColorConversion.ColorToBGRA(Color);
-  Ptr := FData;
 
-  W := FWidth - 1;
-  H := FHeight - 1;
-  for Y := 0 to H do
-    for X := 0 to W do
+  if (Bounds.X1 = -1) and (Bounds.Y1 = -1) and (Bounds.X2 = -1) and (Bounds.Y2 = -1) then
+    Bounds := TBox.Create(0, 0, FWidth-1, FHeight-1)
+  else
+    Bounds := Bounds.Clip(TBox.Create(0, 0, FWidth-1, FHeight-1));
+
+  for Y := Bounds.Y1 to Bounds.Y2 do
+  begin
+    Ptr := @FData[Y * FWidth + Bounds.X1];
+    for X := Bounds.X1 to Bounds.X2 do
     begin
       if SimilarRGB(Col, Ptr^, Tolerance) then
         Buffer.Add(X, Y);
 
       Inc(Ptr);
     end;
+  end;
 
   Result := Buffer.ToArray(False);
 end;
 
-function TSimbaImage.FindImage(Image: TSimbaImage; Tolerance: Single): TPoint;
+function TSimbaImage.FindImage(Image: TSimbaImage; Tolerance: Single; Bounds: TBox): TPoint;
 
   function Match(const Ptr: TColorBGRA; const ImagePtr: TColorBGRA): Boolean; inline;
   begin
@@ -837,18 +843,22 @@ function TSimbaImage.FindImage(Image: TSimbaImage; Tolerance: Single): TPoint;
   end;
 
 var
-  SearchWidth, SearchHeight: Integer;
   Ptr: PColorBGRA;
   X, Y: Integer;
 begin
-  SearchWidth := (FWidth - Image.Width) - 1;
-  SearchHeight := (FHeight - Image.Height) - 1;
+  if (Bounds.X1 = -1) and (Bounds.Y1 = -1) and (Bounds.X2 = -1) and (Bounds.Y2 = -1) then
+    Bounds := TBox.Create(0, 0, FWidth-1, FHeight-1)
+  else
+    Bounds := Bounds.Clip(TBox.Create(0, 0, FWidth-1, FHeight-1));
+
+  Bounds.X2 -= Image.Width;
+  Bounds.Y2 -= Image.Height;
   Ptr := FData;
 
-  for Y := 0 to SearchHeight do
+  for Y := Bounds.Y1 to Bounds.Y2 do
   begin
     Ptr := @FData[Y * FWidth];
-    for X := 0 to SearchWidth do
+    for X := 0 to Bounds.X2 do
     begin
       if Hit(Ptr) then
       begin
@@ -1342,11 +1352,22 @@ begin
     end;
 end;
 
+function TSimbaImage.GetColors(Points: TPointArray): TColorArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, Length(Points));
+  for I := 0 to High(Points) do
+    if InImage(Points[I].X, Points[I].Y) then
+      Result[I] := TSimbaColorConversion.BGRAToColor(FData[Points[I].Y * FWidth + Points[I].X])
+    else
+      RaiseOutOfImageException(Points[I].X, Points[I].Y);
+end;
+
 class function TSimbaImage.LoadFontsInDir(Dir: String): Boolean;
 begin
   Result := SimbaFreeTypeFontLoader.LoadFonts(Dir);
 end;
-
 
 procedure TSimbaImage.ReplaceColor(OldColor, NewColor: TColor; Tolerance: Single);
 begin
