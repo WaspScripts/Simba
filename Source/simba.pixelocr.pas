@@ -242,7 +242,7 @@ begin
     Glyph := Lo;
     while (PtrUInt(Glyph) <= PtrUInt(Hi)) do
     begin
-      if (Glyph^.Points <> nil) and (X + Glyph^.PointsShadowWidth < Image.Width) and (Y + Glyph^.Height < Image.Height) then
+      if (Glyph^.Points <> nil) and (X + Glyph^.PointsShadowWidth < Image.Width) and (Y + Font^.MaxGlyphHeight < Image.Height) then
       begin
         if (Glyph^.Shadow <> nil) then
           Hits := CompareUsingShadow(Glyph, X, Y)
@@ -364,8 +364,8 @@ begin
           else
             Glyph.BestMatch := Length(Glyph.Points) + Length(Glyph.Background);
 
-          Result.MaxGlyphWidth := Max(Result.MaxGlyphWidth, Glyph.Width);
-          Result.MaxGlyphHeight := Max(Result.MaxGlyphHeight, Glyph.Height);
+          Result.MaxGlyphWidth := Max(Result.MaxGlyphWidth, Glyph.Background.Bounds.Width);
+          Result.MaxGlyphHeight := Max(Result.MaxGlyphHeight, Glyph.Background.Bounds.Height);
         end;
 
         Result.Glyphs += [Glyph];

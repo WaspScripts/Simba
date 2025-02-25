@@ -508,6 +508,8 @@ var
   Ptr, Upper: PColorBGRA;
 begin
   Result := Image.GreyScale();
+  if not Result.DataRange(Ptr, Upper) then
+    Exit;
 
   FillByte(Histogram, SizeOf(Histogram), 0);
   Min := 255;
@@ -516,8 +518,6 @@ begin
   NumPixels := Result.Width * Result.Height;
 
   // Compute histogram and determine min and max pixel values
-  Ptr := Result.Data;
-  Upper := Result.DataUpper;
   while (Ptr <= Upper) do
   begin
     Histogram[Ptr^.R] := Histogram[Ptr^.R] + 1.0;
@@ -688,14 +688,14 @@ end;
 
 procedure SimbaImage_ReplaceColor(Image: TSimbaImage; OldColor, NewColor: TColor; Tol: Single);
 var
-  Old,New: TColorBGRA;
+  Old, New: TColorBGRA;
   Ptr, Upper: PColorBGRA;
 begin
+  if not Image.DataRange(Ptr, Upper) then
+    Exit;
+
   Old := TSimbaColorConversion.ColorToBGRA(OldColor);
   New := TSimbaColorConversion.ColorToBGRA(NewColor, ALPHA_OPAQUE);
-
-  Ptr := Image.Data;
-  Upper := Image.DataUpper;
   while (Ptr <= Upper) do
   begin
     if SimilarRGB(Old, Ptr^, Tol) then
@@ -712,10 +712,10 @@ var
   Col: TColorBGRA;
   Ptr, Upper: PColorBGRA;
 begin
-  Col := TSimbaColorConversion.ColorToBGRA(Color);
+  if not Image.DataRange(Ptr, Upper) then
+    Exit;
 
-  Ptr := Image.Data;
-  Upper := Image.DataUpper;
+  Col := TSimbaColorConversion.ColorToBGRA(Color);
   while (Ptr <= Upper) do
   begin
     if SimilarRGB(Col, Ptr^, Tol) then
@@ -738,12 +738,13 @@ var
 label
   Next;
 begin
+  if not Image.DataRange(Ptr, Upper) then
+    Exit;
+
   SetLength(Cols, Length(Colors));
   for I := 0 to High(Colors) do
     Cols[I] := TSimbaColorConversion.ColorToBGRA(Colors[I]);
 
-  Ptr := Image.Data;
-  Upper := Image.DataUpper;
   while (Ptr <= Upper) do
   begin
     for I := 0 to High(Cols) do

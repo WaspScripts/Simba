@@ -32,6 +32,12 @@ type
   end;
 
 procedure SimbaImage_FastCompress(Images: TSimbaImageArray; var Data: Pointer; out DataSize: SizeUInt);
+
+  function SizeInBytes(Image: TSimbaImage): PtrUInt; inline;
+  begin
+    Result := (Image.Width * Image.Height) * SizeOf(TColorBGRA);
+  end;
+
 var
   TotalSize: SizeUInt;
   I: Integer;
@@ -40,7 +46,7 @@ begin
   DataSize := 0;
   TotalSize := SizeOf(Integer) + (Length(Images) * SizeOf(TImageHeader));
   for I := 0 to High(Images) do
-    Inc(TotalSize, Images[I].DataSize);
+    Inc(TotalSize, SizeInBytes(Images[I]));
 
   if (Data = nil) or (MemSize(Data) < SynLZcompressdestlen(TotalSize)) then
     ReAllocMem(Data, SynLZcompressdestlen(TotalSize));
@@ -54,7 +60,7 @@ begin
     begin
       Width := Images[I].Width;
       Height := Images[I].Height;
-      Size := SynLZcompress(PByte(Images[I].Data), Images[I].DataSize, Ptr);
+      Size := SynLZcompress(PByte(Images[I].Data), SizeInBytes(Images[I]), Ptr);
       Inc(Ptr, Size);
       Inc(DataSize, Size);
     end;

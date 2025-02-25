@@ -42,7 +42,6 @@ type
     FCenter: TPoint;
 
     FData: PColorBGRA;
-    FDataUpper: PColorBGRA;
     FDataOwner: Boolean;
 
     FLineStarts: TSimbaImageLineStarts;
@@ -95,9 +94,7 @@ type
     destructor Destroy; override;
 
     property DataOwner: Boolean read FDataOwner;
-    property Data: PColorBGRA read FData; // @data[0]
-    property DataUpper: PColorBGRA read FDataUpper; // @data[high(data)]
-    property DataSize: SizeUInt read GetDataSize; // width*height*4
+    property Data: PColorBGRA read FData;
 
     property Width: Integer read FWidth;
     property Height: Integer read FHeight;
@@ -120,6 +117,7 @@ type
     property Alpha[X, Y: Integer]: Byte read GetAlpha write SetAlpha;
 
     function InImage(const X, Y: Integer): Boolean;
+    function DataRange(out Lo, Hi: PColorBGRA): Boolean;
 
     procedure SetSize(NewWidth, NewHeight: Integer);
     procedure SetExternalData(NewData: PColorBGRA; DataWidth, DataHeight: Integer);
@@ -143,6 +141,7 @@ type
     function GetPixels(Points: TPointArray): TColorArray;
     procedure SetPixels(Points: TPointArray; Color: TColor); overload;
     procedure SetPixels(Points: TPointArray; Colors: TColorArray); overload;
+    procedure SetAlphas(Points: TPointArray; Value: Byte);
 
     function GetColors: TColorArray; overload;
     function GetColors(Box: TBox): TColorArray; overload;
@@ -726,21 +725,23 @@ end;
 
 function TSimbaImage.PixelDifference(Other: TSimbaImage; Tolerance: Single): Integer;
 var
-  P1, P2: PColorBGRA;
+  Ptr, Upper, OtherPtr: PColorBGRA;
 begin
   Result := 0;
   if (FWidth <> Other.Width) or (FHeight <> Other.Height) then
     SimbaException('TSimbaImage.PixelDifference: Both images must be equal dimensions');
 
-  P1 := Data;
-  P2 := Other.Data;
-  while (P1 <= FDataUpper) do
+  if DataRange(Ptr, Upper) then
   begin
-    if (not SimilarRGB(P1^, P2^, Tolerance)) then
-      Inc(Result);
+    OtherPtr := Other.Data;
+    while (Ptr <= Upper) do
+    begin
+      if (not SimilarRGB(Ptr^, OtherPtr^, Tolerance)) then
+        Inc(Result);
 
-    Inc(P1);
-    Inc(P2);
+      Inc(Ptr);
+      Inc(OtherPtr);
+    end;
   end;
 end;
 
@@ -1213,15 +1214,15 @@ end;
 
 procedure TSimbaImage.FillWithAlpha(Value: Byte);
 var
-  Ptr: PColorBGRA;
+  Ptr, Upper: PColorBGRA;
 begin
-  Ptr := FData;
-  while (Ptr <= FDataUpper) do
-  begin
-    Ptr^.A := Value;
+  if DataRange(Ptr, Upper) then
+    while (Ptr <= Upper) do
+    begin
+      Ptr^.A := Value;
 
-    Inc(Ptr);
-  end;
+      Inc(Ptr);
+    end;
 end;
 
 procedure TSimbaImage.Clear;
@@ -1265,9 +1266,12 @@ end;
 
 procedure TSimbaImage.SplitChannels(var B,G,R: TByteArray);
 var
-  Src: PColorBGRA;
+  Ptr, Upper: PColorBGRA;
   DestB, DestG, DestR: PByte;
 begin
+  if not DataRange(Ptr, Upper) then
+    Exit;
+
   SetLength(B, FWidth*FHeight);
   SetLength(G, FWidth*FHeight);
   SetLength(R, FWidth*FHeight);
@@ -1276,14 +1280,13 @@ begin
   DestG := @G[0];
   DestR := @R[0];
 
-  Src := FData;
-  while (Src <= FDataUpper) do
+  while (Ptr <= Upper) do
   begin
-    DestB^ := Src^.B;
-    DestG^ := Src^.G;
-    DestR^ := Src^.R;
+    DestB^ := Ptr^.B;
+    DestG^ := Ptr^.G;
+    DestR^ := Ptr^.R;
 
-    Inc(Src);
+    Inc(Ptr);
     Inc(DestB);
     Inc(DestG);
     Inc(DestR);
@@ -1292,26 +1295,27 @@ end;
 
 procedure TSimbaImage.FromChannels(const B,G,R: TByteArray; W, H: Integer);
 var
-  Dst: PColorBGRA;
+  Ptr, Upper: PColorBGRA;
   SrcB, SrcG, SrcR: PByte;
 begin
   SetSize(W, H);
   if (Length(B) <> W*H) or (Length(G) <> W*H) or (Length(R) <> W*H) then
     SimbaException('Channel size does not match image size');
+  if not DataRange(Ptr, Upper) then
+    Exit;
 
-  Dst := FData;
   SrcB := @B[0];
   SrcG := @G[0];
   SrcR := @R[0];
 
-  while (Dst <= FDataUpper) do
+  while (Ptr <= Upper) do
   begin
-    Dst^.A := ALPHA_OPAQUE;
-    Dst^.B := SrcB^;
-    Dst^.G := SrcG^;
-    Dst^.R := SrcR^;
+    Ptr^.A := ALPHA_OPAQUE;
+    Ptr^.B := SrcB^;
+    Ptr^.G := SrcG^;
+    Ptr^.R := SrcR^;
 
-    Inc(Dst);
+    Inc(Ptr);
     Inc(SrcB);
     Inc(SrcG);
     Inc(SrcR);
@@ -1712,7 +1716,6 @@ begin
       FreeMem(FData);
 
     FData := NewData;
-    FDataUpper := @NewData[(NewWidth * NewHeight) - 1];
     FWidth := NewWidth;
     FHeight := NewHeight;
     FCenter := TPoint.Create(FWidth div 2, FHeight div 2);
@@ -1831,6 +1834,26 @@ begin
     end;
 end;
 
+procedure TSimbaImage.SetAlphas(Points: TPointArray; Value: Byte);
+var
+  Ptr, Upper: PPoint;
+begin
+  if (Length(Points) = 0) then
+    Exit;
+
+  Ptr := @Points[0];
+  Upper := @Points[High(Points)];
+  while (Ptr <= Upper) do
+  begin
+    if (Ptr^.X >= 0) and (Ptr^.Y >= 0) and (Ptr^.X < FWidth) and (Ptr^.Y < FHeight) then
+      FData[Ptr^.Y * FWidth + Ptr^.X].A := Value
+    else
+      RaiseOutOfImageException(Ptr^.X, Ptr^.Y);
+
+    Inc(Ptr);
+  end;
+end;
+
 procedure TSimbaImage.DrawData(TheData: PColorBGRA; DataW, DataH: Integer; P: TPoint);
 var
   W, H: Integer;
@@ -1911,12 +1934,15 @@ end;
 
 function TSimbaImage.isBinary: Boolean;
 var
-  Ptr: PColorBGRA;
+  Ptr, Upper: PColorBGRA;
 begin
-  Ptr := FData;
-  while (Ptr <= FDataUpper) and ((Ptr^.R = 0) and (Ptr^.G = 0) and (Ptr^.B = 0)) or ((Ptr^.R = 255) and (Ptr^.G = 255) and (Ptr^.B = 255)) do
-    Inc(Ptr);
-  Result := Ptr > FDataUpper;
+  if DataRange(Ptr, Upper) then
+  begin
+    while (Ptr <= Upper) and ((Ptr^.R = 0) and (Ptr^.G = 0) and (Ptr^.B = 0)) or ((Ptr^.R = 255) and (Ptr^.G = 255) and (Ptr^.B = 255)) do
+      Inc(Ptr);
+    Result := Ptr > Upper;
+  end else
+    Result := False;
 end;
 
 function TSimbaImage.DetachData: TDetachedImageData;
@@ -1969,6 +1995,16 @@ end;
 function TSimbaImage.InImage(const X, Y: Integer): Boolean;
 begin
   Result := (X >= 0) and (Y >= 0) and (X < FWidth) and (Y < FHeight);
+end;
+
+function TSimbaImage.DataRange(out Lo, Hi: PColorBGRA): Boolean;
+begin
+  Result := (FWidth > 0) and (FHeight > 0);
+  if Result then
+  begin
+    Lo := FData;
+    Hi := @FData[(FWidth * FHeight) - 1];
+  end;
 end;
 
 procedure TSimbaImage.DrawLineAA(Start, Stop: TPoint; Thickness: Single);

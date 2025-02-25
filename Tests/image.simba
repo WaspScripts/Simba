@@ -49,6 +49,24 @@ begin
   Assert(img.Alpha[50,50]=0);
 end;
 
+procedure TestAlphaSetting;
+var
+  img: TImage;
+begin
+  img := TImage.Create(100,100);
+  img.Alpha[0,0] := 123;
+  Assert(img.Alpha[0,0]=123);
+
+  img.FillWithAlpha(0);
+  Assert(img.Alpha[0,0]=0);
+  Assert(img.Alpha[50,50]=0);
+
+  img.SetAlphas([[10,10],[20,20],[25,45]], 99);
+  Assert(img.FindAlpha(99).Equals(([[10,10],[20,20],[25,45]])));
+
+  img.Free();
+end;
+
 procedure TestColors;
 var
   TPA: TPointArray;
@@ -191,6 +209,7 @@ begin
 
   TestPixels();
   TestColors();
+  TestAlphaSetting();
   TestAlphaDraw();
   TestDifference();
   TestToString();

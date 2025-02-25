@@ -229,21 +229,22 @@ function LazImage_PixelFormat(LazImage: TBitmap): ELazPixelFormat;
   function isRGBA: Boolean;
   begin
     with LazImage.RawImage.Description do
-      Result := (BitsPerPixel = 32) and (Depth = 32) and (RedShift = 0) and (GreenShift = 8) and (BlueShift = 16) and (AlphaShift = 24);
+      Result := ((BitsPerPixel = 32) and (Depth = 32) and (RedShift = 0) and (GreenShift = 8) and (BlueShift = 16) and (AlphaShift = 24)) or
+                ((BitsPerPixel = 32) and (Depth = 24) and (RedShift = 0) and (GreenShift = 8) and (BlueShift = 16) and (AlphaShift in [0,24])); // 32bit but alpha not used
   end;
 
   function isBGRA: Boolean;
   begin
     with LazImage.RawImage.Description do
       Result := ((BitsPerPixel = 32) and (Depth = 32) and (ByteOrder = riboLSBFirst) and (BlueShift = 0) and (GreenShift = 8) and (RedShift = 16) and (AlphaShift = 24)) or
-                ((BitsPerPixel = 32) and (Depth = 24) and (ByteOrder = riboLSBFirst) and (BlueShift = 0) and (GreenShift = 8) and (RedShift = 16) and (AlphaShift = 0)); // 32bit but alpha not used
+                ((BitsPerPixel = 32) and (Depth = 24) and (ByteOrder = riboLSBFirst) and (BlueShift = 0) and (GreenShift = 8) and (RedShift = 16) and (AlphaShift in [0, 24])); // 32bit but alpha not used
   end;
 
   function isARGB: Boolean;
   begin
     with LazImage.RawImage.Description do
       Result := ((BitsPerPixel = 32) and (Depth = 32) and (ByteOrder = riboMSBFirst) and (BlueShift = 0) and (GreenShift = 8) and (RedShift = 16) and (AlphaShift = 24)) or
-                ((BitsPerPixel = 32) and (Depth = 24) and (ByteOrder = riboMSBFirst) and (BlueShift = 0) and (GreenShift = 8) and (RedShift = 16) and (AlphaShift = 0)); // 32bit but alpha not used
+                ((BitsPerPixel = 32) and (Depth = 24) and (ByteOrder = riboMSBFirst) and (BlueShift = 0) and (GreenShift = 8) and (RedShift = 16) and (AlphaShift in [0, 24])); // 32bit but alpha not used
   end;
 
   function isBGR: Boolean;

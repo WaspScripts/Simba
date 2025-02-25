@@ -179,7 +179,7 @@ begin
     FOutputStream.Write(EnsureVisible, SizeOf(Boolean));
     FOutputStream.Write(Bitmap.Width, SizeOf(Integer));
     FOutputStream.Write(Bitmap.Height, SizeOf(Integer));
-    FOutputStream.Write(Bitmap.Data^, Bitmap.DataSize);
+    FOutputStream.Write(Bitmap.Data^, (Bitmap.Width * Bitmap.Height) * SizeOf(TColorBGRA));
 
     // Read result
     FInputStream.Read(Header, SizeOf(TSimbaIPCHeader));
@@ -208,7 +208,7 @@ begin
     FOutputStream.Write(Header, SizeOf(TSimbaIPCHeader));
     FOutputStream.Write(Bitmap.Width, SizeOf(Integer));
     FOutputStream.Write(Bitmap.Height, SizeOf(Integer));
-    FOutputStream.Write(Bitmap.Data^, Bitmap.DataSize);
+    FOutputStream.Write(Bitmap.Data^, (Bitmap.Width * Bitmap.Height) * SizeOf(TColorBGRA));
 
     // Read result
     FInputStream.Read(Header, SizeOf(TSimbaIPCHeader));

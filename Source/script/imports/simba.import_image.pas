@@ -481,6 +481,18 @@ begin
 end;
 
 (*
+TImage.SetAlphas
+----------------
+```
+procedure TImage.SetAlphas(Points: TPointArray; Value: Byte);
+```
+*)
+procedure _LapeImage_SetAlphas(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSimbaImage(Params^[0])^.SetAlphas(PPointArray(Params^[1])^, PByte(Params^[2])^);
+end;
+
+(*
 TImage.InImage
 --------------
 ```
@@ -1909,6 +1921,7 @@ begin
     addGlobalFunc('function TImage.GetPixels(Points: TPointArray): TColorArray;', @_LapeImage_GetPixels);
     addGlobalFunc('procedure TImage.SetPixels(Points: TPointArray; Color: TColor); overload', @_LapeImage_SetPixels1);
     addGlobalFunc('procedure TImage.SetPixels(Points: TPointArray; Colors: TColorArray); overload', @_LapeImage_SetPixels2);
+    addGlobalFunc('procedure TImage.SetAlphas(Points: TPointArray; Value: Byte)', @_LapeImage_SetAlphas);
 
     addGlobalFunc('function TImage.InImage(X, Y: Integer): Boolean', @_LapeImage_InImage);
 
