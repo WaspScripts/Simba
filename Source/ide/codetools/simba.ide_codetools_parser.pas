@@ -2144,9 +2144,8 @@ procedure TSymbolTable.CopyFrom(Other: TSymbolTable);
 
   procedure Append(var Item: TItem; const Decls: TDeclarationArray; const Count: Integer);
   begin
-    if (Item.Count + Count >= High(Decls)) then
-      SetLength(Item.Decls, (Item.Count + Count) * 2);
-
+    if (Item.Count + Count >= High(Item.Decls)) then
+      SetLength(Item.Decls, 2 + ((Length(Item.Decls) + Count) * 2));
     Move(Decls[0], Item.Decls[Item.Count], Count * SizeOf(TDeclaration));
 
     Inc(Item.Count, Count);
