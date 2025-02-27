@@ -58,6 +58,7 @@ type
     function GetTextWidthCache(const Cache: EPaintCache; const Str: String): Integer;
 
     procedure SelectAll;
+    procedure SelectWord;
     procedure ClearSelection;
     function GetSelectionLen: Integer;
     function HasSelection: Boolean;
@@ -75,6 +76,7 @@ type
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+    procedure DblClick; override;
 
     procedure ParentFontChanged; override;
 
@@ -206,14 +208,50 @@ end;
 
 procedure TSimbaEdit.SelectAll;
 begin
+  FSelecting := False;
   FSelectingStartX := 0;
   FSelectingEndX   := Length(Text);
 
   Invalidate();
 end;
 
+procedure TSimbaEdit.SelectWord;
+var
+  I, StartX, EndX: Integer;
+  Str: String;
+begin
+  ClearSelection();
+
+  if (Text <> '') and (FCaretX >= 1) and (FCaretX <= Length(Text)) then
+  begin
+    Str := Text;
+
+    StartX := 0;
+    for I := FCaretX downto 1 do
+      if (Str[I] <= #32) then
+      begin
+        StartX := I;
+        Break;
+      end;
+    EndX := Length(Str);
+    for I := FCaretX to Length(Str) do
+      if (Str[I] <= #32) then
+      begin
+        EndX := I-1;
+        Break;
+      end;
+
+    FSelectingStartX := StartX;
+    FSelectingEndX := EndX;
+    FCaretX := EndX;
+  end;
+
+  Invalidate();
+end;
+
 procedure TSimbaEdit.ClearSelection;
 begin
+  FSelecting := False;
   FSelectingStartX := 0;
   FSelectingEndX := 0;
 end;
@@ -368,21 +406,34 @@ begin
   if CanSetFocus() then
     SetFocus();
 
-  I := CharIndexAtXY(X, Y);
+  if (not (ssDouble in Shift)) then
+  begin
+    I := CharIndexAtXY(X, Y);
 
-  SetCaretPos(I);
+    SetCaretPos(I);
 
-  FSelecting := True;
-  FSelectingStartX := I;
-  FSelectingEndX := I;
+    FSelecting := True;
+    FSelectingStartX := I;
+    FSelectingEndX := I;
+  end;
 end;
 
 procedure TSimbaEdit.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   inherited MouseUp(Button, Shift, X, Y);
 
-  FSelecting := False;
-  FSelectingEndX := CharIndexAtXY(X, Y);
+  if (not (ssDouble in Shift)) then
+  begin
+    FSelecting := False;
+    FSelectingEndX := CharIndexAtXY(X, Y);
+  end;
+end;
+
+procedure TSimbaEdit.DblClick;
+begin
+  inherited DblClick();
+
+  SelectWord();
 end;
 
 procedure TSimbaEdit.ParentFontChanged;
