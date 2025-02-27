@@ -23,7 +23,7 @@ type
 
 procedure _LapePixelOCR_LoadFont(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPixelFont(Result)^ := PPixelOCR(Params^[0])^.LoadFont(PString(Params^[1])^, PInteger(Params^[2])^);
+  PPixelFont(Result)^ := TPixelOCR.LoadFont(PString(Params^[0])^, PInteger(Params^[1])^);
 end;
 
 procedure _LapePixelOCR_TextToTPA(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -113,7 +113,7 @@ begin
     if (getGlobalType('TPixelOCR').Size <> SizeOf(TPixelOCR)) then
       SimbaException('TPixelOCR import is wrong');
 
-    addGlobalFunc('function TPixelOCR.LoadFont(Path: String; SpaceWidth: Integer): TPixelFont;', @_LapePixelOCR_LoadFont);
+    addGlobalFunc('function TPixelOCR.LoadFont(Path: String; SpaceWidth: Integer): TPixelFont; static;', @_LapePixelOCR_LoadFont);
     addGlobalFunc('function TPixelOCR.TextToTPA(constref Font: TPixelFont; Text: String): TPointArray;', @_LapePixelOCR_TextToTPA);
     addGlobalFunc('function TPixelOCR.Locate(Image: TImage; constref Font: TPixelFont; Text: String): Single;', @_LapePixelOCR_Locate);
 

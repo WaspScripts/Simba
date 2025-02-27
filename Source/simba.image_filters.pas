@@ -27,8 +27,8 @@ function SimbaImage_ThresholdAdaptive(Image: TSimbaImage; Invert: Boolean; Radiu
 function SimbaImage_ThresholdAdaptiveSauvola(Image: TSimbaImage; Invert: Boolean; Radius: Integer; C: Single): TSimbaImage;
 
 procedure SimbaImage_ReplaceColor(Image: TSimbaImage; OldColor, NewColor: TColor; Tol: Single = 0);
-procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Color: TColor; Tol: Single = 0);
-procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Colors: TColorArray; Tol: Single = 0);
+procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Invert: Boolean; Color: TColor; Tol: Single = 0);
+procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Invert: Boolean; Colors: TColorArray; Tol: Single = 0);
 
 implementation
 
@@ -704,30 +704,37 @@ begin
   end;
 end;
 
-procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Color: TColor; Tol: Single);
+
+procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Invert: Boolean; Color: TColor; Tol: Single);
 const
   BLACK: TColorBGRA = (B:0; G:0; R:0; A: ALPHA_OPAQUE);
   WHITE: TColorBGRA = (B:255; G:255; R:255; A: ALPHA_OPAQUE);
 var
   Col: TColorBGRA;
   Ptr, Upper: PColorBGRA;
+  Hit, Miss: TColorBGRA;
 begin
   if not Image.DataRange(Ptr, Upper) then
     Exit;
+
+  Hit := WHITE;
+  Miss := BLACK;
+  if Invert then
+    Swap(Hit, Miss);
 
   Col := TSimbaColorConversion.ColorToBGRA(Color);
   while (Ptr <= Upper) do
   begin
     if SimilarRGB(Col, Ptr^, Tol) then
-      Ptr^ := WHITE
+      Ptr^ := Hit
     else
-      Ptr^ := BLACK;
+      Ptr^ := Miss;
 
     Inc(Ptr);
   end;
 end;
 
-procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Colors: TColorArray; Tol: Single);
+procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Invert: Boolean; Colors: TColorArray; Tol: Single);
 const
   BLACK: TColorBGRA = (B:0; G:0; R:0; A: ALPHA_OPAQUE);
   WHITE: TColorBGRA = (B:255; G:255; R:255; A: ALPHA_OPAQUE);
@@ -735,11 +742,17 @@ var
   Cols: array of TColorBGRA;
   I: Integer;
   Ptr, Upper: PColorBGRA;
+  Hit, Miss: TColorBGRA;
 label
   Next;
 begin
   if not Image.DataRange(Ptr, Upper) then
     Exit;
+
+  Hit := WHITE;
+  Miss := BLACK;
+  if Invert then
+    Swap(Hit, Miss);
 
   SetLength(Cols, Length(Colors));
   for I := 0 to High(Colors) do
@@ -750,10 +763,10 @@ begin
     for I := 0 to High(Cols) do
       if SimilarRGB(Cols[I], Ptr^, Tol) then
       begin
-        Ptr^ := WHITE;
+        Ptr^ := Hit;
         goto Next;
       end;
-    Ptr^ := BLACK;
+    Ptr^ := Miss;
     Next:
 
     Inc(Ptr);

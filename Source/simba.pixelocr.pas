@@ -62,7 +62,8 @@ type
     function _RecognizeX(const Image: TSimbaImage; const Font: PPixelFont; X, Y: Integer; const isBinary: Boolean): TPixelOCRMatch;
     function _RecognizeXY(const Image: TSimbaImage; const Font: PPixelFont; X, Y, Height: Integer; const isBinary: Boolean): TPixelOCRMatch;
   public
-    function LoadFont(Dir: String; SpaceWidth: Integer): TPixelFont;
+    class function LoadFont(Dir: String; SpaceWidth: Integer): TPixelFont; static;
+
     function TextToTPA(Font: TPixelFont; Text: String): TPointArray;
     function Locate(Image: TSimbaImage; constref Font: TPixelFont; Text: String): Single;
 
@@ -309,7 +310,7 @@ begin
   end;
 end;
 
-function TPixelOCR.LoadFont(Dir: String; SpaceWidth: Integer): TPixelFont;
+class function TPixelOCR.LoadFont(Dir: String; SpaceWidth: Integer): TPixelFont;
 var
   Image: TSimbaImage;
   Files: TStringArray;

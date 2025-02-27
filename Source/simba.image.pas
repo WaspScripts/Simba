@@ -151,8 +151,8 @@ type
     procedure FromChannels(const B,G,R: TByteArray; W, H: Integer);
 
     procedure ReplaceColor(OldColor, NewColor: TColor; Tolerance: Single = 0);
-    procedure ReplaceColorBinary(Color: TColor; Tolerance: Single = 0); overload;
-    procedure ReplaceColorBinary(Colors: TColorArray; Tolerance: Single = 0); overload;
+    procedure ReplaceColorBinary(AInvert: Boolean; Color: TColor; Tolerance: Single = 0); overload;
+    procedure ReplaceColorBinary(AInvert: Boolean; Colors: TColorArray; Tolerance: Single = 0); overload;
 
     // Rotate resize flip
     function Rotate(Algo: EImageRotateAlgo; Radians: Single; Expand: Boolean): TSimbaImage;
@@ -1378,14 +1378,14 @@ begin
   SimbaImage_ReplaceColor(Self, OldColor, NewColor, Tolerance);
 end;
 
-procedure TSimbaImage.ReplaceColorBinary(Color: TColor; Tolerance: Single);
+procedure TSimbaImage.ReplaceColorBinary(AInvert: Boolean; Color: TColor; Tolerance: Single);
 begin
-  SimbaImage_ReplaceColorBinary(Self, Color, Tolerance);
+  SimbaImage_ReplaceColorBinary(Self, AInvert, Color, Tolerance);
 end;
 
-procedure TSimbaImage.ReplaceColorBinary(Colors: TColorArray; Tolerance: Single);
+procedure TSimbaImage.ReplaceColorBinary(AInvert: Boolean; Colors: TColorArray; Tolerance: Single);
 begin
-  SimbaImage_ReplaceColorBinary(Self, Colors, Tolerance);
+  SimbaImage_ReplaceColorBinary(Self, AInvert, Colors, Tolerance);
 end;
 
 function TSimbaImage.GreyScale: TSimbaImage;

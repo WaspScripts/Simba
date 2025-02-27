@@ -757,24 +757,24 @@ end;
 TImage.ReplaceColorBinary
 -------------------------
 ```
-procedure TImage.ReplaceColorBinary(Color: TColor; Tolerance: Single = 0);
+procedure TImage.ReplaceColorBinary(Invert: Boolean; Color: TColor; Tolerance: Single = 0);
 ```
 *)
 procedure _LapeImage_ReplaceColorBinary1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaImage(Params^[0])^.ReplaceColorBinary(PColor(Params^[1])^, PSingle(Params^[2])^);
+  PSimbaImage(Params^[0])^.ReplaceColorBinary(PBoolean(Params^[1])^, PColor(Params^[2])^, PSingle(Params^[3])^);
 end;
 
 (*
 TImage.ReplaceColorBinary
 -------------------------
 ```
-procedure TImage.ReplaceColorBinary(Colors: TColorArray; Tolerance: Single = 0);
+procedure TImage.ReplaceColorBinary(Invert: Boolean; Colors: TColorArray; Tolerance: Single = 0);
 ```
 *)
 procedure _LapeImage_ReplaceColorBinary2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaImage(Params^[0])^.ReplaceColorBinary(PColorArray(Params^[1])^, PSingle(Params^[2])^);
+  PSimbaImage(Params^[0])^.ReplaceColorBinary(PBoolean(Params^[1])^, PColorArray(Params^[2])^, PSingle(Params^[3])^);
 end;
 
 (*
@@ -1950,8 +1950,8 @@ begin
     addGlobalFunc('function TImage.GetColors(Points: TPointArray): TColorArray; overload', @_LapeImage_GetColors3);
 
     addGlobalFunc('procedure TImage.ReplaceColor(OldColor, NewColor: TColor; Tolerance: Single = 0)', @_LapeImage_ReplaceColor);
-    addGlobalFunc('procedure TImage.ReplaceColorBinary(Color: TColor; Tolerance: Single = 0); overload', @_LapeImage_ReplaceColorBinary1);
-    addGlobalFunc('procedure TImage.ReplaceColorBinary(Colors: TColorArray; Tolerance: Single = 0); overload', @_LapeImage_ReplaceColorBinary2);
+    addGlobalFunc('procedure TImage.ReplaceColorBinary(Invert: Boolean; Color: TColor; Tolerance: Single = 0); overload', @_LapeImage_ReplaceColorBinary1);
+    addGlobalFunc('procedure TImage.ReplaceColorBinary(Invert: Boolean; Colors: TColorArray; Tolerance: Single = 0); overload', @_LapeImage_ReplaceColorBinary2);
 
     addGlobalFunc('function TImage.Resize(Algo: EImageResizeAlgo; NewWidth, NewHeight: Integer): TImage; overload;', @_LapeImage_Resize1);
     addGlobalFunc('function TImage.Resize(Algo: EImageResizeAlgo; Scale: Single): TImage; overload;', @_LapeImage_Resize2);
