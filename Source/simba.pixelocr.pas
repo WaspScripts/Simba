@@ -314,7 +314,7 @@ class function TPixelOCR.LoadFont(Dir: String; SpaceWidth: Integer): TPixelFont;
 var
   Image: TSimbaImage;
   Files: TStringArray;
-  I: Integer;
+  I, Count: Integer;
   Character: String;
   Glyph: TPixelFontGlyph;
   B: TBox;
@@ -325,8 +325,8 @@ begin
   Files := TSimbaDir.DirList(dir);
   if (Length(Files) = 0) then
     Exit;
-
   SetLength(Result.Glyphs, Length(Files));
+  Count := 0;
 
   Image := TSimbaImage.Create();
   try
@@ -369,10 +369,13 @@ begin
           Result.MaxGlyphHeight := Max(Result.MaxGlyphHeight, Glyph.Background.Bounds.Height);
         end;
 
-        Result.Glyphs += [Glyph];
+        Result.Glyphs[Count] := Glyph;
+        Inc(Count);
       end;
     end;
   finally
+    SetLength(Result.Glyphs, Count);
+
     Image.Free();
   end;
 end;

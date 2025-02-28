@@ -9,7 +9,6 @@
 }
 unit simba.colormath_distance;
 
-{$DEFINE SIMBA_MAX_OPTIMIZATION}
 {$i simba.inc}
 
 interface

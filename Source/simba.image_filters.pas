@@ -5,7 +5,6 @@
 }
 unit simba.image_filters;
 
-{$DEFINE SIMBA_MAX_OPTIMIZATION}
 {$i simba.inc}
 
 interface
@@ -703,7 +702,6 @@ begin
     Inc(Ptr);
   end;
 end;
-
 
 procedure SimbaImage_ReplaceColorBinary(Image: TSimbaImage; Invert: Boolean; Color: TColor; Tol: Single);
 const
