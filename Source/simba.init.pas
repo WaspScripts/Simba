@@ -100,6 +100,11 @@ initialization
   WindowsInitialization();
   {$ENDIF}
 
+  DefaultFormatSettings.ThousandSeparator := ',';
+  DefaultFormatSettings.DecimalSeparator := '.';
+  DefaultFormatSettings.DateSeparator := '-';
+  DefaultFormatSettings.TimeSeparator := ':';
+
   FormatSettings.ThousandSeparator := ',';
   FormatSettings.DecimalSeparator := '.';
   FormatSettings.DateSeparator := '-';
