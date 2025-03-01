@@ -153,7 +153,6 @@ type
     procedure VarAssign; virtual;
     procedure VarDeclaration; virtual;
     procedure Variable; virtual;
-    procedure VariableList; virtual;
     procedure VariableReference; virtual;
     procedure VariableTwo; virtual;
     procedure VarName; virtual;
@@ -161,6 +160,7 @@ type
     procedure VarSection; virtual;
     procedure WhileStatement; virtual;
     procedure WithStatement; virtual;
+    procedure WithVariableList; virtual;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -696,18 +696,18 @@ end;
 procedure TPasParser.WithStatement;
 begin
   Expected(tokWith);
-  VariableList;
+  WithVariableList;
   Expected(tokDo);
   Statement;
 end;
 
-procedure TPasParser.VariableList;
+procedure TPasParser.WithVariableList;
 begin
-  VariableReference;
+  Expression;
   while fLexer.TokenID = tokComma do
   begin
     NextToken;
-    VariableReference;
+    Expression;
   end;
 end;
 
@@ -1093,23 +1093,19 @@ begin
 
   case fLexer.TokenID of
     tokEqual, tokGreater, tokGreaterEqual, tokLower, tokLowerEqual, tokIn, tokIs, tokNotEqual:
+      while fLexer.TokenID in [tokEqual, tokGreater, tokGreaterEqual, tokLower, tokLowerEqual, tokIn, tokIs, tokNotEqual] do
       begin
-        while fLexer.TokenID in [tokEqual, tokGreater, tokGreaterEqual, tokLower, tokLowerEqual, tokIn, tokIs, tokNotEqual] do
-        begin
-          RelativeOperator;
-          SimpleExpression;
-        end;
+        RelativeOperator;
+        SimpleExpression;
       end;
 
   tokColon:
-    begin
-      if fInRound then
-        while fLexer.TokenID = tokColon do
-        begin
-          NextToken;
-          SimpleExpression;
-        end;
-    end;
+    if fInRound then
+      while fLexer.TokenID = tokColon do
+      begin
+        NextToken;
+        SimpleExpression;
+      end;
   end;
 end;
 
@@ -1995,8 +1991,6 @@ begin
   end;
   SemiColon;
 end;
-
-
 
 procedure TPasParser.VarSection;
 begin

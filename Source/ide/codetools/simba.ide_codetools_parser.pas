@@ -137,8 +137,9 @@ type
   end;
 
   TDeclaration_WithStatement = class(TDeclaration);
-  TDeclaration_WithVariableList = class(TDeclaration);
-  TDeclaration_WithVariable = class(TDeclaration);
+  TDeclaration_WithExpressions = class(TDeclaration);
+  TDeclaration_WithExpression = class(TDeclaration);
+  TDeclaration_WithExpressionOp = class(TDeclaration); // add operators to know if it's a identifier or not
 
   TDeclaration_Stub = class(TDeclaration);
   TDeclaration_TypeStub = class(TDeclaration_Stub)
@@ -451,9 +452,13 @@ type
     procedure TypeKind; override;
 
     // with statement
+    procedure Expression; override;
+    procedure AdditiveOperator; override;
+    procedure MultiplicativeOperator; override;
+    procedure RelativeOperator; override;
+
     procedure WithStatement; override;
-    procedure VariableList; override;
-    procedure Variable; override;
+    procedure WithVariableList; override;
 
     // var / consts
     procedure VarDeclaration; override;
@@ -1593,22 +1598,9 @@ begin
   PopStack();
 end;
 
-procedure TCodeParser.VariableList;
+procedure TCodeParser.WithVariableList;
 begin
-  PushStack(TDeclaration_WithVariableList);
-  inherited;
-  PopStack();
-end;
-
-procedure TCodeParser.Variable;
-begin
-  if (not InDeclaration(TDeclaration_WithVariableList)) then
-  begin
-    inherited;
-    Exit;
-  end;
-
-  PushStack(TDeclaration_WithVariable);
+  PushStack(TDeclaration_WithExpressions);
   inherited;
   PopStack();
 end;
@@ -1663,6 +1655,58 @@ begin
   end;
 
   PushStack(TDeclaration_VarType);
+  inherited;
+  PopStack();
+end;
+
+procedure TCodeParser.Expression;
+begin
+  if (not InDeclaration(TDeclaration_WithExpressions)) then
+  begin
+    inherited;
+    Exit;
+  end;
+
+  PushStack(TDeclaration_WithExpression);
+  inherited Expression;
+  PopStack();
+end;
+
+procedure TCodeParser.AdditiveOperator;
+begin
+  if (not InDeclaration(TDeclaration_WithExpression)) then
+  begin
+    inherited;
+    Exit;
+  end;
+
+  PushStack(TDeclaration_WithExpressionOp);
+  inherited;
+  PopStack();
+end;
+
+procedure TCodeParser.MultiplicativeOperator;
+begin
+  if (not InDeclaration(TDeclaration_WithExpression)) then
+  begin
+    inherited;
+    Exit;
+  end;
+
+  PushStack(TDeclaration_WithExpressionOp);
+  inherited;
+  PopStack();
+end;
+
+procedure TCodeParser.RelativeOperator;
+begin
+  if (not InDeclaration(TDeclaration_WithExpression)) then
+  begin
+    inherited;
+    Exit;
+  end;
+
+  PushStack(TDeclaration_WithExpressionOp);
   inherited;
   PopStack();
 end;

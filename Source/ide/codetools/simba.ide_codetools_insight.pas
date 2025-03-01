@@ -157,14 +157,17 @@ var
   end;
 
   procedure CheckWith(Decl: TDeclaration);
+  var
+    List: TDeclaration;
+    I: Integer;
   begin
-    if (Decl = nil) then
-      Exit;
-
     while (Decl is TDeclaration_WithStatement) do
     begin
-      if (Decl.Items.GetByClassFirst(TDeclaration_WithVariableList) <> nil) then
-        Locals.Add(Decl.Items.GetByClassFirst(TDeclaration_WithVariableList).Items.GetByClass(TDeclaration_WithVariable));
+      List := Decl.Items.GetByClassFirst(TDeclaration_WithExpressions);
+      if (List <> nil) then
+        for I := 0 to List.Items.Count - 1 do
+          if (List.Items[I] is TDeclaration_WithExpression) and (TDeclaration_WithExpression(List.Items[I]).Items.Count = 0) then // no items means it's just a identifier
+            Locals.Add(List.Items[I]);
 
       Decl := Decl.ParentByClass[TDeclaration_WithStatement];
     end;
@@ -198,7 +201,7 @@ begin
       if (Locals[I].Name <> '') then
         FLocalSymbolTable.Add(Locals[I].Name, Locals[I])
       else
-      if (Locals[I] is TDeclaration_WithVariable) then // resolve the with vartype and add the symbols
+      if (Locals[I] is TDeclaration_WithExpression) then // resolve the with vartype and add the symbols
       begin
         Decl := ParseExpr(Locals[I].Text);
 

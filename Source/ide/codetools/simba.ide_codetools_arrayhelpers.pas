@@ -15,7 +15,7 @@ uses
 
 const
   HELPERS_DYNARRAY_FLAT: TStringArray = (
-    'property <ArrayName>.IsEmpty: Boolean',
+    'property <ArrayName>.IsEmpty: Boolean;',
     'property <ArrayName>.Length: Integer;',
     'property <ArrayName>.Low: Integer;',
     'property <ArrayName>.High: Integer;',
