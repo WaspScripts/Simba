@@ -63,8 +63,9 @@ type
     function _RecognizeXY(const Image: TSimbaImage; const Font: PPixelFont; X, Y, Height: Integer; const isBinary: Boolean): TPixelOCRMatch;
   public
     class function LoadFont(Dir: String; SpaceWidth: Integer): TPixelFont; static;
+    class function TextToTPA(constref Font: TPixelFont; Text: String; out Background: TPointArray): TPointArray; overload; static;
+    class function TextToTPA(constref Font: TPixelFont; Text: String): TPointArray; overload; static;
 
-    function TextToTPA(Font: TPixelFont; Text: String): TPointArray;
     function Locate(Image: TSimbaImage; constref Font: TPixelFont; Text: String): Single;
 
     function Recognize(Image: TSimbaImage; constref Font: TPixelFont; p: TPoint): String; overload;
@@ -262,7 +263,7 @@ begin
 
     if (BestHits > 0) then
     begin
-      if ((WhiteList = []) or (BestGlyph^.Value in Self.Whitelist)) then
+      if ((WhiteList = []) or ({%H-}BestGlyph^.Value in Self.Whitelist)) then
       begin
         if (Result.Text <> '') and (Space >= Font^.SpaceWidth) then
           Result.Text += ' ';
@@ -380,18 +381,31 @@ begin
   end;
 end;
 
-function TPixelOCR.TextToTPA(Font: TPixelFont; Text: String): TPointArray;
+class function TPixelOCR.TextToTPA(constref Font: TPixelFont; Text: String; out Background: TPointArray): TPointArray;
 var
-  I, J, X, Count, OffsetY: Integer;
+  I, J, X, Count: Integer;
+  MinY, MaxY, MaxX: Integer;
 begin
+  MinY := $FFFFFF;
+  MaxY := 0;
+  MaxX := 0;
+
   X := 0;
   Count := 0;
-  OffsetY := $FFFFFF;
   for I := 1 to Length(Text) do
     with GetGlyph(@Font, Text[I])^ do
     begin
-      Inc(Count, Length(Points));
-      OffsetY := Min(ForegroundBounds.Y1, OffsetY);
+      if (Points <> nil) then
+      begin
+        Inc(Count, Length(Points));
+
+        if (ForegroundBounds.Y2 > MaxY) then
+          MaxY := ForegroundBounds.Y2;
+        if (ForegroundBounds.Y1 < MinY) then
+          MinY := ForegroundBounds.Y1;
+      end;
+
+      MaxX += Width;
     end;
   SetLength(Result, Count);
 
@@ -402,11 +416,21 @@ begin
       for J := 0 to High(Points) do
       begin
         Result[Count].X := Points[J].X + (X + ForegroundBounds.X1);
-        Result[Count].Y := Points[J].Y - OffsetY;
+        Result[Count].Y := Points[J].Y - MinY;
+
         Inc(Count);
       end;
       Inc(X, Width);
     end;
+
+  Background := Result.Invert(TBox.Create(0, 0, MaxX, MaxY-MinY));
+end;
+
+class function TPixelOCR.TextToTPA(constref Font: TPixelFont; Text: String): TPointArray;
+var
+  _: TPointArray;
+begin
+  Result := TPixelOCR.TextToTPA(Font, Text, _);
 end;
 
 function TPixelOCR.Locate(Image: TSimbaImage; constref Font: TPixelFont; Text: String): Single;
@@ -422,9 +446,9 @@ label
   NotFoundBinary, NotFoundColor, Finished;
 begin
   Result := 0;
+  Matches := [];
 
-  Points := TextToTPA(Font, Text);
-  Background := Points.Invert();
+  Points := TextToTPA(Font, Text, Background);
   BackgroundLen := Length(Background);
   if (Length(Points) = 0) or (Length(Background) = 0) then
     Exit;
@@ -495,12 +519,16 @@ begin
 
   Finished:
 
-  BestMatch.Hits := Round(Result * 100);
-  BestMatch.Text := Text;
-  BestMatch.Bounds.X2 := BestMatch.Bounds.X1 + Points.Bounds.Width;
-  BestMatch.Bounds.Y2 := BestMatch.Bounds.Y1 + Points.Bounds.Height;
+  if (Result > 0) then
+  begin
+    BestMatch.Hits := Round(Result * 100);
+    BestMatch.Text := Text;
+    BestMatch.Bounds.X2 := BestMatch.Bounds.X1 + Points.Bounds.Width;
+    BestMatch.Bounds.Y2 := BestMatch.Bounds.Y1 + Points.Bounds.Height;
 
-  Matches := [BestMatch];
+    Matches := [BestMatch];
+  end else
+    Matches := [Default(TPixelOCRMatch)];
 end;
 
 function TPixelOCR.Recognize(Image: TSimbaImage; constref Font: TPixelFont; p: TPoint): String; overload;

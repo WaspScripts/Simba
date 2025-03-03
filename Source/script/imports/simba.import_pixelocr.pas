@@ -28,7 +28,7 @@ end;
 
 procedure _LapePixelOCR_TextToTPA(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PPixelOCR(Params^[0])^.TextToTPA(PPixelFont(Params^[1])^, PString(Params^[2])^);
+  PPointArray(Result)^ := TPixelOCR.TextToTPA(PPixelFont(Params^[0])^, PString(Params^[1])^);
 end;
 
 procedure _LapePixelOCR_Locate(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -114,9 +114,8 @@ begin
       SimbaException('TPixelOCR import is wrong');
 
     addGlobalFunc('function TPixelOCR.LoadFont(Path: String; SpaceWidth: Integer): TPixelFont; static;', @_LapePixelOCR_LoadFont);
-    addGlobalFunc('function TPixelOCR.TextToTPA(constref Font: TPixelFont; Text: String): TPointArray;', @_LapePixelOCR_TextToTPA);
+    addGlobalFunc('function TPixelOCR.TextToTPA(constref Font: TPixelFont; Text: String): TPointArray; static;', @_LapePixelOCR_TextToTPA);
     addGlobalFunc('function TPixelOCR.Locate(Image: TImage; constref Font: TPixelFont; Text: String): Single;', @_LapePixelOCR_Locate);
-
     addGlobalFunc('function TPixelOCR.Recognize(Image: TImage; constref Font: TPixelFont; P: TPoint): String; overload;', @_LapePixelOCR_Recognize1);
     addGlobalFunc('function TPixelOCR.Recognize(Image: TImage; constref Font: TPixelFont; Bounds: TBox = [-1,-1,-1,-1]): String; overload;', @_LapePixelOCR_Recognize2);
     addGlobalFunc('function TPixelOCR.RecognizeLines(Image: TImage; constref Font: TPixelFont; Bounds: TBox= [-1,-1,-1,-1]): TStringArray;', @_LapePixelOCR_RecognizeLines);

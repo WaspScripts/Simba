@@ -1291,6 +1291,8 @@ begin
   case getChar(StartPos) of
     '$': Result := tokCompilerDirective;
     '%': Result := tokIDEDirective;
+    else
+      Exit(tokNull);
   end;
 
   StartPos := StartPos + 1;

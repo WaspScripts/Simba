@@ -10,10 +10,10 @@ end;
 var
   Event: TTargetEvent;
 begin
-  Event := Target.AddEvent(ETargetEventType.MOUSE_TELEPORT, @MouseTeleportEvent);
+  Event := Target.AddEvent(ETargetEvent.MOUSE_TELEPORT, @MouseTeleportEvent);
   Target.MouseTeleport([200,200]);
   Target.MouseMove([600,600]);
-  Target.RemoveEvent(ETargetEventType.MOUSE_TELEPORT, Event); // Remove the event
+  Target.RemoveEvent(ETargetEvent.MOUSE_TELEPORT, Event); // Remove the event
 
   Target.MouseMove([200, 600]); // The event has been removed so this wont be "recorded" when we show the path
 
