@@ -14,52 +14,66 @@ unit simba.form_downloadsimba;
 interface
 
 uses
-  Classes, SysUtils, Forms, ComCtrls, Controls, Graphics, Dialogs, ExtCtrls,
-  simba.base, simba.settings,
-  simba.component_treeview, simba.component_buttonpanel, simba.component_button, simba.component_edit;
+  Classes, SysUtils, Forms, ComCtrls, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls, Zipper, syncobjs,
+  simba.base,
+  simba.settings,
+  simba.httpclient,
+  simba.component_treeview,
+  simba.component_buttonpanel;
 
 type
+  TDownloaderFormNode = class(TTreeNode)
+  public
+    Commit: String;
+    DownloadURL: String;
+  end;
+
+  TDownloader = class
+  protected
+    FUnZipper: TUnZipper;
+    FHttpClient: TSimbaHTTPClient;
+    FData: TMemoryStream;
+    FURL: String;
+    FCommit: String;
+    FFile: String;
+    FError: String;
+
+    FStatusLock: TCriticalSection;
+    FStatusTimer: TTimer;
+    FStatusLabel: TLabel;
+    FStatus: String;
+
+    procedure DoStatusTimer(Sender: TObject);
+    procedure DoDownloadProgress(Sender: TObject; URL, ContentType: String; Pos, Size: Int64);
+    procedure DoUnZipperInput(Sender: TObject; var Stream: TStream);
+    procedure DoUnZipOutput(Sender: TObject; var AStream: TStream; AItem: TFullZipFileEntry);
+
+    procedure Execute;
+    procedure Finished(Sender: TObject);
+  public
+    constructor Create(Node: TDownloaderFormNode; StatusLabel: TLabel); // non blocking - run on another thread
+    destructor Destroy; override; // automatically called once thread is finished
+  end;
+
   TSimbaDownloadSimbaForm = class(TForm)
-    Panel1: TPanel;
-    Panel2: TPanel;
-    ProgressUpdateTimer: TTimer;
-    procedure DoProgressTimerStop(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure DoProgressUpdate(Sender: TObject);
-    procedure DoProgressTimerStart(Sender: TObject);
   private
     FData: array of record
       Date: String;
       Branch: String;
       Commit: String;
       Link: String;
+      Downloads: TStringArray;
     end;
     FTreeView: TSimbaTreeView;
-    FPathEdit: TSimbaEdit;
-    FDownloadButton: TSimbaButton;
-
-    FDownloadURL: String;
-    FDownloadFileName: String;
-
-    FDownloadProgress: record
-      Pos, Size: Int64;
-    end;
+    FStatusLabel: TLabel;
 
     procedure DoGetNodeColor(const Node: TTreeNode; var TheColor: TColor);
-
-    procedure DoDownloadButtonClick(Sender: TObject);
-    procedure DoSelectionChange(Sender: TObject);
-
-    procedure DoDownloadProgress(Sender: TObject; URL, ContentType: String; Pos, Size: Int64);
-    procedure DoDownload;
-    procedure DoDownloadFinished(Sender: TObject);
+    procedure DoTreeDoubleClick(Sender: TObject);
 
     procedure DoPopulate;
     procedure DoPopulated(Sender: TObject);
-
-    procedure DoSettingChanged_FontName(Setting: TSimbaSetting);
   end;
 
 var
@@ -67,81 +81,137 @@ var
 
 implementation
 
-{$R *.lfm}
-
 uses
   ATCanvasPrimitives,
-  simba.httpclient, simba.ide_theme, simba.form_main, simba.vartype_string;
+  simba.ide_theme,
+  simba.form_main,
+  simba.vartype_string,
+  simba.fs;
 
-type
-  TUpdateFormNode = class(TTreeNode)
-  public
-    Commit: String;
-    DownloadURL: String;
+procedure TDownloader.DoStatusTimer(Sender: TObject);
+begin
+  FStatusLock.Enter();
+  FStatusLabel.Caption := FStatus;
+  FStatusLock.Leave();
+end;
+
+procedure TDownloader.DoDownloadProgress(Sender: TObject; URL, ContentType: String; Pos, Size: Int64);
+begin
+  if (Size > 0) then
+    FStatus := 'Downloading: %f / %f MB'.Format([Pos / (1024 * 1024), Size / (1024 * 1024)])
+  else
+    FStatus := 'Downloading: %f MB'.Format([Pos / (1024 * 1024)]);
+end;
+
+procedure TDownloader.DoUnZipperInput(Sender: TObject; var Stream: TStream);
+begin
+  FData.Position := 0;
+
+  Stream := TMemoryStream.Create();
+  Stream.CopyFrom(FData, 0);
+end;
+
+procedure TDownloader.DoUnZipOutput(Sender: TObject; var AStream: TStream; AItem: TFullZipFileEntry);
+begin
+  FFile := TSimbaPath.PathExtractNameWithoutExt(AItem.ArchiveFileName) + '_' + FCommit + TSimbaPath.PathExtractExt(AItem.ArchiveFileName);
+  if FileExists(FFile) then
+    AStream := TFileStream.Create(FFile, fmOpenReadWrite)
+  else
+    AStream := TFileStream.Create(FFile, fmCreate);
+end;
+
+procedure TDownloader.Execute;
+begin
+  try
+    if FHttpClient.Get(FURL, FData) > 0 then
+      FUnZipper.UnZipAllFiles();
+  except
+    on E: Exception do
+      FError := E.Message;
   end;
+end;
 
-const
-  URL_BUILD_ARCHIVE_README = 'https://raw.githubusercontent.com/Villavu/Simba-Build-Archive/main/README.md';
+procedure TDownloader.Finished(Sender: TObject);
+begin
+  FStatusTimer.Enabled := False;
+  if (FError <> '') then
+    FStatusLabel.Caption := 'Error: ' + FError
+  else
+    FStatusLabel.Caption := 'Downloaded: ' + FFile;
+
+  Self.Free();
+end;
+
+constructor TDownloader.Create(Node: TDownloaderFormNode; StatusLabel: TLabel);
+begin
+  inherited Create();
+
+  FStatusLabel := StatusLabel;
+  FStatusLock := TCriticalSection.Create();
+  FStatusTimer := TTimer.Create(nil);
+  FStatusTimer.Interval := 500;
+  FStatusTimer.OnTimer := @DoStatusTimer;
+
+  FData := TMemoryStream.Create();
+  FURL := Node.DownloadURL;
+  FCommit := Node.Commit;
+
+  FHttpClient := TSimbaHTTPClient.Create();
+  FHttpClient.OnDownloadProgress := @DoDownloadProgress;
+
+  FUnZipper := TUnZipper.Create();
+  FUnZipper.OnOpenInputStream := @DoUnZipperInput;
+  FUnZipper.OnCreateStream := @DoUnZipOutput;
+
+  TThread.ExecuteInThread(@Execute, @Finished);
+end;
+
+destructor TDownloader.Destroy;
+begin
+  FStatusLock.Free();
+  FStatusTimer.Free();
+  FData.Free();
+
+  FUnZipper.Free();
+  FHttpClient.Free();
+
+  inherited Destroy();
+end;
 
 procedure TSimbaDownloadSimbaForm.FormCreate(Sender: TObject);
+var
+  ButtonPanel: TSimbaButtonPanel;
 begin
   Color := SimbaTheme.ColorBackground;
   Width := Scale96ToScreen(750);
   Height := Scale96ToScreen(450);
 
-  FTreeView := TSimbaTreeView.Create(Self, TUpdateFormNode);
-  FTreeView.Parent := Panel1;
+  FTreeView := TSimbaTreeView.Create(Self, TDownloaderFormNode);
+  FTreeView.Parent := Self;
   FTreeView.Align := alClient;
   FTreeView.FilterVisible := False;
-  FTreeView.OnSelectionChange := @DoSelectionChange;
+  FTreeView.OnDoubleClick := @DoTreeDoubleClick;
   if (SIMBA_COMMIT <> '') then
     {%H-}FTreeView.OnGetNodeColor := @DoGetNodeColor;
 
-  FDownloadButton := TSimbaButton.Create(Self);
-  FDownloadButton.Parent := Panel2;
-  FDownloadButton.Align := alLeft;
-  FDownloadButton.Caption := 'Download selected';
-  FDownloadButton.OnClick := @DoDownloadButtonClick;
+  ButtonPanel := TSimbaButtonPanel.Create(Self);
+  ButtonPanel.Parent := Self;
+  ButtonPanel.ButtonCancel.Visible := False;
 
-  FPathEdit := TSimbaEdit.Create(Self);
-  FPathEdit.Parent := Panel2;
-  FPathEdit.Align := alClient;
-  FPathEdit.BorderSpacing.Left := 10;
-  FPathEdit.ColorBorder := SimbaTheme.ColorLine;
-
-  with TSimbaButtonPanel.Create(Self) do
-  begin
-    Parent := Self;
-    ButtonCancel.Visible := False;
-  end;
-
-  SimbaSettings.RegisterChangeHandler(Self, SimbaSettings.Editor.FontName, @DoSettingChanged_FontName, True);
-end;
-
-procedure TSimbaDownloadSimbaForm.FormResize(Sender: TObject);
-begin
-  FDownloadButton.Constraints.MinWidth := Width div 3;
-end;
-
-procedure TSimbaDownloadSimbaForm.DoProgressTimerStart(Sender: TObject);
-begin
-  FDownloadButton.Enabled := False;
-  FDownloadButton.Caption := 'Downloading';
-
-  FDownloadProgress.Pos := 0;
-  FDownloadProgress.Size := 0;
+  FStatusLabel := TLabel.Create(Self);
+  FStatusLabel.Parent := ButtonPanel;
+  FStatusLabel.Align := alLeft;
+  FStatusLabel.Layout := tlCenter;
+  FStatusLabel.AutoSize := True;
+  FStatusLabel.BorderSpacing.Left := 5;
+  FStatusLabel.Font.Color := SimbaTheme.ColorFont;
+  FStatusLabel.Caption := 'Double click on an item to download it!';
 end;
 
 procedure TSimbaDownloadSimbaForm.DoGetNodeColor(const Node: TTreeNode; var TheColor: TColor);
 begin
-  if (TUpdateFormNode(Node).Commit.StartsWith(SIMBA_COMMIT)) then
-    TheColor := ColorBlend(TheColor, clPurple, 210);
-end;
-
-procedure TSimbaDownloadSimbaForm.DoProgressTimerStop(Sender: TObject);
-begin
-  FDownloadButton.Caption := 'Download';
-  FDownloadButton.Enabled := True;
+  if (TDownloaderFormNode(Node).Commit.StartsWith(SIMBA_COMMIT)) then
+    TheColor := ColorBlend(TheColor, clYellow, 150);
 end;
 
 procedure TSimbaDownloadSimbaForm.FormShow(Sender: TObject);
@@ -149,138 +219,76 @@ begin
   TThread.ExecuteInThread(@DoPopulate, @DoPopulated);
 end;
 
-procedure TSimbaDownloadSimbaForm.DoProgressUpdate(Sender: TObject);
-begin
-  with FDownloadProgress do
-    if (Size > 0) then
-      FDownloadButton.Caption := 'Downloading: %f / %f MB'.Format([Pos / (1024 * 1024), Size / (1024 * 1024)])
-    else
-      FDownloadButton.Caption := 'Downloading: %f MB'.Format([Pos / (1024 * 1024)]);
-end;
-
-procedure TSimbaDownloadSimbaForm.DoDownloadButtonClick(Sender: TObject);
+procedure TSimbaDownloadSimbaForm.DoTreeDoubleClick(Sender: TObject);
 var
-  Node: TUpdateFormNode;
+  Node: TDownloaderFormNode;
 begin
-  Node := TUpdateFormNode(FTreeView.Selected);
+  Node := TDownloaderFormNode(FTreeView.Selected);
   if (Node <> nil) and (Node.DownloadURL <> '') then
-  begin
-    ProgressUpdateTimer.Enabled := True;
-    FDownloadURL := Node.DownloadURL;
-    FDownloadFileName := FPathEdit.Text;
-
-    TThread.ExecuteInThread(@DoDownload, @DoDownloadFinished);
-  end;
-end;
-
-procedure TSimbaDownloadSimbaForm.DoSelectionChange(Sender: TObject);
-var
-  Node: TUpdateFormNode;
-begin
-  Node := TUpdateFormNode(FTreeView.Selected);
-  if (Node <> nil) and (Node.DownloadURL <> '') then
-    FPathEdit.Text := Application.Location + Copy(Node.Commit, 1, 8) + '_' + Node.Text;
-end;
-
-procedure TSimbaDownloadSimbaForm.DoDownloadProgress(Sender: TObject; URL, ContentType: String; Pos, Size: Int64);
-begin
-  FDownloadProgress.Pos := Pos;
-  FDownloadProgress.Size := Size;
-end;
-
-procedure TSimbaDownloadSimbaForm.DoDownload;
-begin
-  try
-    with TSimbaHTTPClient.Create() do
-    try
-      OnDownloadProgress := @DoDownloadProgress;
-
-      GetFile(FDownloadURL, FDownloadFileName);
-    finally
-      Free();
-    end;
-  except
-    on E: Exception do
-      ShowMessage(E.Message);
-  end;
-end;
-
-procedure TSimbaDownloadSimbaForm.DoDownloadFinished(Sender: TObject);
-begin
-  ProgressUpdateTimer.Enabled := False;
+    TDownloader.Create(Node, FStatusLabel);
 end;
 
 procedure TSimbaDownloadSimbaForm.DoPopulate;
 var
-  Lines, Str: TStringArray;
-  I, Count: Integer;
+  Count: Integer = 0;
+
+  procedure Add(Date, Branch, Commit, Downloads: String);
+  begin
+    FData[Count].Date := Date;
+    FData[Count].Branch := Branch;
+    FData[Count].Commit := Commit.Between('[', ']');
+    FData[Count].Downloads := Downloads.BetweenAll('(', ')');
+
+    Inc(Count);
+  end;
+
+var
+  Lines, Args: TStringArray;
+  I: Integer;
 begin
-  Lines := URLFetch(URL_BUILD_ARCHIVE_README).SplitLines();
+  Lines := URLFetch('https://raw.githubusercontent.com/Villavu/Simba-Build-Archive/main/README.md').SplitLines();
 
   if (Length(Lines) > 0) then
   begin
     SetLength(FData, Length(Lines));
-    Count := 0;
-
-    for I := 4 to High(Lines) do
+    for I := 6 to High(Lines) do
     begin
-      Str := Lines[I].Split(' | ');
-      if (Length(Str) = 4) then
-      begin
-        Str[2] := Str[2].Between('[', ']');
-        Str[3] := Str[3].Between('(', ')');
-
-        with FData[Count] do
-        begin
-          Date   := Str[0];
-          Branch := Str[1];
-          Commit := Str[2];
-          Link   := Str[3];
-        end;
-        Inc(Count);
-      end;
+      Args := Lines[I].Split(' | ');
+      if (Length(Args) = 4) then
+        Add(Args[0], Args[1], Args[2], Args[3]);
     end;
-
     SetLength(FData, Count);
   end;
 end;
 
 procedure TSimbaDownloadSimbaForm.DoPopulated(Sender: TObject);
 
-  function Add(ParentNode: TTreeNode; Text: String; DataIndex: Integer; ImageIndex: Integer = -1): TUpdateFormNode;
+  function AddDownloadNode(ParentNode: TTreeNode; Download, Commit: String): TDownloaderFormNode;
   begin
-    Result := TUpdateFormNode(FTreeView.AddNode(ParentNode, Text, ImageIndex));
-    Result.Commit := FData[DataIndex].Commit;
-    if (ImageIndex = IMG_SIMBA) then
-      Result.DownloadURL := FData[DataIndex].Link.Replace('/tree/', '/raw/') + '/' + Text;
+    Result := TDownloaderFormNode(FTreeView.AddNode(ParentNode, TSimbaPath.PathExtractNameWithoutExt(Download).Replace('%20', ' '), IMG_SIMBA));
+    Result.DownloadURL := 'https://github.com/Villavu/Simba-Build-Archive/blob/main' + Download;
+    Result.Commit := Commit;
   end;
 
 var
-  I:Integer;
+  I: Integer;
+  Download: String;
   Node: TTreeNode;
 begin
   FTreeView.BeginUpdate();
   FTreeView.Clear();
   for I := 0 to High(FData) do
   begin
-    Node := Add(nil, FData[I].Date + ' | ' + FData[I].Commit + ' | ' + FData[I].Branch, I);
-
-    Add(Node, 'Simba-Win32.exe', I, IMG_SIMBA);
-    Add(Node, 'Simba-Win64.exe', I, IMG_SIMBA);
-    Add(Node, 'Simba-Linux-AArch64', I, IMG_SIMBA);
-    Add(Node, 'Simba-Linux64', I, IMG_SIMBA);
-    Add(Node, 'Simba-MacOS-AArch64.dmg', I, IMG_SIMBA);
-    Add(Node, 'Simba-MacOS.dmg', I, IMG_SIMBA);
+    Node := FTreeView.AddNode(FData[I].Date + ' | ' + FData[I].Branch + ' | ' + FData[I].Commit);
+    for Download in FData[i].Downloads do
+      AddDownloadNode(Node, Download, FData[I].Commit);
   end;
   FTreeView.EndUpdate();
   if (FTreeView.Items.Count > 0) then
     FTreeView.Items[0].Expanded := True;
 end;
 
-procedure TSimbaDownloadSimbaForm.DoSettingChanged_FontName(Setting: TSimbaSetting);
-begin
-  FTreeView.Font.Name := Setting.Value;
-end;
+{$R *.lfm}
 
 end.
 

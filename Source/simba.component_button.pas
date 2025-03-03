@@ -253,31 +253,34 @@ end;
 
 procedure TSimbaButton.SetDown(AValue: Boolean);
 begin
-  if FDown=AValue then Exit;
+  if FDown = AValue then Exit;
   FDown:=AValue;
   Invalidate;
 end;
 
 procedure TSimbaButton.SetXPadding(AValue: Integer);
 begin
-  if FXPadding=AValue then Exit;
   FXPadding := Scale96ToScreen(AValue);
+  if FXPadding = AValue then
+    Exit;
 
   AdjustSize();
 end;
 
 procedure TSimbaButton.SetYPadding(AValue: Integer);
 begin
-  if FYPadding=AValue then Exit;
   FYPadding := Scale96ToScreen(AValue);
+  if FYPadding = AValue then
+    Exit;
 
   AdjustSize();
 end;
 
 procedure TSimbaButton.SetImageSpacing(AValue: Integer);
 begin
-  if FImageSpacing=AValue then Exit;
   FImageSpacing := Scale96ToScreen(AValue);
+  if FImageSpacing = AValue then
+    Exit;
 
   AdjustSize();
 end;
@@ -428,9 +431,9 @@ begin
   FImageList := SimbaMainForm.Images;
   FImageIndex := -1;
 
-  ImageSpacing := 4;
+  ImageSpacing := 5;
   XPadding := 10;
-  YPadding := 3;
+  YPadding := 2;
 end;
 
 procedure TSimbaButton.SetImage(Img: ESimbaButtonImage);

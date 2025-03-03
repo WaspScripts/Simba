@@ -18,44 +18,45 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config:            
-          - name: Windows 64
+        config:         
+          # note: names must equal Simba build modes   
+          - name: Win64 
             runs-on: windows-latest
-            build-mode: WIN64
             binary: Simba-Win64.exe
             test: Simba-Win64.exe
-            
-          - name: Windows 32
+          
+          - name: Win64 DebugInfo
             runs-on: windows-latest
-            build-mode: WIN32
+            binary: Simba-Win64-Debug.exe
+            test: Simba-Win64-Debug.exe
+
+          - name: Win32
+            runs-on: windows-latest
             binary: Simba-Win32.exe
             test: Simba-Win32.exe
 
-          - name: Linux 64
+          - name: Linux64
             runs-on: ubuntu-22.04
-            build-mode: LINUX64
             binary: Simba-Linux64
             test: Simba-Linux64
             
-          - name: MacOS 64
+          - name: Mac
             runs-on: macos-13
-            build-mode: MACOS64
-            binary: Simba-MacOS.dmg
+            binary: Simba-Mac.dmg
             test: Simba
 
-          - name: MacOS AArch64
+          - name: Mac Arm
             runs-on: macos-13
-            build-mode: MACOS-AARCH64
-            binary: Simba-MacOS-AArch64.dmg
+            binary: Simba-Mac-Arm.dmg
             #test: Simba MatchTemplateMask test fails, investigate later
             
     steps:
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.2.2
         with: 
           submodules: true
 
-      - name: Install Lazarus (MacOS)
-        if: startsWith(matrix.config.name, 'MacOS') == true
+      - name: Install Lazarus (Mac)
+        if: startsWith(matrix.config.name, 'Mac') == true
         uses: ollydev/setup-lazarus@v3.3
         with:
           laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20x86-64/Lazarus%203.6/Lazarus-3.6-macosx-x86_64.pkg
@@ -72,14 +73,14 @@ jobs:
             https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%203.6/fpc-laz_3.2.2-210709_amd64.deb
             https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%203.6/fpc-src_3.2.2-210709_amd64.deb
 
-      - name: Install Lazarus (Windows 32)
-        if: startsWith(matrix.config.name, 'Windows 32') == true
+      - name: Install Lazarus (Win32)
+        if: startsWith(matrix.config.name, 'Win32') == true
         uses: ollydev/setup-lazarus@v3.3
         with:
           laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2032%20bits/Lazarus%203.6/lazarus-3.6-fpc-3.2.2-win32.exe
 
-      - name: Install Lazarus (Windows 64)
-        if: startsWith(matrix.config.name, 'Windows 64') == true
+      - name: Install Lazarus (Win64)
+        if: startsWith(matrix.config.name, 'Win64') == true
         uses: ollydev/setup-lazarus@v3.3
         with:
           laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2064%20bits/Lazarus%203.6/lazarus-3.6-fpc-3.2.2-win64.exe
@@ -87,25 +88,11 @@ jobs:
       - name: Build Simba
         run: |
           export GITHUB_SHORT_SHA=$(git rev-parse --short HEAD)
-          lazbuild --build-mode=${{ matrix.config.build-mode }} "Source/Simba.lpi"
+          lazbuild --build-mode="${{ matrix.config.name }}" "Source/Simba.lpi"
 
-      - name: Create MacOS Image
-        if: startsWith(matrix.config.name, 'MacOS') == true
-        env: 
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      - name: Create Mac Image
+        if: startsWith(matrix.config.name, 'Mac') == true
         run: |
-          # echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output certificate.p12
-          # security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          # security default-keychain -s build.keychain
-          # security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          # security import certificate.p12 -k build.keychain -P "$P12_PASSWORD" -T /usr/bin/codesign
-          # security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-
-          # codesign --deep --sign "7ACAD7EE0AA3A0783CE9592567098A3F08FC0B0B" Simba.app  
-          # codesign -v Simba.app
-
           brew install create-dmg
           
           for i in {1..10}; 
@@ -125,7 +112,7 @@ jobs:
           ./${{ matrix.config.test }} --run "Tests/RunTests/tester.simba"
           
       - name: Upload Simba Binary 
-        uses: actions/upload-artifact@v4.3.4
+        uses: actions/upload-artifact@v4.6.1
         with:
-          name: ${{ matrix.config.binary }}
+          name: ${{ matrix.config.name }}
           path: ${{ matrix.config.binary }}

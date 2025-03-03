@@ -42,9 +42,9 @@
       <CharSet Value="04B0"/>
       <StringTable FileDescription="https://github.com/Villavu/Simba" OriginalFilename="Simba.exe" ProductName="Simba" ProductVersion="2.0"/>
     </VersionInfo>
-    <BuildModes Count="8">
+    <BuildModes Count="9">
       <Item1 Name="Default" Default="True"/>
-      <Item2 Name="WIN32">
+      <Item2 Name="Win32">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
@@ -94,7 +94,7 @@
           </Other>
         </CompilerOptions>
       </Item2>
-      <Item3 Name="WIN64">
+      <Item3 Name="Win64">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
@@ -144,11 +144,11 @@
           </Other>
         </CompilerOptions>
       </Item3>
-      <Item4 Name="WIN64-DEBUGINFO">
+      <Item4 Name="Win64 DebugInfo">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
-            <Filename Value="../Simba-Win64"/>
+            <Filename Value="../Simba-Win64-Debug"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);$(LazarusDir)/components/synedit;../Third-Party/lape"/>
@@ -162,7 +162,6 @@
             </SyntaxOptions>
           </Parsing>
           <CodeGeneration>
-            <SmartLinkUnit Value="True"/>
             <TargetCPU Value="x86_64"/>
             <TargetOS Value="win64"/>
           </CodeGeneration>
@@ -170,7 +169,6 @@
             <Debugging>
               <DebugInfoType Value="dsDwarf3"/>
             </Debugging>
-            <LinkSmart Value="True"/>
             <Options>
               <Win32>
                 <GraphicApplication Value="True"/>
@@ -189,7 +187,7 @@
           </Other>
         </CompilerOptions>
       </Item4>
-      <Item5 Name="LINUX64">
+      <Item5 Name="Linux64">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
@@ -237,7 +235,48 @@
           </Other>
         </CompilerOptions>
       </Item5>
-      <Item6 Name="LINUX-AARCH64">
+      <Item6 Name="Linux64 DebugInfo">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <Target>
+            <Filename Value="../Simba-Linux64-Debug"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir);$(LazarusDir)/components/synedit;../Third-Party/lape"/>
+            <OtherUnitFiles Value="$(ProjPath);../Third-Party;../Third-Party/lape;../Third-Party/lape/extensions/ffi;script/imports;script/imports/lcl;script;ide;ide/codetools"/>
+            <UnitOutputDirectory Value="$(ProjPath)../build/$(BuildMode)/$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <CStyleMacros Value="True"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="linux"/>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+            </Debugging>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+          <Other>
+            <CompilerMessages>
+              <IgnoredMessages idx6058="True" idx5094="True" idx5093="True" idx5092="True" idx5091="True" idx5089="True" idx5024="True" idx4105="True" idx4104="True" idx4055="True" idx2054="True" idx2005="True"/>
+            </CompilerMessages>
+            <CustomOptions Value="-CfSSE64
+-dLape_CDECL
+-dLape_NoExtended"/>
+            <CreateMakefileOnBuild Value="True"/>
+          </Other>
+        </CompilerOptions>
+      </Item6>
+      <Item7 Name="Linux Arm64">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
@@ -283,11 +322,8 @@
             <CreateMakefileOnBuild Value="True"/>
           </Other>
         </CompilerOptions>
-      </Item6>
-      <Item7 Name="MACOS64">
-        <MacroValues Count="1">
-          <Macro1 Name="LCLWidgetType" Value="cocoa"/>
-        </MacroValues>
+      </Item7>
+      <Item8 Name="Mac">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
@@ -339,11 +375,8 @@
             <CreateMakefileOnBuild Value="True"/>
           </Other>
         </CompilerOptions>
-      </Item7>
-      <Item8 Name="MACOS-AARCH64">
-        <MacroValues Count="1">
-          <Macro1 Name="LCLWidgetType" Value="cocoa"/>
-        </MacroValues>
+      </Item8>
+      <Item9 Name="Mac Arm">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
@@ -394,9 +427,9 @@
             <CreateMakefileOnBuild Value="True"/>
           </Other>
         </CompilerOptions>
-      </Item8>
+      </Item9>
       <SharedMatrixOptions Count="1">
-        <Item1 ID="760724751738" Modes="MACOS64,MACOS-AARCH64" Type="IDEMacro" MacroName="LCLWidgetType" Value="cocoa"/>
+        <Item1 ID="760724751738" Type="IDEMacro" MacroName="LCLWidgetType" Value="cocoa"/>
       </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
@@ -808,7 +841,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="../Simba-Debug"/>
+      <Filename Value="../Simba"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);$(LazarusDir)/components/synedit;../Third-Party/lape"/>

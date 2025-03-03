@@ -179,6 +179,8 @@ type
     // Use ResponseHeader after
     function Head(URL: String): EHTTPStatus;
 
+    function Get(URL: String; Stream: TStream): Integer;
+
     // Writes page contents to result
     function Get(URL: String): String;
 
@@ -340,6 +342,15 @@ end;
 function TSimbaHTTPClient.GetResponseStatus: EHTTPStatus;
 begin
   Result := EHTTPStatus(FHTTPClient.ResponseStatusCode);
+end;
+
+function TSimbaHTTPClient.Get(URL: String; Stream: TStream): Integer;
+var
+  OldPos: Integer;
+begin
+  OldPos := Stream.Position;
+  FHTTPClient.HTTPMethod('GET', SetURL(URL), Stream, []);
+  Result := Stream.Position - OldPos;
 end;
 
 function TSimbaHTTPClient.Get(URL: String): String;
