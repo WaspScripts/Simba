@@ -56,8 +56,20 @@ type
   end;
 
   TSimbaDownloadSimbaForm = class(TForm)
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+    Label6: TLabel;
+    Notebook1: TNotebook;
+    MainPage: TPage;
+    ErrorPage: TPage;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure Label6Click(Sender: TObject);
+    procedure Label6MouseEnter(Sender: TObject);
+    procedure Label6MouseLeave(Sender: TObject);
   private
     FData: array of record
       Date: String;
@@ -86,7 +98,8 @@ uses
   simba.ide_theme,
   simba.form_main,
   simba.vartype_string,
-  simba.fs;
+  simba.fs,
+  simba.nativeinterface;
 
 procedure TDownloader.DoStatusTimer(Sender: TObject);
 begin
@@ -181,13 +194,14 @@ end;
 procedure TSimbaDownloadSimbaForm.FormCreate(Sender: TObject);
 var
   ButtonPanel: TSimbaButtonPanel;
+  Control: TControl;
 begin
   Color := SimbaTheme.ColorBackground;
   Width := Scale96ToScreen(750);
   Height := Scale96ToScreen(450);
 
   FTreeView := TSimbaTreeView.Create(Self, TDownloaderFormNode);
-  FTreeView.Parent := Self;
+  FTreeView.Parent := Mainpage;
   FTreeView.Align := alClient;
   FTreeView.FilterVisible := False;
   FTreeView.OnDoubleClick := @DoTreeDoubleClick;
@@ -206,17 +220,41 @@ begin
   FStatusLabel.BorderSpacing.Left := 5;
   FStatusLabel.Font.Color := SimbaTheme.ColorFont;
   FStatusLabel.Caption := 'Double click on an item to download it!';
+
+  MainPage.Color := SimbaTheme.ColorBackground;
+  ErrorPage.Color := SimbaTheme.ColorBackground;
+  for Control in ErrorPage.GetEnumeratorControls() do
+    Control.Font.Color := SimbaTheme.ColorFont;
+  Label5.Font.Color := $FFE385;
+  Label6.Font.Color := $FFE385;
+
+  Notebook1.PageIndex := 0;
 end;
 
 procedure TSimbaDownloadSimbaForm.DoGetNodeColor(const Node: TTreeNode; var TheColor: TColor);
 begin
   if (TDownloaderFormNode(Node).Commit.StartsWith(SIMBA_COMMIT)) then
-    TheColor := ColorBlend(TheColor, clYellow, 150);
+    TheColor := ColorBlend(TheColor, clPurple, 200);
 end;
 
 procedure TSimbaDownloadSimbaForm.FormShow(Sender: TObject);
 begin
   TThread.ExecuteInThread(@DoPopulate, @DoPopulated);
+end;
+
+procedure TSimbaDownloadSimbaForm.Label6Click(Sender: TObject);
+begin
+  SimbaNativeInterface.OpenURL(TLabel(Sender).Caption);
+end;
+
+procedure TSimbaDownloadSimbaForm.Label6MouseEnter(Sender: TObject);
+begin
+  TLabel(Sender).Font.Underline := True;
+end;
+
+procedure TSimbaDownloadSimbaForm.Label6MouseLeave(Sender: TObject);
+begin
+  TLabel(Sender).Font.Underline := False;
 end;
 
 procedure TSimbaDownloadSimbaForm.DoTreeDoubleClick(Sender: TObject);
@@ -232,14 +270,20 @@ procedure TSimbaDownloadSimbaForm.DoPopulate;
 var
   Count: Integer = 0;
 
+  function Valid(Index: Integer): Boolean;
+  begin
+    with FData[Index] do
+      Result := (Date <> '') and (Branch <> '') and (Length(Commit) >= 8) and (Length(Downloads) > 0);
+  end;
+
   procedure Add(Date, Branch, Commit, Downloads: String);
   begin
     FData[Count].Date := Date;
     FData[Count].Branch := Branch;
     FData[Count].Commit := Commit.Between('[', ']');
     FData[Count].Downloads := Downloads.BetweenAll('(', ')');
-
-    Inc(Count);
+    if Valid(Count) then
+      Inc(Count);
   end;
 
 var
@@ -275,6 +319,12 @@ var
   Download: String;
   Node: TTreeNode;
 begin
+  if (Length(FData) = 0) then
+  begin
+    Notebook1.PageIndex := 1;
+    Exit;
+  end;
+
   FTreeView.BeginUpdate();
   FTreeView.Clear();
   for I := 0 to High(FData) do

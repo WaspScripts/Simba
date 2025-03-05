@@ -25,6 +25,9 @@ begin
   {$ENDIF}
 
   FormatSettings.DecimalSeparator := '.';
+  FormatSettings.ThousandSeparator := ',';
+  FormatSettings.DateSeparator := '-';
+  FormatSettings.TimeSeparator := ':';
 
   Application.CaptureExceptions := False;
   Application.Initialize();

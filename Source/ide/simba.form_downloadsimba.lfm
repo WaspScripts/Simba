@@ -1,12 +1,126 @@
 object SimbaDownloadSimbaForm: TSimbaDownloadSimbaForm
-  Left = -1105
-  Height = 192
-  Top = 418
-  Width = 256
+  Left = 1085
+  Height = 470
+  Top = 695
+  Width = 846
   Caption = 'Download Simba'
+  ClientHeight = 470
+  ClientWidth = 846
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
   LCLVersion = '3.8.0.0'
+  object Notebook1: TNotebook
+    Left = 0
+    Height = 470
+    Top = 0
+    Width = 846
+    PageIndex = 1
+    Align = alClient
+    TabOrder = 0
+    object MainPage: TPage
+    end
+    object ErrorPage: TPage
+      Color = clWindowFrame
+      object Label1: TLabel
+        AnchorSideLeft.Control = ErrorPage
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideRight.Control = ErrorPage
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 25
+        Top = 50
+        Width = 846
+        Align = alTop
+        Alignment = taCenter
+        BorderSpacing.Top = 50
+        Caption = 'No downloads found!'
+        ParentFont = False
+      end
+      object Label2: TLabel
+        AnchorSideLeft.Control = ErrorPage
+        AnchorSideTop.Control = Label1
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = ErrorPage
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 25
+        Top = 75
+        Width = 846
+        Alignment = taCenter
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'You''ll have to manually download from:'
+        ParentFont = False
+      end
+      object Label3: TLabel
+        AnchorSideLeft.Control = ErrorPage
+        AnchorSideTop.Control = Label6
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = ErrorPage
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 25
+        Top = 190
+        Width = 846
+        Alignment = taCenter
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 15
+        Caption = 'Development builds:'
+        ParentFont = False
+      end
+      object Label4: TLabel
+        AnchorSideLeft.Control = ErrorPage
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Label2
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = ErrorPage
+        AnchorSideRight.Side = asrBottom
+        Left = 386
+        Height = 25
+        Top = 125
+        Width = 75
+        Alignment = taCenter
+        BorderSpacing.Top = 25
+        Caption = 'Releases: '
+        ParentFont = False
+      end
+      object Label5: TLabel
+        AnchorSideLeft.Control = Label3
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Label3
+        AnchorSideTop.Side = asrBottom
+        AnchorSideBottom.Control = Label3
+        AnchorSideBottom.Side = asrBottom
+        Left = 235
+        Height = 25
+        Top = 215
+        Width = 376
+        Caption = 'https://github.com/Villavu/Simba-Build-Archive'
+        ParentColor = False
+        ParentFont = False
+        OnClick = Label6Click
+        OnMouseEnter = Label6MouseEnter
+        OnMouseLeave = Label6MouseLeave
+      end
+      object Label6: TLabel
+        AnchorSideLeft.Control = Label4
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = Label4
+        AnchorSideTop.Side = asrBottom
+        AnchorSideBottom.Control = Label4
+        AnchorSideBottom.Side = asrBottom
+        Left = 256
+        Height = 25
+        Top = 150
+        Width = 334
+        Caption = 'https://github.com/Villavu/Simba/releases'
+        ParentColor = False
+        ParentFont = False
+        OnClick = Label6Click
+        OnMouseEnter = Label6MouseEnter
+        OnMouseLeave = Label6MouseLeave
+      end
+    end
+  end
 end
