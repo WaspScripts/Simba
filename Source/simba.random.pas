@@ -261,5 +261,8 @@ begin
 end;
 {$POP}
 
+initialization
+  BetterRandomize();
+
 end.
 

@@ -19,8 +19,7 @@ uses
   {$IFDEF UNIX}
   cthreads,
   {$ENDIF}
-  Classes, SysUtils,
-  simba.random;
+  Classes;
 
 implementation
 
@@ -99,18 +98,6 @@ initialization
   {$IFDEF WINDOWS}
   WindowsInitialization();
   {$ENDIF}
-
-  DefaultFormatSettings.ThousandSeparator := ',';
-  DefaultFormatSettings.DecimalSeparator := '.';
-  DefaultFormatSettings.DateSeparator := '-';
-  DefaultFormatSettings.TimeSeparator := ':';
-
-  FormatSettings.ThousandSeparator := ',';
-  FormatSettings.DecimalSeparator := '.';
-  FormatSettings.DateSeparator := '-';
-  FormatSettings.TimeSeparator := ':';
-
-  BetterRandomize();
 
 finalization
   {$IFDEF DARWIN}

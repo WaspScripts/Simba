@@ -24,6 +24,8 @@ begin
   SetHeapTraceOutput(Application.Location + '/' + IntToStr(GetProcessID()) + '.trc');
   {$ENDIF}
 
+  FormatSettings.DecimalSeparator := '.';
+
   Application.CaptureExceptions := False;
   Application.Initialize();
 

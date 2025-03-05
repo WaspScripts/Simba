@@ -307,6 +307,7 @@ procedure TSimbaACAForm.CalculateBestColor;
 var
   Colors: TColorArray;
   Best: TBestColor;
+  FormatSettingsDot: TFormatSettings;
 begin
   Colors := GetColors();
 
@@ -314,11 +315,14 @@ begin
   begin
     Best := GetBestColor(GetColorSpace(), Colors);
 
-    BestColorEdit.Text := ColorToStr(Best.Color);
-    BestToleranceEdit.Text := Format('%.3f', [Best.Tolerance]);
-    BestMulti1Edit.Text := Format('%.3f', [Best.Mods[0]]);
-    BestMulti2Edit.Text := Format('%.3f', [Best.Mods[1]]);
-    BestMulti3Edit.Text := Format('%.3f', [Best.Mods[2]]);
+    FormatSettingsDot := FormatSettings;
+    FormatSettingsDot.DecimalSeparator := '.';
+
+    BestColorEdit.Text     := ColorToStr(Best.Color);
+    BestToleranceEdit.Text := Format('%.3f', [Best.Tolerance], FormatSettingsDot);
+    BestMulti1Edit.Text    := Format('%.3f', [Best.Mods[0]], FormatSettingsDot);
+    BestMulti2Edit.Text    := Format('%.3f', [Best.Mods[1]], FormatSettingsDot);
+    BestMulti3Edit.Text    := Format('%.3f', [Best.Mods[2]], FormatSettingsDot);
   end else
   begin
     BestColorEdit.Clear();
