@@ -886,48 +886,53 @@ end;
 TPointArray.Split
 -----------------
 ```
-function TPointArray.Split(Dist: Integer): T2DPointArray;
+function TPointArray.Split(rad: Integer): T2DPointArray;
 ```
+Groups points which are within the given distance of **rad**.
 *)
 procedure _LapeTPASplit1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  P2DPointArray(Result)^ := PPointArray(Params^[0])^.Split(PInteger(Params^[1])^);
+  P2DPointArray(Result)^ := PPointArray(Params^[0])^.Split(PSingle(Params^[1])^);
 end;
 
 (*
 TPointArray.Split
 -----------------
 ```
-function TPointArray.Split(DistX, DistY: Integer): T2DPointArray;
+function TPointArray.Split(xRad, yRad: Single): T2DPointArray;
+
+Groups points which are within the given distance of **xRad** and **yRad**.
 ```
 *)
 procedure _LapeTPASplit2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  P2DPointArray(Result)^ := PPointArray(Params^[0])^.Split(PInteger(Params^[1])^, PInteger(Params^[2])^);
+  P2DPointArray(Result)^ := PPointArray(Params^[0])^.Split(PSingle(Params^[1])^, PSingle(Params^[2])^);
 end;
 
 (*
 TPointArray.Cluster
 -------------------
 ```
-function TPointArray.Cluster(Dist: Integer): T2DPointArray;
+function TPointArray.Cluster(rad: Single): T2DPointArray;
 ```
+Groups points which are within the given distance of **rad**.
 *)
 procedure _LapeTPACluster1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  P2DPointArray(Result)^ := PPointArray(Params^[0])^.Cluster(PInteger(Params^[1])^);
+  P2DPointArray(Result)^ := PPointArray(Params^[0])^.Cluster(PSingle(Params^[1])^);
 end;
 
 (*
 TPointArray.Cluster
 -------------------
 ```
-function TPointArray.Cluster(DistX, DistY: Integer): T2DPointArray;
+function TPointArray.Cluster(xRad, yRad: Single): T2DPointArray;
 ```
+Groups points which are within the given distance of **xRad** and **yRad**.
 *)
 procedure _LapeTPACluster2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  P2DPointArray(Result)^ := PPointArray(Params^[0])^.Cluster(PInteger(Params^[1])^, PInteger(Params^[2])^);
+  P2DPointArray(Result)^ := PPointArray(Params^[0])^.Cluster(PSingle(Params^[1])^, PSingle(Params^[2])^);
 end;
 
 (*
@@ -1609,10 +1614,10 @@ begin
     addGlobalFunc('function TPointArray.SortByRow(Reverse: Boolean = False): TPointArray', @_LapeTPASortByRow);
     addGlobalFunc('function TPointArray.SortByColumn(Reverse: Boolean = False): TPointArray', @_LapeTPASortByColumn);
 
-    addGlobalFunc('function TPointArray.Split(Dist: Integer): T2DPointArray; overload', @_LapeTPASplit1);
-    addGlobalFunc('function TPointArray.Split(DistX, DistY: Integer): T2DPointArray; overload', @_LapeTPASplit2);
-    addGlobalFunc('function TPointArray.Cluster(Dist: Integer): T2DPointArray; overload', @_LapeTPACluster1);
-    addGlobalFunc('function TPointArray.Cluster(DistX, DistY: Integer): T2DPointArray; overload', @_LapeTPACluster2);
+    addGlobalFunc('function TPointArray.Split(Rad: Single): T2DPointArray; overload', @_LapeTPASplit1);
+    addGlobalFunc('function TPointArray.Split(xRad, yRad: Single): T2DPointArray; overload', @_LapeTPASplit2);
+    addGlobalFunc('function TPointArray.Cluster(Rad: Single): T2DPointArray; overload', @_LapeTPACluster1);
+    addGlobalFunc('function TPointArray.Cluster(xRad, yRad: Single): T2DPointArray; overload', @_LapeTPACluster2);
 
     addGlobalFunc('function TPointArray.Partition(Dist: Integer): T2DPointArray; overload', @_LapeTPAPartition1);
     addGlobalFunc('function TPointArray.Partition(Width, Height: Integer): T2DPointArray; overload', @_LapeTPAPartition2);

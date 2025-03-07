@@ -137,11 +137,11 @@ type
     function Rows: T2DPointArray;
     function Columns: T2DPointArray;
 
-    function Split(Dist: Integer): T2DPointArray; overload;
-    function Split(DistX, DistY: Integer): T2DPointArray; overload;
+    function Split(DistX, DistY: Single): T2DPointArray; overload;
+    function Split(Dist: Single): T2DPointArray; overload;
 
-    function Cluster(Dist: Integer): T2DPointArray; overload;
-    function Cluster(DistX, DistY: Integer): T2DPointArray; overload;
+    function Cluster(DistX, DistY: Single): T2DPointArray; overload;
+    function Cluster(Dist: Single): T2DPointArray; overload;
 
     function Partition(Width, Height: Integer): T2DPointArray; overload;
     function Partition(Dist: Integer): T2DPointArray; overload;
@@ -1879,12 +1879,15 @@ begin
   Result := Buffer.ToArray(False);
 end;
 
-function TPointArrayHelper.Split(Dist: Integer): T2DPointArray;
+function TPointArrayHelper.Split(DistX, DistY: Single): T2DPointArray;
 var
-  t1, t2, ec, tc, Hi, DistSqr: Integer;
-  TPA: TPointArray;
-  Buffer: TSimbaPointBuffer;
-  ResultBuffer: TSimbaPointArrayBuffer;
+  PointIndex, LastPointIndex: Integer;
+  ProcessedCount: Integer;
+  ClusterSize, ClusterPointIndex: Integer;
+  Points: TPointArray;
+  Current: TSimbaPointBuffer;
+  Clusters: TSimbaPointArrayBuffer;
+  xsq, ysq, xxyy: Single;
 begin
   if (Length(Self) = 0) then
     Result := []
@@ -1893,108 +1896,60 @@ begin
     Result := [Copy(Self)]
   else
   begin
-    ResultBuffer.Init(64);
-    Buffer.Init(256);
+    Clusters.Init(64);
+    Current.Init(256);
 
-    DistSqr := Sqr(Dist);
-    TPA := Copy(Self);
-    Hi := High(TPA);
-    ec := 0;
-    while ((Hi - ec) >= 0) do
+    xsq := Sqr(DistX);
+    ysq := Sqr(DistY);
+    xxyy := xsq * ysq;
+
+    Points := Copy(Self);
+    LastPointIndex := High(Points);
+    ProcessedCount := 0;
+    while ((LastPointIndex - ProcessedCount) >= 0) do
     begin
-      if (Buffer.Count > 0) then
-        ResultBuffer.Add(Buffer.ToArray());
-      Buffer.Clear();
-      Buffer.Add(TPA[0]);
+      if (Current.Count > 0) then
+        Clusters.Add(Current.ToArray());
+      Current.Clear();
+      Current.Add(Points[0]);
 
-      TPA[0] := TPA[Hi - ec];
-      Inc(ec);
-      tc := 1;
-      t1 := 0;
-      while (t1 < tc) do
+      Points[0] := Points[LastPointIndex - ProcessedCount];
+      Inc(ProcessedCount);
+      ClusterSize := 1;
+      ClusterPointIndex := 0;
+
+      while (ClusterPointIndex < ClusterSize) do
       begin
-        t2 := 0;
-        while (t2 <= (Hi - ec)) do
+        PointIndex := 0;
+        while (PointIndex <= (LastPointIndex - ProcessedCount)) do
         begin
-          if (Sqr(Buffer[t1].X - TPA[t2].X) + Sqr(Buffer[t1].Y - TPA[t2].Y)) <= DistSqr then
+          if Sqr(Current[ClusterPointIndex].X - Points[PointIndex].X) * ysq + Sqr(Current[ClusterPointIndex].Y - Points[PointIndex].Y) * xsq <= xxyy then
           begin
-            Buffer.Add(TPA[t2]);
-            TPA[t2] := TPA[Hi - ec];
-            Inc(ec);
-            Inc(tc);
-            Dec(t2);
+            Current.Add(Points[PointIndex]);
+            Points[PointIndex] := Points[LastPointIndex - ProcessedCount];
+            Inc(ProcessedCount);
+            Inc(ClusterSize);
+            Dec(PointIndex);
           end;
-          Inc(t2);
+          Inc(PointIndex);
         end;
-        Inc(t1);
+        Inc(ClusterPointIndex);
       end;
     end;
 
-    if (Buffer.Count > 0) then
-      ResultBuffer.Add(Buffer.ToArray());
+    if (Current.Count > 0) then
+      Clusters.Add(Current.ToArray());
 
-    Result := ResultBuffer.ToArray(False);
+    Result := Clusters.ToArray(False);
   end;
 end;
 
-function TPointArrayHelper.Split(DistX, DistY: Integer): T2DPointArray;
-var
-  t1, t2, ec, tc, Hi: Integer;
-  TPA: TPointArray;
-  Buffer: TSimbaPointBuffer;
-  ResultBuffer: TSimbaPointArrayBuffer;
+function TPointArrayHelper.Split(Dist: Single): T2DPointArray;
 begin
-  if (Length(Self) = 0) then
-    Result := []
-  else
-  if (Length(Self) = 1) then
-    Result := [Copy(Self)]
-  else
-  begin
-    ResultBuffer.Init(64);
-    Buffer.Init(256);
-
-    TPA := Copy(Self);
-    Hi := High(TPA);
-    ec := 0;
-    while ((Hi - ec) >= 0) do
-    begin
-      if (Buffer.Count > 0) then
-        ResultBuffer.Add(Buffer.ToArray());
-      Buffer.Clear();
-      Buffer.Add(TPA[0]);
-
-      TPA[0] := TPA[Hi - ec];
-      Inc(ec);
-      tc := 1;
-      t1 := 0;
-      while (t1 < tc) do
-      begin
-        t2 := 0;
-        while (t2 <= (Hi - ec)) do
-        begin
-          if (Abs(Buffer[t1].X - TPA[t2].X) <= DistX) and (Abs(Buffer[t1].Y - TPA[t2].Y) <= DistY) then
-          begin
-            Buffer.Add(TPA[t2]);
-            TPA[t2] := TPA[Hi - ec];
-            Inc(ec);
-            Inc(tc);
-            Dec(t2);
-          end;
-          Inc(t2);
-        end;
-        Inc(t1);
-      end;
-    end;
-
-    if (Buffer.Count > 0) then
-      ResultBuffer.Add(Buffer.ToArray());
-
-    Result := ResultBuffer.ToArray(False);
-  end;
+  Result := Split(Dist, Dist);
 end;
 
-function TPointArrayHelper.Cluster(Dist: Integer): T2DPointArray;
+function TPointArrayHelper.Cluster(DistX, DistY: Single): T2DPointArray;
 type
   TPointScan = record
     SkipRow: Boolean;
@@ -2002,11 +1957,13 @@ type
   end;
   TPointScanMatrix = array of array of TPointScan;
 var
-  I, X, Y, OffsetX, OffsetY, DistSqr, Len: Integer;
+  I, X, Y, OffsetX, OffsetY, Len: Integer;
+  xr, yr: Integer;
+  xsq, ysq, xxyy: Single;
   PointScan: TPointScanMatrix;
   Queue: TSimbaPointBuffer;
   TPA: TPointArray;
-  ScanBounds, TotalBounds: TBox;
+  ScanBounds: TBox;
   P: TPoint;
   SkipRow: Boolean;
   Buffer: TSimbaPointBuffer;
@@ -2020,23 +1977,30 @@ begin
   if (Len = 1) then
     Result := [Copy(Self)]
   else
-  if (Len < 700) then // SplitTPA is cheaper on small arrays
-    Result := Split(Dist)
+  if (Len < 700) then // Split is cheaper on small arrays
+    Result := Split(DistX, DistY)
   else
   begin
     ResultBuffer.Init(64);
     Buffer.Init(256);
     Queue.Init(256);
 
-    TotalBounds := Self.Bounds();
-    OffsetX := TotalBounds.X1 - Dist;
-    OffsetY := TotalBounds.Y1 - Dist;
-    DistSqr := Sqr(Dist);
+    xr := Round(DistX);
+    yr := Round(DistY);
+    xsq := Sqr(DistX);
+    ysq := Sqr(DistY);
+    xxyy := xsq * ysq;
 
-    SetLength(PointScan,
-      TotalBounds.Height + (Dist * 2),
-      TotalBounds.Width  + (Dist * 2)
-    );
+    with Self.Bounds() do
+    begin
+      OffsetX := X1 - xr;
+      OffsetY := Y1 - yr;
+
+      SetLength(PointScan,
+        Height + (yr * 2),
+        Width  + (xr * 2)
+      );
+    end;
 
     TPA := Self.Offset(-OffsetX, -OffsetY);
     for I := 0 to High(TPA) do
@@ -2060,10 +2024,10 @@ begin
         begin
           P := Queue.Pop;
 
-          ScanBounds.X1 := (P.X - Dist);
-          ScanBounds.Y1 := (P.Y - Dist);
-          ScanBounds.X2 := (P.X + Dist);
-          ScanBounds.Y2 := (P.Y + Dist);
+          ScanBounds.X1 := (P.X - xr);
+          ScanBounds.Y1 := (P.Y - yr);
+          ScanBounds.X2 := (P.X + xr);
+          ScanBounds.Y2 := (P.Y + yr);
 
           for Y := ScanBounds.Y1 to ScanBounds.Y2 do
           begin
@@ -2076,12 +2040,10 @@ begin
               if not PointScan[Y, X].HasPoints then
                 Continue;
 
-              if (Sqr(X - P.X) + Sqr(Y - P.Y)) <= DistSqr then
+              if Sqr(X - P.X) * ysq + Sqr(Y - P.Y) * xsq <= xxyy then
               begin
                 Buffer.Add(X + OffsetX, Y + OffsetY);
-
                 PointScan[Y, X].HasPoints := False;
-
                 Queue.Add(X, Y);
               end else
                 SkipRow := False;
@@ -2100,100 +2062,9 @@ begin
   end;
 end;
 
-function TPointArrayHelper.Cluster(DistX, DistY: Integer): T2DPointArray;
-type
-  TPointScan = record
-    SkipRow: Boolean;
-    HasPoints: Boolean;
-  end;
-  TPointScanMatrix = array of array of TPointScan;
-var
-  I, X, Y, OffsetX, OffsetY, Len: Integer;
-  PointScan: TPointScanMatrix;
-  Queue: TSimbaPointBuffer;
-  TPA: TPointArray;
-  ScanBounds, TotalBounds: TBox;
-  P: TPoint;
-  Buffer: TSimbaPointBuffer;
-  ResultBuffer: TSimbaPointArrayBuffer;
+function TPointArrayHelper.Cluster(Dist: Single): T2DPointArray;
 begin
-  Len := Length(Self);
-
-  if (Len = 0) then
-    Result := []
-  else
-  if (Len = 1) then
-    Result := [Copy(Self)]
-  else
-  if (Len < 1200) then // SplitTPA is cheaper on small arrays
-    Result := Split(DistX, DistY)
-  else
-  begin
-    ResultBuffer.Init(64);
-    Buffer.Init(256);
-    Queue.Init(256);
-
-    TotalBounds := Self.Bounds();
-    OffsetX := TotalBounds.X1 - DistX;
-    OffsetY := TotalBounds.Y1 - DistY;
-
-    SetLength(PointScan,
-      TotalBounds.Height + (DistY * 2),
-      TotalBounds.Width  + (DistX * 2)
-    );
-
-    TPA := Self.Offset(-OffsetX, -OffsetY);
-    for I := 0 to High(TPA) do
-      PointScan[TPA[I].Y, TPA[I].X].HasPoints := True;
-
-    for I := 0 to High(TPA) do
-      if PointScan[TPA[I].Y, TPA[I].X].HasPoints then
-      begin
-        if (Buffer.Count > 0) then
-          ResultBuffer.Add(Buffer.ToArray());
-
-        Buffer.Clear();
-        Buffer.Add(TPA[I].X + OffsetX, TPA[I].Y + OffsetY);
-
-        Queue.Clear();
-        Queue.Add(TPA[I]);
-
-        PointScan[TPA[I].Y, TPA[I].X].HasPoints := False;
-
-        while (Queue.Count > 0) do
-        begin
-          P := Queue.Pop;
-
-          ScanBounds.X1 := (P.X - DistX);
-          ScanBounds.Y1 := (P.Y - DistY);
-          ScanBounds.X2 := (P.X + DistX);
-          ScanBounds.Y2 := (P.Y + DistY);
-
-          for Y := ScanBounds.Y1 to ScanBounds.Y2 do
-          begin
-            if PointScan[Y, ScanBounds.X2].SkipRow then
-              Continue;
-
-            for X := ScanBounds.X1 to ScanBounds.X2 do
-            begin
-              if not PointScan[Y, X].HasPoints then
-                Continue;
-
-              Buffer.Add(X + OffsetX, Y + OffsetY);
-              PointScan[Y, X].HasPoints := False;
-              Queue.Add(X, Y);
-            end;
-
-            PointScan[Y, ScanBounds.X2].SkipRow := True;
-          end;
-        end;
-      end;
-
-    if (Buffer.Count > 0) then
-      ResultBuffer.Add(Buffer.ToArray());
-
-    Result := ResultBuffer.ToArray(False);
-  end;
+  Result := Cluster(Dist, Dist);
 end;
 
 function TPointArrayHelper.Partition(Width, Height: Integer): T2DPointArray;
