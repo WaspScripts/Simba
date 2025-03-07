@@ -1,0 +1,34 @@
+{$assertions on}
+
+function BytesOf(s: String): TByteArray;
+begin
+  SetLength(Result, Length(s));
+  Move(s[1], Result[0], Length(s));
+end;
+
+function StringOf(Bytes: TByteArray): String;
+begin
+  SetLength(Result, Length(Bytes));
+  Move(Bytes[0], Result[1], Length(Bytes));
+end;
+
+var
+  s: String;
+  compressed,decompressed: TByteArray;
+begin
+  s := StringOfChar(' ', 1234);
+  s[2] := 'z';
+  s[4] := 'z';
+  s[6] := '0';
+  s[Length(s) div 2] := '0';
+  s += 'Foo Woo ';
+
+  compressed := CompressBytes(BytesOf(s));
+  decompressed := DecompressBytes(compressed);
+  Assert(StringOf(decompressed) = s);
+
+  // test a just a single byte input
+  compressed := CompressBytes(TByteArray([123]));
+  decompressed := DecompressBytes(compressed);
+  Assert((Length(decompressed) = 1) and (decompressed[0] = 123));
+end.

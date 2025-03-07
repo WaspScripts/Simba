@@ -14,8 +14,8 @@ uses
   simba.base, simba.encoding;
 
 // TByteArray
-function CompressBytes(Data: TByteArray): TByteArray;
-function DecompressBytes(Data: TByteArray): TByteArray;
+function CompressBytes(const Data: TByteArray): TByteArray;
+function DecompressBytes(const Data: TByteArray): TByteArray;
 
 // String
 function CompressString(S: String; Encoding: EBaseEncoding = EBaseEncoding.b64): String;
@@ -26,47 +26,56 @@ implementation
 uses
   basenenc_simba, ZStream;
 
-function CompressBytes(Data: TByteArray): TByteArray;
+function CompressBytes(const Data: TByteArray): TByteArray;
 var
-  InStream: Tcompressionstream;
-  OutStream: TBytesStream;
+  InStream: TCompressionstream;
+  OutStream: TMemoryStream;
 begin
-  OutStream := TBytesStream.Create();
+  Result := [];
+
+  OutStream := TMemoryStream.Create();
   InStream := TCompressionStream.Create(clDefault, OutStream);
   try
     InStream.Write(Data[0], Length(Data));
     InStream.Flush();
 
-    Result := OutStream.Bytes;
-    SetLength(Result, OutStream.Size);
+    SetLength(Result, OutStream.Position);
+    if (Length(Result) > 0) then
+      Move(OutStream.Memory^, Result[0], Length(Result));
   finally
     InStream.Free();
     OutStream.Free();
   end;
 end;
 
-function DecompressBytes(Data: TByteArray): TByteArray;
+function DecompressBytes(const Data: TByteArray): TByteArray;
 var
   InStream: TBytesStream;
   OutStream: Tdecompressionstream;
-  Count, Len: Integer;
+  ReadCount, TotalCount: Integer;
+  Chunk: array[0..2048-1] of Byte;
 begin
-  SetLength(Result, 4096);
-  Len := 0;
+  TotalCount := 0;
 
   InStream := TBytesStream.Create(Data);
   OutStream := TDeCompressionStream.Create(InStream);
   try
     repeat
-      Count := OutStream.Read(Result[Len], Length(Result) - Len);
-      Len := Len + Count;
-    until (Count = 0);
+      ReadCount := OutStream.Read(Chunk[0], Length(Chunk));
+      if (ReadCount > 0) then
+      begin
+        if (TotalCount + ReadCount > High(Result)) then
+          SetLength(Result, 4 + (High(Result) * 2) + ReadCount);
+        Move(Chunk[0], Result[TotalCount], ReadCount);
+        Inc(TotalCount, ReadCount);
+      end;
+    until (ReadCount = 0);
   finally
     InStream.Free();
     OutStream.Free();
   end;
 
-  SetLength(Result, Len);
+  SetLength(Result, TotalCount);
 end;
 
 function CompressString(S: String; Encoding: EBaseEncoding): String;
