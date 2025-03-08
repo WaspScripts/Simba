@@ -60,6 +60,12 @@ jobs:
           cat ../row.txt
           sed -i "6r ../row.txt" README.md
 
+          echo "https://github.com/Villavu/Simba-Build-Archive/blob/main/$date_year/$date_month_day%20$branch%20$commit/Win32.zip?raw=true" > latest.win32
+          echo "https://github.com/Villavu/Simba-Build-Archive/blob/main/$date_year/$date_month_day%20$branch%20$commit/Win64.zip?raw=true" > latest.win64
+          echo "https://github.com/Villavu/Simba-Build-Archive/blob/main/$date_year/$date_month_day%20$branch%20$commit/Win64%20DebugInfo.zip?raw=true" > latest.win64debuginfo
+          echo "https://github.com/Villavu/Simba-Build-Archive/blob/main/$date_year/$date_month_day%20$branch%20$commit/Mac.zip?raw=true" > latest.mac
+          echo "https://github.com/Villavu/Simba-Build-Archive/blob/main/$date_year/$date_month_day%20$branch%20$commit/Mac%20Arm.zip?raw=true" > latest.macarm
+
           git add .
           git commit --message "$commit"
           git push https://${{ secrets.API_TOKEN_GITHUB }}@github.com/villavu/simba-build-archive

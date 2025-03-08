@@ -348,6 +348,8 @@ begin
         if (Glyph.Value > #32) then // not a space
         begin
           Glyph.Points := Image.FindColor($FFFFFF, 0, TBox.Create(-1,-1,-1,-1));
+          if (Length(Glyph.Points) = 0) then // if not a space, must have points otherwise skip
+            Continue;
           Glyph.Shadow := Image.FindColor($0000FF, 0, TBox.Create(-1,-1,-1,-1));
           Glyph.ForegroundBounds := TPointArray(Glyph.Points + Glyph.Shadow).Bounds;
 
@@ -366,8 +368,8 @@ begin
           else
             Glyph.BestMatch := Length(Glyph.Points) + Length(Glyph.Background);
 
-          Result.MaxGlyphWidth := Max(Result.MaxGlyphWidth, Glyph.Background.Bounds.Width);
-          Result.MaxGlyphHeight := Max(Result.MaxGlyphHeight, Glyph.Background.Bounds.Height);
+          Result.MaxGlyphWidth := Max(Result.MaxGlyphWidth, Glyph.Background.Bounds.Width-1);
+          Result.MaxGlyphHeight := Max(Result.MaxGlyphHeight, Glyph.Background.Bounds.Height-1);
         end;
 
         Result.Glyphs[Count] := Glyph;
