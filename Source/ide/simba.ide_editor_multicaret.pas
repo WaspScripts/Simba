@@ -30,6 +30,7 @@ uses
 
 function TSimbaEditorPlugin_MultiCaret.DoSimbaHandleMouseAction(AnAction: TSynEditMouseAction; var AnInfo: TSynEditMouseActionInfo): Boolean;
 begin
+  // default to adding in selection if available
   if (AnAction.Command = emcPluginMultiCaretToggleCaret) and Editor.SelAvail then
     AnAction.Command := emcPluginMultiCaretSelectionToCarets;
 
@@ -37,6 +38,8 @@ begin
 end;
 
 procedure TSimbaEditorPlugin_MultiCaret.DoEditorAdded(AValue: TCustomSynEdit);
+var
+  I: Integer;
 begin
   inherited DoEditorAdded(AValue);
 
@@ -44,6 +47,15 @@ begin
   begin
     AValue.UnRegisterMouseActionExecHandler(@DoHandleMouseAction);
     AValue.RegisterMouseActionExecHandler(@DoSimbaHandleMouseAction);
+
+    // middle mouse click and selection does multi caret in column mode
+    for I := 0 to AValue.MouseTextActions.Count - 1 do
+      if (AValue.MouseTextActions[I].Command = emcPasteSelection) then
+      begin
+        AValue.MouseTextActions.Delete(I);
+        Break;
+      end;
+    AValue.MouseTextActions.AddCommand(emcStartColumnSelections, True, mbXMiddle, ccSingle, cdDown, [], []);
   end;
 end;
 
