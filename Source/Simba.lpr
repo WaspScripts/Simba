@@ -13,9 +13,10 @@ uses
   Classes, SysUtils, Interfaces, Forms,
   simba.base,
   simba.form_main, simba.form_tabs, simba.form_about, simba.form_debugimage, simba.form_imagestring,
-  simba.form_functionlist, simba.form_output, simba.form_colorpickhistory, simba.form_filebrowser,
+  simba.form_functionlist, simba.form_output, simba.form_filebrowser,
   simba.form_notes, simba.form_settings, simba.form_openexample, simba.form_shapebox,
   simba.form_backups, simba.form_findinfiles, simba.form_downloadsimba, simba.form_package,
+  simba.form_colorpickhistory,
   simba.plugin_dump, simba.script_runner,
   simba.ide_initialization, simba.ide_analytics, simba.script;
 
@@ -127,12 +128,12 @@ begin
     Application.CreateForm(TSimbaSettingsForm, SimbaSettingsForm);
     Application.CreateForm(TSimbaImageStringForm, SimbaImageStringForm);
     Application.CreateForm(TSimbaOpenExampleForm, SimbaOpenExampleForm);
-    Application.CreateForm(TSimbaColorPickHistoryForm, SimbaColorPickHistoryForm);
     Application.CreateForm(TSimbaShapeBoxForm, SimbaShapeBoxForm);
     Application.CreateForm(TSimbaBackupsForm, SimbaBackupsForm);
     Application.CreateForm(TSimbaFindInFilesForm, SimbaFindInFilesForm);
     Application.CreateForm(TSimbaDownloadSimbaForm, SimbaDownloadSimbaForm);
     Application.CreateForm(TSimbaPackageForm, SimbaPackageForm);
+    Application.CreateForm(TSimbaColorPickHistoryForm, SimbaColorPickHistoryForm);
 
     SimbaIDEInitialization_CallBeforeShow();
   end;

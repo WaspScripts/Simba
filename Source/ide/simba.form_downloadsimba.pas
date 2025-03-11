@@ -81,7 +81,7 @@ type
     FTreeView: TSimbaTreeView;
     FStatusLabel: TLabel;
 
-    procedure DoGetNodeColor(const Node: TTreeNode; var TheColor: TColor);
+    procedure DoGetNodeColor(Node: TTreeNode; var TheColor: TColor);
     procedure DoTreeDoubleClick(Sender: TObject);
 
     procedure DoPopulate;
@@ -231,7 +231,7 @@ begin
   Notebook1.PageIndex := 0;
 end;
 
-procedure TSimbaDownloadSimbaForm.DoGetNodeColor(const Node: TTreeNode; var TheColor: TColor);
+procedure TSimbaDownloadSimbaForm.DoGetNodeColor(Node: TTreeNode; var TheColor: TColor);
 begin
   if (TDownloaderFormNode(Node).Commit.StartsWith(SIMBA_COMMIT)) then
     TheColor := ColorBlend(TheColor, clPurple, 200);

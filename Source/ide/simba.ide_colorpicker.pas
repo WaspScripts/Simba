@@ -52,16 +52,11 @@ implementation
 
 uses
   LCLType,
-  simba.image, simba.vartype_windowhandle,
-  simba.form_colorpickhistory, simba.threading, simba.ide_dockinghelpers,
+  simba.image,
+  simba.vartype_windowhandle,
+  simba.form_colorpickhistory,
+  simba.ide_dockinghelpers,
   simba.colormath;
-
-procedure ShowHistoryForm;
-begin
-  SimbaDockMaster.MakeVisible(SimbaColorPickHistoryForm);
-  if (SimbaColorPickHistoryForm.ColorListBox.Items.Count > 0) then
-    SimbaColorPickHistoryForm.ColorListBox.ItemIndex := SimbaColorPickHistoryForm.ColorListBox.Count - 1;
-end;
 
 function ShowColorPicker(Window: TWindowHandle; out X, Y: Integer; out Color: TColor): Boolean;
 begin
@@ -70,9 +65,9 @@ begin
     Result := Pick(X, Y, Color);
     if Result then
     begin
-      SimbaColorPickHistoryForm.Add(TPoint.Create(X, Y), Color);
+      SimbaColorPickHistoryForm.Add(TPoint.Create(X, Y), Color, True);
 
-      QueueOnMainThread(@ShowHistoryForm);
+      SimbaDockMaster.MakeVisible(SimbaColorPickHistoryForm);
     end;
   finally
     Free();

@@ -56,7 +56,7 @@ type
 
     procedure DoFindFiles;
     procedure DoPopluateTreeView(Sender: TObject);
-    function DoGetNodeHint(const Node: TTreeNode): String;
+    function DoGetNodeHint(Node: TTreeNode): String;
     procedure DoDoubleClick(Sender: TObject);
     procedure DoAfterFilter(Sender: TObject);
   public
@@ -157,7 +157,7 @@ begin
   FUpdating := False;
 end;
 
-function TSimbaFileBrowserForm.DoGetNodeHint(const Node: TTreeNode): String;
+function TSimbaFileBrowserForm.DoGetNodeHint(Node: TTreeNode): String;
 begin
   if (Node is TSimbaFileBrowserNode) and (Node.Level > 1) then
     Result := TSimbaPath.PathExtractRelative(Application.Location, TSimbaFileBrowserNode(Node).Path)

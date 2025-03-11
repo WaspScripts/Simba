@@ -75,7 +75,7 @@ type
     procedure Fill;
     procedure DoUpdateThread;
 
-    function DoGetNodeHint(const Node: TTreeNode): String;
+    function DoGetNodeHint(Node: TTreeNode): String;
     procedure DoSelectionChanged(Sender: TObject);
     procedure DoNodeDoubleClick(Sender: TObject);
     procedure DoCodetoolsSetup(Sender: TObject);
@@ -233,7 +233,7 @@ end;
 
 procedure TSimbaFunctionListForm.ResetState;
 
-  procedure HideAllIncludePluginNodes(const ANode: TTreeNode);
+  procedure HideAllIncludePluginNodes(ANode: TTreeNode);
   var
     Node: TSimbaFunctionListNode absolute ANode;
   begin
@@ -449,7 +449,7 @@ procedure TSimbaFunctionListForm.AddPluginsNode(Plugins: TCodeParserList; Hash: 
 var
   PluginsNode: TTreeNode = nil;
 
-  procedure Find(const ANode: TTreeNode);
+  procedure Find(ANode: TTreeNode);
   var
     Node: TSimbaFunctionListNode absolute ANode;
   begin
@@ -516,7 +516,7 @@ procedure TSimbaFunctionListForm.AddIncludesNode(Includes: TCodeParserList; Hash
 var
   IncludesNode: TTreeNode = nil;
 
-  procedure Find(const ANode: TTreeNode);
+  procedure Find(ANode: TTreeNode);
   var
     Node: TSimbaFunctionListNode absolute ANode;
   begin
@@ -590,7 +590,7 @@ procedure TSimbaFunctionListForm.PurgeNodes;
 var
   NodesToPurge: array of TTreeNode;
 
-  procedure Find(const ANode: TTreeNode);
+  procedure Find(ANode: TTreeNode);
   var
     Node: TSimbaFunctionListNode absolute ANode;
   begin
@@ -611,7 +611,7 @@ begin
   end;
 end;
 
-function TSimbaFunctionListForm.DoGetNodeHint(const Node: TTreeNode): String;
+function TSimbaFunctionListForm.DoGetNodeHint(Node: TTreeNode): String;
 begin
   Result := '';
 

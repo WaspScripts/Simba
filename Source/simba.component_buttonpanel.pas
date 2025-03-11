@@ -19,6 +19,7 @@ type
     FButtonsContainer: TFlowPanel;
     FButtonOk: TSimbaButton;
     FButtonCancel: TSimbaButton;
+    FButtonClose: TSimbaButton;
 
     FCloseOnCancel: Boolean;
     FCloseOnOk: Boolean;
@@ -31,6 +32,7 @@ type
 
     property ButtonOk: TSimbaButton read FButtonOk;
     property ButtonCancel: TSimbaButton read FButtonCancel;
+    property ButtonClose: TSimbaButton read FButtonClose;
 
     property CloseOnCancel: Boolean read FCloseOnCancel write FCloseOnCancel;
     property CloseOnOk: Boolean read FCloseOnOk write FCloseOnOk;
@@ -80,12 +82,17 @@ begin
       Form.ModalResult := mrOk;
       if ButtonPanel.CloseOnOk then
         Form.Close();
-    end else
-    if (Self = ButtonPanel.FButtonCancel) then
+    end
+    else if (Self = ButtonPanel.FButtonCancel) then
     begin
       Form.ModalResult := mrCancel;
       if ButtonPanel.CloseOnCancel then
         Form.Close();
+    end
+    else if (Self = ButtonPanel.FButtonClose) then
+    begin
+      Form.ModalResult := mrClose;
+      Form.Close();
     end;
   end;
 
@@ -116,13 +123,15 @@ begin
 
   FButtonCancel := AddButton();
   FButtonCancel.Caption := 'Cancel';
-  FButtonCancel.BorderSpacing.Around := 5;
   FButtonCancel.Image := ESimbaButtonImage.CLOSE;
 
   FButtonOk := AddButton();
   FButtonOk.Caption := 'Ok';
-  FButtonOk.BorderSpacing.Around := 5;
   FButtonOk.Image := ESimbaButtonImage.OK;
+
+  FButtonClose := AddButton();
+  FButtonClose.Caption := 'Close';
+  FButtonClose.Visible := False;
 
   Color := SimbaTheme.ColorFrame;
   AutoSize := True;
@@ -132,6 +141,7 @@ function TSimbaButtonPanel.AddButton: TSimbaButton;
 begin
   Result := TButtonPanelButton.Create(Self);
   Result.Parent := FButtonsContainer;
+  Result.BorderSpacing.Around := 5;
 
   TButtonPanelButton(Result).ButtonPanel := Self;
 end;

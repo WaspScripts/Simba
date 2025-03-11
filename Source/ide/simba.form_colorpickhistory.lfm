@@ -1,172 +1,43 @@
 object SimbaColorPickHistoryForm: TSimbaColorPickHistoryForm
-  Left = -1034
-  Height = 396
-  Top = 893
-  Width = 830
-  ActiveControl = ColorListBox
+  Left = -466
+  Height = 240
+  Top = 796
+  Width = 320
   Caption = 'Color Picker History'
-  ClientHeight = 396
-  ClientWidth = 830
-  DesignTimePPI = 120
+  FormStyle = fsStayOnTop
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  ShowInTaskBar = stAlways
-  LCLVersion = '3.4.0.0'
-  object ColorListBox: TColorListBox
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Owner
-    AnchorSideRight.Control = ColorPanel
-    AnchorSideBottom.Control = ButtonDelete
-    Left = 5
-    Height = 351
-    Top = 5
-    Width = 535
-    ColorRectWidth = 5
-    ColorRectOffset = 2
-    Style = []
-    Align = alCustom
-    Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Left = 5
-    BorderSpacing.Top = 5
-    BorderSpacing.Bottom = 5
-    ExtendedSelect = False
-    ItemHeight = 0
-    OnSelectionChange = ColorListBoxSelectionChange
-    TabOrder = 0
-  end
-  object ButtonDelete: TButton
-    AnchorSideLeft.Control = Owner
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
-    Left = 5
-    Height = 30
-    Top = 361
-    Width = 70
-    Anchors = [akLeft, akBottom]
-    AutoSize = True
-    BorderSpacing.Left = 5
-    BorderSpacing.Bottom = 5
-    Caption = 'Delete'
-    TabOrder = 1
-    OnClick = HandleButtonDeleteClick
-  end
-  object ButtonClear: TButton
-    AnchorSideLeft.Control = ButtonDelete
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
-    Left = 80
-    Height = 30
-    Top = 361
-    Width = 60
-    Align = alCustom
-    Anchors = [akLeft, akBottom]
-    AutoSize = True
-    BorderSpacing.Left = 5
-    BorderSpacing.Bottom = 5
-    Caption = 'Clear'
-    TabOrder = 2
-    OnClick = HandleButtonClearClick
-  end
-  object ColorPanel: TPanel
-    Left = 540
-    Height = 396
-    Top = 0
-    Width = 290
-    Align = alRight
-    BevelOuter = bvNone
-    ClientHeight = 396
-    ClientWidth = 290
-    TabOrder = 3
-    object ButtonExit: TButton
-      Left = 5
-      Height = 30
-      Top = 361
-      Width = 280
-      Align = alBottom
-      AutoSize = True
-      BorderSpacing.Left = 5
-      BorderSpacing.Right = 5
-      BorderSpacing.Bottom = 5
-      Caption = 'Exit'
-      TabOrder = 0
-      OnClick = HandleButtonExitClick
+  LCLVersion = '3.8.0.0'
+  object ContextMenu: TPopupMenu
+    OnPopup = ContextMenuPopup
+    Left = 48
+    Top = 16
+    object MenuItemCopy: TMenuItem
+      Caption = 'Copy'
+      OnClick = ContextMenuCopyClick
     end
-    object ButtonPickColor: TButton
-      Left = 5
-      Height = 30
-      Top = 326
-      Width = 280
-      Align = alBottom
-      AutoSize = True
-      BorderSpacing.Left = 5
-      BorderSpacing.Right = 5
-      BorderSpacing.Bottom = 5
-      Caption = 'Pick Color'
-      TabOrder = 1
-      OnClick = HandleButtonPickColorClick
+    object MenuItemCopyPoint: TMenuItem
+      Caption = 'Copy Point'
+      OnClick = ContextMenuCopyPointClick
     end
-    object StringGrid: TStringGrid
-      AnchorSideLeft.Control = ColorPanel
-      AnchorSideTop.Control = ColorPanel
-      AnchorSideRight.Control = ColorPanel
-      AnchorSideRight.Side = asrBottom
-      AnchorSideBottom.Control = ButtonPickColor
-      Left = 5
-      Height = 321
-      Top = 5
-      Width = 280
-      Align = alTop
-      Anchors = [akTop, akLeft, akRight, akBottom]
-      AutoFillColumns = True
-      BorderSpacing.Left = 5
-      BorderSpacing.Top = 5
-      BorderSpacing.Right = 5
-      BorderStyle = bsNone
-      Color = clForm
-      ColCount = 2
-      Columns = <      
-        item
-          MinSize = 12
-          MaxSize = 250
-          SizePriority = 0
-          Title.Caption = 'Title'
-          Width = 139
-        end      
-        item
-          MinSize = 12
-          MaxSize = 250
-          Title.Caption = 'Title'
-          Width = 141
-        end>
-      DefaultDrawing = False
-      FixedColor = clForm
-      FixedCols = 0
-      FixedRows = 0
-      GridLineWidth = 0
-      Options = []
-      RowCount = 4
-      TabOrder = 2
-      OnKeyDown = StringGridKeyDown
-      ColWidths = (
-        139
-        141
-      )
-      Cells = (
-        4
-        0
-        0
-        'Hex:'
-        0
-        1
-        'RGB:'
-        0
-        2
-        'HSL:'
-        0
-        3
-        'Point:'
-      )
+    object MenuItemCopyRGB: TMenuItem
+      Caption = 'Copy RGB'
+      OnClick = ContextMenuCopyRGB
+    end
+    object MenuItemCopyHSL: TMenuItem
+      Caption = 'Copy HSL'
+      OnClick = ContextMenuCopyHSLClick
+    end
+    object Separator1: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemDelete: TMenuItem
+      Caption = 'Delete'
+      OnClick = ContextMenuDeleteClick
+    end
+    object MenuItemClear: TMenuItem
+      Caption = 'Clear'
+      OnClick = ContextMenuClearClick
     end
   end
 end

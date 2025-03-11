@@ -12,13 +12,11 @@ unit simba.component_treeview;
 interface
 
 uses
-  Classes, SysUtils, Controls, Forms, Graphics, StdCtrls, ComCtrls, LMessages, LCLType, ImgList,
+  Classes, SysUtils, Controls, Forms, Graphics, StdCtrls, ComCtrls, LMessages, LCLType, ImgList, Types,
   simba.component_edit, simba.component_treeviewhint, simba.component_scrollbar, simba.component_button,
   simba.settings;
      
 type
-  TSimbaTreeView = class;
-
   TSimbaInternalTreeView = class(TTreeView)
   protected
     FLoading: Boolean;
@@ -42,9 +40,10 @@ type
     constructor Create(AnOwner: TComponent); override;
   end;
 
-  TNodeColorEvent = procedure(const Node: TTreeNode; var Color: TColor) of object;
-  TNodeHintEvent = function(const Node: TTreeNode): String of object;
-  TNodeForEachEvent = procedure(const Node: TTreeNode) is nested;
+  TNodePaintEvent = procedure(Canvas: TCanvas; Node: TTreeNode) of object;
+  TNodeColorEvent = procedure(Node: TTreeNode; var Color: TColor) of object;
+  TNodeHintEvent = function(Node: TTreeNode): String of object;
+  TNodeForEachEvent = procedure(Node: TTreeNode) is nested;
 
   TSimbaTreeView = class(TCustomControl)
   protected
@@ -57,11 +56,17 @@ type
     FScrollbarHorz: TSimbaScrollBar;
     FOnGetNodeHint: TNodeHintEvent;
     FOnGetNodeColor: TNodeColorEvent;
+    FOnPaintNode: TNodePaintEvent;
     FNodeClass: TTreeNodeClass;
     FOnAfterFilter: TNotifyEvent;
     FTempBackgroundColor: TColor;
     FFilterOnlyTopLevel: Boolean;
     FFilterCollapseOnClear: Boolean;
+    FKeyEvents: array of record
+      Key: Integer;
+      Shift: TShiftState;
+      Callback: TKeyEvent;
+    end;
 
     procedure FontChanged(Sender: TObject); override;
 
@@ -74,6 +79,10 @@ type
     function GetFilterVisible: Boolean;
     function GetScrolledLeft: Integer;
     function GetScrolledTop: Integer;
+    function GetItems: TTreeNodes;
+    function GetSelected: TTreeNode;
+    function GetFilter: String;
+    function GetTopLevelCount: Integer;
 
     procedure SetFilterVisible(Value: Boolean);
     procedure SetFilter(Value: String);
@@ -83,23 +92,17 @@ type
     procedure SetOnSelectionChange(Value: TNotifyEvent);
     procedure SetScrolledLeft(Value: Integer);
     procedure SetScrolledTop(Value: Integer);
-
-    function GetItems: TTreeNodes;
-    function GetSelected: TTreeNode;
-    function GetFilter: String;
-    function GetTopLevelCount: Integer;
+    procedure SetSelected(AValue: TTreeNode);
 
     procedure DoClearFilterClick(Sender: TObject);
     procedure DoFilterEditChange(Sender: TObject);
     procedure DoMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure DoCreateNodeClass(Sender: TCustomTreeView; var NodeClass: TTreeNodeClass);
-    // for GetNodeColor
     procedure DoDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
-
     procedure DoSettingChanged_ImageSize(Setting: TSimbaSetting);
-
-    procedure ScrollHorzChange(Sender: TObject);
-    procedure ScrollVertChange(Sender: TObject);
+    procedure DoScrollHorzChange(Sender: TObject);
+    procedure DoScrollVertChange(Sender: TObject);
+    procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   public
     constructor Create(AOwner: TComponent; NodeClass: TTreeNodeClass = nil); reintroduce;
 
@@ -115,6 +118,7 @@ type
 
     procedure Invalidate; override;
 
+    property OnPaintNode: TNodePaintEvent read FOnPaintNode write FOnPaintNode;
     property OnGetNodeColor: TNodeColorEvent read FOnGetNodeColor write FOnGetNodeColor;
     property OnGetNodeHint: TNodeHintEvent read FOnGetNodeHint write FOnGetNodeHint;
     property OnDoubleClick: TNotifyEvent read GetOnDoubleClick write SetOnDoubleClick;
@@ -122,7 +126,7 @@ type
     property OnAfterFilter: TNotifyEvent read FOnAfterFilter write FOnAfterFilter;
     property Images: TCustomImageList read GetImages write SetImages;
     property Items: TTreeNodes read GetItems;
-    property Selected: TTreeNode read GetSelected;
+    property Selected: TTreeNode read GetSelected write SetSelected;
     property Filter: String read GetFilter write SetFilter;
     property Loading: Boolean read GetLoading write SetLoading;
     property ScrolledLeft: Integer read GetScrolledLeft write SetScrolledLeft;
@@ -137,6 +141,9 @@ type
 
     function AddNode(const NodeText: String; const ImageIndex: Integer = -1): TTreeNode; overload;
     function AddNode(const ParentNode: TTreeNode; const NodeText: String; const ImageIndex: Integer = -1): TTreeNode; overload;
+
+    procedure AddKeyEvent(Key: Integer; Shift: TShiftState; Callback: TKeyEvent);
+    procedure RemoveKeyEvent(Key: Integer; Shift: TShiftState; Callback: TKeyEvent);
   end;
 
 implementation
@@ -163,7 +170,7 @@ begin
   FScrollbarVert.Parent := test;
   FScrollbarVert.Kind := sbVertical;
   FScrollbarVert.Align := alRight;
-  FScrollbarVert.OnChange := @ScrollVertChange;
+  FScrollbarVert.OnChange := @DoScrollVertChange;
   FScrollbarVert.Visible := True;
 
   FScrollbarHorz := TSimbaScrollBar.Create(Self);
@@ -171,7 +178,7 @@ begin
   FScrollbarHorz.Kind := sbHorizontal;
   FScrollbarHorz.Align := alBottom;
   FScrollbarHorz.IndentCorner := 100;
-  FScrollbarHorz.OnChange := @ScrollHorzChange;
+  FScrollbarHorz.OnChange := @DoScrollHorzChange;
   FScrollbarHorz.Visible := True;
 
   FTree := TSimbaInternalTreeView.Create(Self);
@@ -195,6 +202,7 @@ begin
   FTree.Font.Color := SimbaTheme.ColorFont;
   FTree.Images := SimbaMainForm.Images;
   FTree.OnAdvancedCustomDrawItem := @DoDrawItem;
+  FTree.AddHandlerOnKeyDown(@DoKeyDown);
 
   FScrollbarVert.ForwardScrollControl := FTree;
 
@@ -300,6 +308,26 @@ begin
   Result.SelectedIndex := ImageIndex;
 end;
 
+procedure TSimbaTreeView.AddKeyEvent(Key: Integer; Shift: TShiftState; Callback: TKeyEvent);
+begin
+  SetLength(FKeyEvents, Length(FKeyEvents) + 1);
+  FKeyEvents[High(FKeyEvents)].Key := Key;
+  FKeyEvents[High(FKeyEvents)].Shift := Shift;
+  FKeyEvents[High(FKeyEvents)].Callback := Callback;
+end;
+
+procedure TSimbaTreeView.RemoveKeyEvent(Key: Integer; Shift: TShiftState; Callback: TKeyEvent);
+var
+  I: Integer;
+begin
+  for I := 0 to High(FKeyEvents) do
+    if (FKeyEvents[I].Key = Key) and (FKeyEvents[I].Shift = Shift) and (FKeyEvents[I].Callback = Callback) then
+    begin
+      Delete(FKeyEvents, I, 1);
+      Break;
+    end;
+end;
+
 function TSimbaTreeView.GetFilter: String;
 begin
   Result := FFilterEdit.Text;
@@ -345,6 +373,11 @@ end;
 procedure TSimbaTreeView.SetFilterVisible(Value: Boolean);
 begin
   FFilterPanel.Visible := Value;
+end;
+
+procedure TSimbaTreeView.SetSelected(AValue: TTreeNode);
+begin
+  FTree.Selected := AValue;
 end;
 
 procedure TSimbaTreeView.FontChanged(Sender: TObject);
@@ -517,6 +550,12 @@ begin
       cdPostPaint:
         Sender.BackgroundColor := FTempBackgroundColor;
     end;
+
+  if Assigned(FOnPaintNode) then
+    if (Stage = cdPostPaint) then
+    begin
+      FOnPaintNode(Sender.Canvas, Node);
+    end;
 end;
 
 procedure TSimbaTreeView.DoSettingChanged_ImageSize(Setting: TSimbaSetting);
@@ -524,12 +563,21 @@ begin
   Invalidate();
 end;
 
-procedure TSimbaTreeView.ScrollVertChange(Sender: TObject);
+procedure TSimbaTreeView.DoScrollVertChange(Sender: TObject);
 begin
   FTree.ScrolledTop := FScrollbarVert.Position;
 end;
 
-procedure TSimbaTreeView.ScrollHorzChange(Sender: TObject);
+procedure TSimbaTreeView.DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  I: Integer;
+begin
+  for I := 0 to High(FKeyEvents) do
+    if (FKeyEvents[I].Key = Key) and (FKeyEvents[I].Shift = Shift) then
+      FKeyEvents[I].Callback(Self, Key, Shift);
+end;
+
+procedure TSimbaTreeView.DoScrollHorzChange(Sender: TObject);
 begin
   FTree.ScrolledLeft := FScrollbarHorz.Position;
 end;
@@ -596,9 +644,12 @@ begin
 
   if (Button = mbLeft) and (not (ssDouble in Shift)) then
   begin
-    n := GetNodeAt(X,Y);
-    if Assigned(n) then
+    n := GetNodeAtY(Y);
+    if Assigned(n) and (X > n.DisplayStateIconLeft)  then
+    begin
+      n.Selected := True;
       n.Expanded := not n.Expanded;
+    end;
   end;
 end;
 
@@ -629,6 +680,7 @@ begin
   inherited Create(AnOwner);
 
   OnCustomDrawArrow := @DoDrawArrow;
+
 end;
 
 procedure TSimbaInternalTreeView.DoSelectionChanged;
