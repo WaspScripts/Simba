@@ -465,7 +465,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="79">
+    <Units Count="81">
       <Unit0>
         <Filename Value="Simba.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -762,80 +762,91 @@
         <IsPartOfProject Value="True"/>
       </Unit60>
       <Unit61>
-        <Filename Value="simba.container_imagemap.pas"/>
+        <Filename Value="ide/codetools/simba.ide_codetools_insight.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit61>
       <Unit62>
-        <Filename Value="ide/codetools/simba.ide_codetools_insight.pas"/>
+        <Filename Value="ide/codetools/simba.ide_codetools_pasparser.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit62>
       <Unit63>
-        <Filename Value="ide/codetools/simba.ide_codetools_pasparser.pas"/>
+        <Filename Value="ide/codetools/simba.ide_codetools_paslexer.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit63>
       <Unit64>
-        <Filename Value="ide/codetools/simba.ide_codetools_paslexer.pas"/>
+        <Filename Value="ide/codetools/simba.ide_codetools_exprparser.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit64>
       <Unit65>
-        <Filename Value="ide/codetools/simba.ide_codetools_exprparser.pas"/>
+        <Filename Value="ide/codetools/simba.ide_codetools_parser.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit65>
       <Unit66>
-        <Filename Value="ide/codetools/simba.ide_codetools_parser.pas"/>
+        <Filename Value="ide/codetools/simba.ide_codetools_setup.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit66>
       <Unit67>
-        <Filename Value="ide/codetools/simba.ide_codetools_setup.pas"/>
+        <Filename Value="ide/codetools/simba.ide_codetools_base.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit67>
       <Unit68>
-        <Filename Value="ide/codetools/simba.ide_codetools_base.pas"/>
+        <Filename Value="ide/codetools/simba.ide_codetools_includes.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit68>
       <Unit69>
-        <Filename Value="ide/codetools/simba.ide_codetools_includes.pas"/>
+        <Filename Value="ide/codetools/simba.ide_codetools_debug.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit69>
       <Unit70>
-        <Filename Value="ide/codetools/simba.ide_codetools_debug.pas"/>
+        <Filename Value="ide/codetools/simba.ide_codetools_arrayhelpers.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit70>
       <Unit71>
-        <Filename Value="ide/codetools/simba.ide_codetools_arrayhelpers.pas"/>
+        <Filename Value="ide/codetools/simba.ide_codetools_keywords.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit71>
       <Unit72>
-        <Filename Value="ide/codetools/simba.ide_codetools_keywords.pas"/>
+        <Filename Value="script/simba.script_threading.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit72>
       <Unit73>
-        <Filename Value="script/simba.script_threading.pas"/>
+        <Filename Value="simba.vartype_matrix.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit73>
       <Unit74>
-        <Filename Value="simba.vartype_matrix.pas"/>
+        <Filename Value="simba.component_splitter.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit74>
       <Unit75>
-        <Filename Value="simba.component_splitter.pas"/>
+        <Filename Value="simba.pixelocr.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit75>
       <Unit76>
-        <Filename Value="simba.pixelocr.pas"/>
+        <Filename Value="script/imports/simba.import_pixelocr.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit76>
       <Unit77>
-        <Filename Value="script/imports/simba.import_pixelocr.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit77>
-      <Unit78>
         <Filename Value="ide/simba.form_colorpickhistory.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="SimbaColorPickHistoryForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+      </Unit77>
+      <Unit78>
+        <Filename Value="ide/simba.frame_settings_editorkeystrokes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="SimbaEditorHotkeyFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
       </Unit78>
+      <Unit79>
+        <Filename Value="ide/simba.ide_editor_commands.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit79>
+      <Unit80>
+        <Filename Value="ide/simba.ide_editor.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit80>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -19,39 +19,24 @@ type
     procedure DoEditorAdded(Value: TCustomSynEdit); override;
     procedure DoEditorRemoving(Value: TCustomSynEdit); override;
     procedure DoEditorCommand(Sender: TObject; AfterProcessing: Boolean; var Handled: Boolean; var Command: TSynEditorCommand; var AChar: TUTF8Char; Data: Pointer; HandlerData: Pointer);
-  public
-    class var EditorCommand: TSynEditorCommand;
-    class constructor Create;
   end;
 
 implementation
 
 uses
-  simba.ide_editor, simba.ide_codetools_insight, simba.ide_codetools_parser, simba.vartype_string;
+  simba.ide_editor, simba.ide_codetools_insight, simba.ide_codetools_parser, simba.vartype_string,
+  simba.ide_editor_commands;
 
 procedure TSimbaCodeComplete.DoEditorAdded(Value: TCustomSynEdit);
 begin
   inherited DoEditorAdded(Value);
 
-  if (Value is TSimbaEditor) then
-    with TSimbaEditor(Value) do
-    begin
-      RegisterCommandHandler(@DoEditorCommand, nil, [hcfPostExec]);
-
-      with KeyStrokes.Add() do
-      begin
-        Key := VK_RETURN;
-        Shift := [ssCtrl];
-        Command := EditorCommand;
-      end;
-    end;
+  Value.RegisterCommandHandler(@DoEditorCommand, nil, [hcfPostExec]);
 end;
 
 procedure TSimbaCodeComplete.DoEditorRemoving(Value: TCustomSynEdit);
 begin
-  if (Value is TSimbaEditor) then
-    with TSimbaEditor(Value) do
-      UnRegisterCommandHandler(@DoEditorCommand);
+  Value.UnregisterCommandHandler(@DoEditorCommand);
 
   inherited DoEditorRemoving(Value);
 end;
@@ -64,7 +49,7 @@ var
   MethodToInsert: String;
   StartX, EndX, NameX: Integer;
 begin
-  if (Command = EditorCommand) then
+  if (Command = ecCodeComplete) then
   begin
     ci := TCodeinsight.Create();
     try
@@ -100,11 +85,6 @@ begin
       ci.Free();
     end;
   end;
-end;
-
-class constructor TSimbaCodeComplete.Create;
-begin
-  EditorCommand := AllocatePluginKeyRange(1);
 end;
 
 end.

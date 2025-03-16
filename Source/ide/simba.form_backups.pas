@@ -223,7 +223,7 @@ begin
   Width := Scale96ToScreen(800);
   Height := Scale96ToScreen(600);
 
-  Editor := TSimbaEditor.Create(Self);
+  Editor := TSimbaEditor.Create(Self, []);
   Editor.Parent := RightPanel;
   Editor.Align := alClient;
   Editor.Visible := False;

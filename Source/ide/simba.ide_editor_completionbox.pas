@@ -73,15 +73,11 @@ type
     procedure DoEditorCommand(Sender: TObject; AfterProcessing: Boolean; var Handled: Boolean; var Command: TSynEditorCommand; var AChar: TUTF8Char; Data: Pointer; HandlerData: Pointer);
     procedure DoEditorAdded(Value: TCustomSynEdit); override;
     procedure DoEditorRemoving(Value: TCustomSynEdit); override;
-
-    procedure DoSettingChanged_CompletionKey(Setting: TSimbaSetting);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   public
-    class var AutoCompleteCommand: TSynEditorCommand;
     class function IsAutoCompleteCommand(Command: TSynEditorCommand; AChar: TUTF8Char): Boolean;
-    class constructor Create;
   end;
 
 implementation
@@ -89,7 +85,8 @@ implementation
 uses
   ATCanvasPrimitives,
   simba.array_algorithm, simba.ide_editor, simba.ide_theme, simba.misc,
-  simba.ide_codetools_setup, simba.ide_codetools_keywords, simba.vartype_string;
+  simba.ide_codetools_setup, simba.ide_codetools_keywords, simba.vartype_string,
+  simba.ide_editor_commands;
 
 {$IFDEF WINDOWS}
 function SetClassLong(Handle: HWND; Index: Integer = -26; Value: Integer = 0): UInt32; stdcall; external 'user32' name 'SetClassLongA';
@@ -316,8 +313,8 @@ begin
     Value := SourceValue;
   Value := Value + KeyChar;
   case KeyChar of
-    '.':      Application.QueueAsyncCall(@ContinueCompletion, TSimbaEditor(Editor).CompletionBox.AutoCompleteCommand);
-    ',', '(': Application.QueueAsyncCall(@ContinueCompletion, TSimbaEditor(Editor).ParamHint.ParamHintCommand);
+    '.':      Application.QueueAsyncCall(@ContinueCompletion, ecCompletionBox);
+    ',', '(': Application.QueueAsyncCall(@ContinueCompletion, ecParamHint);
   end;
 end;
 
@@ -423,18 +420,6 @@ begin
     Form.SelectedColor := Editor.SelectedColor.Background;
     Form.Font := Editor.Font;
     Form.ScrollBar.Position := 0;
-  end;
-end;
-
-procedure TSimbaCompletionBox.DoSettingChanged_CompletionKey(Setting: TSimbaSetting);
-var
-  Index: Integer;
-begin
-  Index := Editor.Keystrokes.FindCommand(AutoCompleteCommand);
-  if (Index > -1) then
-  begin
-    Editor.Keystrokes[Index].Key := SimbaSettings.CodeTools.CompletionKey.Value;
-    Editor.Keystrokes[Index].Shift := TShiftState(Integer(SimbaSettings.CodeTools.CompletionKeyModifiers.Value));
   end;
 end;
 
@@ -581,25 +566,12 @@ procedure TSimbaCompletionBox.DoEditorAdded(Value: TCustomSynEdit);
 begin
   inherited DoEditorAdded(Value);
 
-  if (Value is TSimbaEditor) then
-    with TSimbaEditor(Value) do
-    begin
-      RegisterCommandHandler(@DoEditorCommand, nil, [hcfPostExec]);
-
-      with KeyStrokes.Add() do
-      begin
-        Key := SimbaSettings.CodeTools.CompletionKey.Value;
-        Shift := TShiftState(Int32(SimbaSettings.CodeTools.CompletionKeyModifiers.Value));
-        Command := AutoCompleteCommand;
-      end;
-    end;
+  Value.RegisterCommandHandler(@DoEditorCommand, nil, [hcfPostExec]);
 end;
 
 procedure TSimbaCompletionBox.DoEditorRemoving(Value: TCustomSynEdit);
 begin
-  if (Value is TSimbaEditor) then
-    with TSimbaEditor(Value) do
-      UnRegisterCommandHandler(@DoEditorCommand);
+  Value.UnRegisterCommandHandler(@DoEditorCommand);
 
   inherited DoEditorRemoving(Value);
 end;
@@ -769,9 +741,6 @@ begin
   OnSearchPosition := @DoFiltering;
   OnKeyCompletePrefix := @DoTabPressed;
   OnExecute := @DoExecute;
-
-  SimbaSettings.RegisterChangeHandler(Self, SimbaSettings.CodeTools.CompletionKey, @DoSettingChanged_CompletionKey);
-  SimbaSettings.RegisterChangeHandler(Self, SimbaSettings.CodeTools.CompletionKeyModifiers, @DoSettingChanged_CompletionKey);
 end;
 
 destructor TSimbaCompletionBox.Destroy;
@@ -784,12 +753,7 @@ end;
 
 class function TSimbaCompletionBox.IsAutoCompleteCommand(Command: TSynEditorCommand; AChar: TUTF8Char): Boolean;
 begin
-  Result := (SimbaSettings.CodeTools.CompletionOpenAutomatically.Value and (Command = ecChar) and (AChar = '.')) or (Command = AutoCompleteCommand);
-end;
-
-class constructor TSimbaCompletionBox.Create;
-begin
-  AutoCompleteCommand := AllocatePluginKeyRange(1);
+  Result := (SimbaSettings.CodeTools.CompletionOpenAutomatically.Value and (Command = ecChar) and (AChar = '.')) or (Command = ecCompletionBox);
 end;
 
 end.

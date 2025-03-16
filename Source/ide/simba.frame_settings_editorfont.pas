@@ -59,7 +59,7 @@ constructor TEditorFontFrame.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FEditor := TSimbaEditor.Create(Self);
+  FEditor := TSimbaEditor.Create(Self, []);
   with FEditor do
   begin
     Parent := EditorPanel;

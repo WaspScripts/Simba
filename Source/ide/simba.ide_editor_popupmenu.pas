@@ -61,7 +61,8 @@ implementation
 uses
   LCLType,
   simba.base, simba.form_main, simba.ide_editor, simba.ide_editor_docgenerator, simba.nativeinterface,
-  simba.ide_tab, simba.form_tabs, simba.ide_utils, simba.ide_codetools_debug;
+  simba.ide_tab, simba.form_tabs, simba.ide_utils, simba.ide_codetools_debug,
+  simba.ide_editor_commands;
 
 type
   TSimbaTabPopupMenuHelper = class helper for TSimbaTabPopupMenu
@@ -138,7 +139,7 @@ end;
 
 procedure TSimbaTabPopupMenu.DoDocComment(Sender: TObject);
 begin
-  ScriptTab.Editor.ExecuteSimpleCommand(TSimbaEditorPlugin_DocGenerator.EditorCommand);
+  ScriptTab.Editor.ExecuteSimpleCommand(ecDocumentation);
 end;
 
 procedure TSimbaTabPopupMenu.DoCodetoolsSymbols(Sender: TObject);

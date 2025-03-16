@@ -20,34 +20,24 @@ type
     procedure DoCommand(Sender: TObject; AfterProcessing: Boolean; var Handled: Boolean; var Command: TSynEditorCommand; var AChar: TUtf8Char; Data: Pointer; HandlerData: Pointer);
 
     procedure CommentBlock;
-  public
-    class var EditorCommand: TSynEditorCommand;
-    class constructor Create;
   end;
 
 implementation
 
 uses
   math,
-  simba.ide_editor;
+  simba.ide_editor, simba.ide_editor_commands;
 
 procedure TSimbaEditorPlugin_CommentBlock.DoEditorAdded(Value: TCustomSynEdit);
 begin
   inherited DoEditorAdded(Value);
-
-  with Value.Keystrokes.Add() do
-  begin
-    Key := VK_LCL_SLASH;
-    Shift := [ssCtrl];
-    Command := EditorCommand;
-  end;
 
   Value.RegisterCommandHandler(@DoCommand, Pointer(nil), [hcfPostExec]);
 end;
 
 procedure TSimbaEditorPlugin_CommentBlock.DoCommand(Sender: TObject; AfterProcessing: Boolean; var Handled: Boolean; var Command: TSynEditorCommand; var AChar: TUtf8Char; Data: Pointer; HandlerData: Pointer);
 begin
-  if (Command = EditorCommand) then
+  if (Command = ecCommentSelection) then
   begin
     CommentBlock();
 
@@ -193,11 +183,6 @@ begin
     BlockEnd := OldBlockEnd;
     SelectionMode := WasSelMode;
   end;
-end;
-
-class constructor TSimbaEditorPlugin_CommentBlock.Create;
-begin
-  EditorCommand := AllocatePluginKeyRange(1);
 end;
 
 end.

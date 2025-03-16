@@ -385,8 +385,7 @@ begin
   ForegoundColorBox.Height := Scale96ToScreen(ForegoundColorBox.Height);
   FrameColorBox.Height := Scale96ToScreen(FrameColorBox.Height);
 
-  FEditor := TSimbaEditor.Create(Self);
-
+  FEditor := TSimbaEditor.Create(Self, [seoColors, seoKeybindings]);
   with FEditor do
   begin
     Parent := Panel3;
@@ -413,14 +412,12 @@ begin
             'function TPoint.Test: Boolean; overload;                ' + LineEnding +
             'begin                                                   ' + LineEnding +
             'end;                                                    ';
-
-    UseSimbaColors := True;
   end;
 
   TreeView.BeginUpdate();
   TreeView.Items.Clear();
 
-  DefaultEditor := TSimbaEditor.Create(Self);
+  DefaultEditor := TSimbaEditor.Create(Self, [seoKeybindings]);
   for I := 0 to High(FEditor.Attributes.Attributes) do
     AddAttribute(FEditor.Attributes.Attributes[I], DefaultEditor.Attributes.Attributes[I]);
 

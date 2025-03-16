@@ -30,16 +30,13 @@ type
     procedure DoCommand(Sender: TObject; AfterProcessing: Boolean; var Handled: Boolean; var Command: TSynEditorCommand; var AChar: TUtf8Char; Data: Pointer; HandlerData: Pointer);
 
     procedure InsertDocumentation;
-  public
-    class var EditorCommand: TSynEditorCommand;
-    class constructor Create;
   end;
 
 implementation
 
 uses
   simba.ide_codetools_parser, simba.settings,
-  simba.dialog;
+  simba.dialog, simba.ide_editor_commands;
 
 procedure TSimbaEditorPlugin_DocGenerator.DoEditorAdded(Value: TCustomSynEdit);
 begin
@@ -49,7 +46,7 @@ begin
   begin
     Key := VK_D;
     Shift := [ssCtrl];
-    Command := EditorCommand;
+    Command := ecDocumentation;
   end;
 
   Value.RegisterCommandHandler(@DoCommand, Pointer(nil), [hcfPostExec]);
@@ -57,7 +54,7 @@ end;
 
 procedure TSimbaEditorPlugin_DocGenerator.DoCommand(Sender: TObject; AfterProcessing: Boolean; var Handled: Boolean; var Command: TSynEditorCommand; var AChar: TUtf8Char; Data: Pointer; HandlerData: Pointer);
 begin
-  if (Command = EditorCommand) then
+  if (Command = ecDocumentation) then
   begin
     InsertDocumentation();
 
@@ -105,11 +102,6 @@ begin
   end;
   if (Parser <> nil) then
     Parser.Free();
-end;
-
-class constructor TSimbaEditorPlugin_DocGenerator.Create;
-begin
-  EditorCommand := AllocatePluginKeyRange(1);
 end;
 
 end.

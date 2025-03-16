@@ -622,14 +622,13 @@ begin
   FScriptTitle := 'Untitled';
   FScriptFileName := '';
 
-  FEditor := TSimbaEditor.Create(Self);
+  FEditor := TSimbaEditor.Create(Self, [seoColors, seoKeybindings]);
   FEditor.Parent := Self;
   FEditor.Align := alClient;
   FEditor.RegisterStatusChangedHandler(@DoEditorStatusChanges, [scCaretX, scCaretY, scModified]);
   FEditor.OnClickLink := @DoEditorLinkClick;
   FEditor.OnModified := @DoEditorModified;
   FEditor.OnGetFileName := @DoEditorGetFileName;
-  FEditor.UseSimbaColors := True;
   FEditor.PopupMenu := TSimbaTabPopupMenu.Create(Self);
 
   FOutputBox := SimbaOutputForm.AddScriptOutput('Untitled');

@@ -58,8 +58,6 @@ type
     function IsShowing: Boolean;
     function GetParameterIndexAtCaret: Integer;
 
-    procedure DoSettingChanged_ParamHintKey(Setting: TSimbaSetting);
-
     procedure DoEditorTopLineChanged(Sender: TObject; Changes: TSynStatusChanges);
     procedure DoEditorCaretMove(Sender: TObject);
     procedure DoEditorCommand(Sender: TObject; AfterProcessing: Boolean; var Handled: Boolean; var Command: TSynEditorCommand; var AChar: TUTF8Char; Data: Pointer; HandlerData: Pointer);
@@ -72,9 +70,7 @@ type
 
     property Form: TSimbaParamHintForm read FHintForm;
   public
-    class var ParamHintCommand: TSynEditorCommand;
     class function IsParamHintCommand(Command: TSynEditorCommand; AChar: TUTF8Char): Boolean;
-    class constructor Create;
   end;
 
 implementation
@@ -83,6 +79,7 @@ uses
   simba.ide_codetools_setup,
   simba.ide_codetools_paslexer,
   simba.ide_editor,
+  simba.ide_editor_commands,
   simba.ide_theme,
   simba.misc;
 
@@ -386,18 +383,6 @@ begin
   end;
 end;
 
-procedure TSimbaParamHint.DoSettingChanged_ParamHintKey(Setting: TSimbaSetting);
-var
-  Index: Integer;
-begin
-  Index := Editor.Keystrokes.FindCommand(ParamHintCommand);
-  if (Index > -1) then
-  begin
-    Editor.Keystrokes[Index].Key := SimbaSettings.CodeTools.ParamHintKey.Value;
-    Editor.Keystrokes[Index].Shift := TShiftState(Integer(SimbaSettings.CodeTools.ParamHintKeyModifiers.Value));
-  end;
-end;
-
 procedure TSimbaParamHint.DoEditorTopLineChanged(Sender: TObject; Changes: TSynStatusChanges);
 begin
   if IsShowing then
@@ -536,33 +521,26 @@ procedure TSimbaParamHint.DoEditorAdded(Value: TCustomSynEdit);
 begin
   inherited DoEditorAdded(Value);
 
-  if (Value is TSimbaEditor) then
-    with TSimbaEditor(Value) do
-    begin
-      RegisterCaretMoveHandler(@DoEditorCaretMove);
-      RegisterBeforeKeyDownHandler(@DoEditorKeyDown);
-      RegisterCommandHandler(@DoEditorCommand, nil, [hcfPostExec]);
-      RegisterStatusChangedHandler(@DoEditorTopLineChanged, [scTopLine]);
-
-      with KeyStrokes.Add() do
-      begin
-        Key := SimbaSettings.CodeTools.ParamHintKey.Value;
-        Shift := TShiftState(Int32(SimbaSettings.CodeTools.ParamHintKeyModifiers.Value));
-        Command := ParamHintCommand;
-      end;
-    end;
+  Assert(Value is TSimbaEditor);
+  with TSimbaEditor(Value) do
+  begin
+    RegisterCaretMoveHandler(@DoEditorCaretMove);
+    RegisterBeforeKeyDownHandler(@DoEditorKeyDown);
+    RegisterCommandHandler(@DoEditorCommand, nil, [hcfPostExec]);
+    RegisterStatusChangedHandler(@DoEditorTopLineChanged, [scTopLine]);
+  end;
 end;
 
 procedure TSimbaParamHint.DoEditorRemoving(Value: TCustomSynEdit);
 begin
-  if (Value is TSimbaEditor) then
-    with TSimbaEditor(Value) do
-    begin
-      UnRegisterCaretMoveHandler(@DoEditorCaretMove);
-      UnRegisterBeforeKeyDownHandler(@DoEditorKeyDown);
-      UnRegisterCommandHandler(@DoEditorCommand);
-      UnRegisterStatusChangedHandler(@DoEditorTopLineChanged);
-    end;
+  Assert(Value is TSimbaEditor);
+  with TSimbaEditor(Value) do
+  begin
+    UnRegisterCaretMoveHandler(@DoEditorCaretMove);
+    UnRegisterBeforeKeyDownHandler(@DoEditorKeyDown);
+    UnRegisterCommandHandler(@DoEditorCommand);
+    UnRegisterStatusChangedHandler(@DoEditorTopLineChanged);
+  end;
 
   inherited DoEditorRemoving(Value);
 end;
@@ -577,12 +555,7 @@ end;
 
 class function TSimbaParamHint.IsParamHintCommand(Command: TSynEditorCommand; AChar: TUTF8Char): Boolean;
 begin
-  Result := (SimbaSettings.CodeTools.ParamHintOpenAutomatically.Value and (Command = ecChar) and ((AChar = '(') or (AChar = '['))) or (Command = ParamHintCommand);
-end;
-
-class constructor TSimbaParamHint.Create;
-begin
-  ParamHintCommand := AllocatePluginKeyRange(1);
+  Result := (SimbaSettings.CodeTools.ParamHintOpenAutomatically.Value and (Command = ecChar) and ((AChar = '(') or (AChar = '['))) or (Command = ecParamHint);
 end;
 
 constructor TSimbaParamHint.Create(AOwner: TComponent);
@@ -591,9 +564,6 @@ begin
 
   FCodeinsight := TCodeinsight.Create();
   FHintForm := TSimbaParamHintForm.Create(Self);
-
-  SimbaSettings.RegisterChangeHandler(Self, SimbaSettings.CodeTools.ParamHintKey, @DoSettingChanged_ParamHintKey);
-  SimbaSettings.RegisterChangeHandler(Self, SimbaSettings.CodeTools.ParamHintKeyModifiers, @DoSettingChanged_ParamHintKey);
 end;
 
 end.

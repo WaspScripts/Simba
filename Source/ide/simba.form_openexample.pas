@@ -172,7 +172,7 @@ begin
   TreeView.OnSelectionChange := @DoTreeViewSelectionChanged;
   TreeView.OnDoubleClick := @DoButtonOkClick;
 
-  Editor := TSimbaEditor.Create(Self);
+  Editor := TSimbaEditor.Create(Self, []);
   Editor.Parent := RightPanel;
   Editor.Align := alClient;
   Editor.Visible := False;

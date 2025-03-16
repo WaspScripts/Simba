@@ -15,6 +15,7 @@ uses
   simba.frame_settings_editorcolors,
   simba.frame_settings_editordefault,
   simba.frame_settings_editorfont,
+  simba.frame_settings_editorkeystrokes,
   simba.frame_settings_general,
   simba.frame_settings_output,
   simba.frame_settings_backup,
@@ -41,6 +42,7 @@ type
     EditorFontFrame: TEditorFontFrame;
     EditorColorsFrame: TEditorColorsFrame;
     EditorDefaultFrame: TEditorDefaultFrame;
+    EditorKeybindingFrame: TSimbaEditorHotkeyFrame;
 
     procedure ShowPage(Title: String);
     procedure Open(Page: String);
@@ -113,6 +115,7 @@ begin
   EditorGeneralFrame.Load();
   EditorColorsFrame.Load();
   EditorDefaultFrame.Load();
+  EditorKeybindingFrame.Load();
   SimbaOutputBoxFrame.Load();
   SimbaBackupFrame.Load();
 
@@ -138,6 +141,7 @@ begin
   EditorGeneralFrame.Save();
   EditorColorsFrame.Save();
   EditorDefaultFrame.Save();
+  EditorKeybindingFrame.Save();
   SimbaOutputBoxFrame.Save();
   SimbaBackupFrame.Save();
 end;
@@ -212,6 +216,11 @@ begin
   EditorDefaultFrame.Parent := AddPage('Default Script', Node);
   EditorDefaultFrame.Align := alClient;
   EditorDefaultFrame.ParentFont := True;
+
+  EditorKeybindingFrame := TSimbaEditorHotkeyFrame.Create(Self);
+  EditorKeybindingFrame.Parent := AddPage('Keybindings', Node);
+  EditorKeybindingFrame.Align := alClient;
+  EditorKeybindingFrame.ParentFont := True;
 end;
 
 end.

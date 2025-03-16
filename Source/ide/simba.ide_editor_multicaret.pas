@@ -2,6 +2,8 @@
   Author: Raymond van Venetië and Merlijn Wajer
   Project: Simba (https://github.com/MerlijnWajer/Simba)
   License: GNU General Public License (https://www.gnu.org/licenses/gpl-3.0)
+  --------------------------------------------------------------------------
+  Tweaks TSynPluginMultiCaret a little
 }
 unit simba.ide_editor_multicaret;
 
@@ -11,73 +13,67 @@ interface
 
 uses
   Classes, SysUtils,
-  SynEdit, SynEditMouseCmds, SynPluginMultiCaret;
+  SynEdit, SynEditKeyCmds, SynEditMouseCmds, SynPluginMultiCaret, LCLType;
 
 type
   TSimbaEditorPlugin_MultiCaret = class(TSynPluginMultiCaret)
   protected
     function DoSimbaHandleMouseAction(AnAction: TSynEditMouseAction; var AnInfo: TSynEditMouseActionInfo): Boolean;
-    procedure DoEditorAdded(AValue: TCustomSynEdit); override;
-    procedure DoEditorRemoving(AValue: TCustomSynEdit); override;
-  public
-    constructor Create(AOwner: TComponent); override;
+    procedure DoEditorAdded(Value: TCustomSynEdit); override;
+    procedure DoEditorRemoving(Value: TCustomSynEdit); override;
+    procedure DoCommand(Sender: TObject; AfterProcessing: boolean; var Handled: boolean; var Command: TSynEditorCommand; var AChar: TUtf8Char; Data: pointer; HandlerData: pointer);
   end;
 
 implementation
 
-uses
-  LCLType;
-
 function TSimbaEditorPlugin_MultiCaret.DoSimbaHandleMouseAction(AnAction: TSynEditMouseAction; var AnInfo: TSynEditMouseActionInfo): Boolean;
 begin
-  // default to adding in selection if available
+  // always default to adding in selection if available
   if (AnAction.Command = emcPluginMultiCaretToggleCaret) and Editor.SelAvail then
     AnAction.Command := emcPluginMultiCaretSelectionToCarets;
 
   Result := DoHandleMouseAction(AnAction, AnInfo);
 end;
 
-procedure TSimbaEditorPlugin_MultiCaret.DoEditorAdded(AValue: TCustomSynEdit);
+procedure TSimbaEditorPlugin_MultiCaret.DoEditorAdded(Value: TCustomSynEdit);
 var
   I: Integer;
 begin
-  inherited DoEditorAdded(AValue);
+  inherited DoEditorAdded(Value);
 
-  if (AValue <> nil) then
+  if (Value <> nil) then
   begin
-    AValue.UnRegisterMouseActionExecHandler(@DoHandleMouseAction);
-    AValue.RegisterMouseActionExecHandler(@DoSimbaHandleMouseAction);
+    Value.UnRegisterMouseActionExecHandler(@DoHandleMouseAction);
+    Value.RegisterMouseActionExecHandler(@DoSimbaHandleMouseAction);
+    Value.RegisterCommandHandler(@DoCommand, nil);
 
     // middle mouse click and selection does multi caret in column mode
-    for I := 0 to AValue.MouseTextActions.Count - 1 do
-      if (AValue.MouseTextActions[I].Command = emcPasteSelection) then
+    for I := 0 to Value.MouseTextActions.Count - 1 do
+      if (Value.MouseTextActions[I].Command = emcPasteSelection) then
       begin
-        AValue.MouseTextActions.Delete(I);
+        Value.MouseTextActions.Delete(I);
         Break;
       end;
-    AValue.MouseTextActions.AddCommand(emcStartColumnSelections, True, mbXMiddle, ccSingle, cdDown, [], []);
+    Value.MouseTextActions.AddCommand(emcStartColumnSelections, True, mbXMiddle, ccSingle, cdDown, [], []);
   end;
 end;
 
-procedure TSimbaEditorPlugin_MultiCaret.DoEditorRemoving(AValue: TCustomSynEdit);
+procedure TSimbaEditorPlugin_MultiCaret.DoEditorRemoving(Value: TCustomSynEdit);
 begin
-  if (AValue <> nil) then
-    AValue.UnRegisterMouseActionExecHandler(@DoSimbaHandleMouseAction);
-
-  inherited DoEditorRemoving(AValue);
-end;
-
-constructor TSimbaEditorPlugin_MultiCaret.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-
-  KeyStrokes.Clear();
-  with KeyStrokes.Add() do
+  if (Value <> nil) then
   begin
-    Key := VK_ESCAPE;
-    Shift := [];
-    Command := ecPluginMultiCaretClearAll;
+    Value.UnRegisterMouseActionExecHandler(@DoSimbaHandleMouseAction);
+    Value.UnRegisterCommandHandler(@DoCommand);
   end;
+
+  inherited DoEditorRemoving(Value);
+end;
+
+procedure TSimbaEditorPlugin_MultiCaret.DoCommand(Sender: TObject; AfterProcessing: boolean; var Handled: boolean; var Command: TSynEditorCommand; var AChar: TUtf8Char; Data: pointer; HandlerData: pointer);
+begin
+  Handled := (Command = ecChar) and (AChar = Char(VK_ESCAPE)) and (CaretsCount > 0);
+  if Handled then
+    Editor.CommandProcessor(ecPluginMultiCaretClearAll, #0, nil);
 end;
 
 end.

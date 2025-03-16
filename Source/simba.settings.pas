@@ -115,6 +115,7 @@ type
       DefaultScript: TSimbaSetting;
       DefaultScriptFile: TSimbaSetting;
       CustomColors: TSimbaSetting;
+      Keystrokes: TSimbaSetting;
       FontSize: TSimbaSetting;
       FontName: TSimbaSetting;
       RightMargin: TSimbaSetting;
@@ -139,12 +140,7 @@ type
 
       CompletionAddKeywords: TSimbaSetting;
       CompletionOpenAutomatically: TSimbaSetting;
-      CompletionKey: TSimbaSetting;
-      CompletionKeyModifiers: TSimbaSetting;
-
       ParamHintOpenAutomatically: TSimbaSetting;
-      ParamHintKey: TSimbaSetting;
-      ParamHintKeyModifiers: TSimbaSetting;
     end;
 
     OutputBox: record
@@ -178,6 +174,9 @@ type
     procedure Load;
     procedure Save;
 
+    (* Add or remove a callback when the setting is changed. When the component is destroyed the callback will be removed.
+     * CallEventInitially will invoke the callback instantly regardless of setting value.
+     *)
     procedure RegisterChangeHandler(Owner: TComponent; Setting: TSimbaSetting; Event: TSimbaSettingChangedEvent; CallEventInitially: Boolean = False); overload;
     procedure UnRegisterChangeHandler(Owner: TComponent; Setting: TSimbaSetting; Event: TSimbaSettingChangedEvent); overload;
 
@@ -493,6 +492,7 @@ begin
   Editor.DefaultScript                   := TSimbaSetting_BinaryString.Create(Self, 'Editor', 'DefaultScript', 'program new;' + LineEnding + 'begin' + LineEnding + 'end.');
   Editor.DefaultScriptFile               := TSimbaSetting_String.Create(Self, 'Editor', 'DefaultScriptFile', '');
   Editor.CustomColors                    := TSimbaSetting_String.Create(Self, 'Editor', 'CustomColors', '');
+  Editor.Keystrokes                      := TSimbaSetting_String.Create(Self, 'Editor', 'Keystrokes', '');
   Editor.FontSize                        := TSimbaSetting_Integer.Create(Self, 'Editor', 'FontSize', SynDefaultFontSize);
   Editor.FontName                        := TSimbaSetting_String.Create(Self, 'Editor', 'FontName', SynDefaultFontName);
   Editor.AntiAliased                     := TSimbaSetting_Boolean.Create(Self, 'Editor', 'AntiAliased', True);
@@ -515,12 +515,7 @@ begin
 
   CodeTools.CompletionAddKeywords       := TSimbaSetting_Boolean.Create(Self, 'CodeTools', 'CompletionAddKeywords', True);
   CodeTools.CompletionOpenAutomatically := TSimbaSetting_Boolean.Create(Self, 'CodeTools', 'CompletionOpenAutomatically', True);
-  CodeTools.CompletionKey               := TSimbaSetting_Integer.Create(Self, 'CodeTools', 'CompletionKey', VK_SPACE);
-  CodeTools.CompletionKeyModifiers      := TSimbaSetting_Integer.Create(Self, 'CodeTools', 'CompletionKeyModifiers', Integer(TShiftState([ssCtrl])));
-
   CodeTools.ParamHintOpenAutomatically  := TSimbaSetting_Boolean.Create(Self, 'CodeTools', 'ParamHintOpenAutomatically', True);
-  CodeTools.ParamHintKey                := TSimbaSetting_Integer.Create(Self, 'CodeTools', 'ParamHintKey', VK_SPACE);
-  CodeTools.ParamHintKeyModifiers       := TSimbaSetting_Integer.Create(Self, 'CodeTools', 'ParamHintKeyModifiers', Integer(TShiftState([ssCtrl, ssShift])));
 
   // Output
   OutputBox.FontSize        := TSimbaSetting_Integer.Create(Self, 'OutputBox', 'FontSize', Editor.FontSize.DefaultValue);

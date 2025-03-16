@@ -19,12 +19,16 @@ uses
 type
   TSimbaEditorFileNameEvent = function(Sender: TObject): String of object;
 
+  ESimbaEditorOptions = set of (
+    seoColors,      // load colors from settings
+    seoKeybindings  // load keybindings from settings
+  );
+
   TSimbaEditor = class(TSimbaSynEdit)
   protected
     FMarkupHighlightAllCaret: TSynEditMarkupHighlightAllCaret;
     FMarkupCtrlMouse: TSynEditMarkupCtrlMouseLink;
 
-    FUseSimbaColors: Boolean;
     FCompletionBox: TSimbaCompletionBox;
     FParamHint: TSimbaParamHint;
 
@@ -45,6 +49,8 @@ type
     FModifiedEvent: TNotifyEvent;
     FGetFileNameEvent: TSimbaEditorFileNameEvent;
 
+    FSimbaOptions: ESimbaEditorOptions;
+
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
 
     procedure FontChanged(Sender: TObject); override;
@@ -52,6 +58,7 @@ type
     procedure MaybeReplaceModifiers;
 
     procedure DoSettingChanged_Colors(Setting: TSimbaSetting);
+    procedure DoSettingChanged_Keystrokes(Setting: TSimbaSetting);
     procedure DoSettingChanged_AllowCaretPastEOL(Setting: TSimbaSetting);
     procedure DoSettingChanged_RightMargin(Setting: TSimbaSetting);
     procedure DoSettingChanged_RightMarginVisible(Setting: TSimbaSetting);
@@ -69,7 +76,6 @@ type
 
     procedure SetColorModified(Value: TColor);
     procedure SetColorSaved(Value: TColor);
-    procedure SetUseSimbaColors(Value: Boolean);
   public
     property TextView;
     property CompletionBox: TSimbaCompletionBox read FCompletionBox;
@@ -82,7 +88,6 @@ type
 
     property ColorSaved: TColor read FColorSaved write SetColorSaved;
     property ColorModified: TColor read FColorModified write SetColorModified;
-    property UseSimbaColors: Boolean read FUseSimbaColors write SetUseSimbaColors;
 
     property FileName: String read GetFileName;
 
@@ -112,18 +117,19 @@ type
     procedure ClearFocusedLines;
     procedure FocusLine(Line, Column: Integer; AColor: TColor);
 
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent; SimbaOptions: ESimbaEditorOptions); reintroduce;
     destructor Destroy; override;
   end;
 
 implementation
 
 uses
-  SynEditPointClasses, SynGutter, SynHighlighterPas_Simba, LazSynEditMouseCmdsTypes, Forms,
+  SynEditPointClasses, SynGutter, SynHighlighterPas_Simba, LazSynEditMouseCmdsTypes, Forms, IniFiles,
   simba.misc, simba.ide_editor_blockcompletion,
   simba.ide_editor_docgenerator, simba.ide_editor_commentblock,
   simba.ide_editor_mousewheelzoom, simba.ide_editor_multicaret,
-  simba.ide_theme, simba.vartype_string, simba.ide_editor_codecomplete;
+  simba.ide_theme, simba.vartype_string, simba.ide_editor_codecomplete,
+  simba.ide_editor_commands;
 
 function TSimbaEditor.IsHighlighterAttribute(Values: TStringArray): Boolean;
 var
@@ -276,16 +282,6 @@ begin
   ModifiedLinesGutter.ColorSaved := FColorSaved;
 end;
 
-procedure TSimbaEditor.SetUseSimbaColors(Value: Boolean);
-begin
-  if (FUseSimbaColors = Value) then
-    Exit;
-  FUseSimbaColors := Value;
-
-  if FUseSimbaColors then
-    FAttributes.LoadFromFile(SimbaSettings.Editor.CustomColors.Value);
-end;
-
 procedure TSimbaEditor.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   // Mouse link fix
@@ -315,8 +311,13 @@ end;
 
 procedure TSimbaEditor.DoSettingChanged_Colors(Setting: TSimbaSetting);
 begin
-  if FUseSimbaColors then
+  if (seoColors in FSimbaOptions) then
     FAttributes.LoadFromFile(Setting.Value);
+end;
+
+procedure TSimbaEditor.DoSettingChanged_Keystrokes(Setting: TSimbaSetting);
+begin
+  SimbaLoadKeystrokes(Keystrokes, seoKeybindings in FSimbaOptions);
 end;
 
 procedure TSimbaEditor.DoSettingChanged_AllowCaretPastEOL(Setting: TSimbaSetting);
@@ -458,9 +459,11 @@ begin
   Result := GetExpression(EndX - 1, Y);
 end;
 
-constructor TSimbaEditor.Create(AOwner: TComponent);
+constructor TSimbaEditor.Create(AOwner: TComponent; SimbaOptions: ESimbaEditorOptions);
 begin
   inherited Create(AOwner);
+
+  FSimbaOptions := SimbaOptions;
 
   FMarkupHighlightAllCaret := MarkupByClass[TSynEditMarkupHighlightAllCaret] as TSynEditMarkupHighlightAllCaret;
   FMarkupCtrlMouse := MarkupByClass[TSynEditMarkupCtrlMouseLink] as TSynEditMarkupCtrlMouseLink;
@@ -519,13 +522,6 @@ begin
   TSimbaEditorPlugin_MouseWheelZoom.Create(Self);
   TSimbaCodeComplete.Create(Self);
 
-  Keystrokes.Delete(KeyStrokes.FindCommand(ecInsertLine));
-  Keystrokes.Delete(KeyStrokes.FindCommand(ecNormalSelect));
-  Keystrokes.Delete(KeyStrokes.FindCommand(ecColumnSelect));
-
-  AddKey(ecFoldCurrent, VK_OEM_MINUS, [ssAlt,ssShift], 0, []);
-  AddKey(ecUnFoldCurrent, VK_OEM_PLUS, [ssAlt,ssShift], 0, []);
-
   FAttributes := TSimbaEditor_Attributes.Create(Self);
 
   Gutter.LeftOffset := Scale96ToScreen(12);
@@ -547,13 +543,14 @@ begin
 
   with SimbaSettings do
   begin
-    RegisterChangeHandler(Self, Editor.CustomColors, @DoSettingChanged_Colors);
-    RegisterChangeHandler(Self, Editor.AllowCaretPastEOL, @DoSettingChanged_AllowCaretPastEOL, True);
-    RegisterChangeHandler(Self, Editor.RightMargin, @DoSettingChanged_RightMargin, True);
+    RegisterChangeHandler(Self, Editor.CustomColors,       @DoSettingChanged_Colors,             True);
+    RegisterChangeHandler(Self, Editor.Keystrokes,         @DoSettingChanged_Keystrokes,         True);
+    RegisterChangeHandler(Self, Editor.AllowCaretPastEOL,  @DoSettingChanged_AllowCaretPastEOL,  True);
+    RegisterChangeHandler(Self, Editor.RightMargin,        @DoSettingChanged_RightMargin,        True);
     RegisterChangeHandler(Self, Editor.RightMarginVisible, @DoSettingChanged_RightMarginVisible, True);
-    RegisterChangeHandler(Self, Editor.AntiAliased, @DoSettingChanged_AntiAliased, True);
-    RegisterChangeHandler(Self, Editor.FontSize, @DoSettingChanged_FontSize, True);
-    RegisterChangeHandler(Self, Editor.FontName, @DoSettingChanged_FontName, True);
+    RegisterChangeHandler(Self, Editor.AntiAliased,        @DoSettingChanged_AntiAliased,        True);
+    RegisterChangeHandler(Self, Editor.FontSize,           @DoSettingChanged_FontSize,           True);
+    RegisterChangeHandler(Self, Editor.FontName,           @DoSettingChanged_FontName,           True);
   end;
 end;
 
