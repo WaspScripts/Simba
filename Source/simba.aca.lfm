@@ -1,7 +1,7 @@
 object SimbaACAForm: TSimbaACAForm
-  Left = -2197
+  Left = 524
   Height = 710
-  Top = 114
+  Top = 396
   Width = 861
   Caption = 'Auto Color Aid'
   ClientHeight = 710
@@ -503,15 +503,23 @@ object SimbaACAForm: TSimbaACAForm
     object MenuColors: TMenuItem
       Caption = 'Colors'
       object MenuItemLoadColors: TMenuItem
-        Caption = 'Load Colors'
+        Caption = 'Load Colors From File'
         OnClick = ButtonLoadColorsClick
       end
       object MenuItemSaveColors: TMenuItem
-        Caption = 'Save Colors'
+        Caption = 'Save Colors To File'
         OnClick = ButtonSaveColorsClick
       end
+      object MenuItemPasteColors: TMenuItem
+        Caption = 'Add Colors From Clipboard'
+        ShortCut = 16470
+        OnClick = MenuItemPasteColorsClick
+      end
+      object Separator2: TMenuItem
+        Caption = '-'
+      end
       object MenuItemCopyBestColor: TMenuItem
-        Caption = 'Copy Best Color to Clipboard'
+        Caption = 'Copy Best To Clipboard'
         ShortCut = 16451
         OnClick = MenuItemCopyBestColorClick
       end

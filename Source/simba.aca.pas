@@ -39,6 +39,7 @@ type
     MainMenu: TMainMenu;
     MenuImage: TMenuItem;
     MenuColors: TMenuItem;
+    MenuItemPasteColors: TMenuItem;
     MenuItemLoadHSLCircleEx: TMenuItem;
     MenuItemLoadHSLCircle: TMenuItem;
     MenuItemUpdateImage: TMenuItem;
@@ -67,6 +68,7 @@ type
     ButtonLCH: TRadioButton;
     ButtonDeltaE: TRadioButton;
     Separator1: TMenuItem;
+    Separator2: TMenuItem;
 
     procedure ButtonRemoveAllColorsClick(Sender: TObject);
     procedure ButtonRemoveColorClick(Sender: TObject);
@@ -88,6 +90,7 @@ type
     procedure MenuItemCopyBestColorClick(Sender: TObject);
     procedure MenuItemLoadHSLCircleClick(Sender: TObject);
     procedure MenuItemLoadHSLCircleExClick(Sender: TObject);
+    procedure MenuItemPasteColorsClick(Sender: TObject);
   protected
     FFreeOnClose: Boolean;
     FWindow: TWindowHandle;
@@ -155,6 +158,27 @@ var
 begin
   if InputQuery('ACA', 'HSL Circle Radius (Max 2000)', Value) and Value.IsNumeric then
     LoadHSLCircle(Min(Value.ToInt, 2000));
+end;
+
+procedure TSimbaACAForm.MenuItemPasteColorsClick(Sender: TObject);
+var
+  Str: String;
+  Numbers: TStringArray;
+begin
+  try
+    Str := Clipboard.AsText;
+    Numbers := Str.ExtractNumbers();
+
+    ColorListBox.Items.BeginUpdate();
+    try
+      for Str in Numbers do
+        if Str.IsInteger and (Str.ToInt >= 0) and (Str.ToInt <= $FFFFFFFF) then
+          ColorListBox.Items.AddObject(ColorToStr(Str.ToInt), TObject(PtrUInt(Str.ToInt)));
+    finally
+      ColorListBox.Items.EndUpdate();
+    end;
+  except
+  end;
 end;
 
 function TSimbaACAForm.IsShortcut(var Message: TLMKey): Boolean;

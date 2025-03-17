@@ -758,6 +758,30 @@ begin
   i := 1;
   while i <= L do
   begin
+    // hex
+    if ((i < L) and (Self[i] = '$') and (Self[i+1] in ['0'..'9', 'A'..'F', 'a'..'f'])) or
+       ((i+1 < L) and (Self[i] = '-') and (Self[i+1] = '$') and (Self[i+2] in ['0'..'9', 'A'..'F', 'a'..'f'])) then
+    begin
+      SetLength(Result, c + 1);
+      Result[c] := ''; // Initialize the new number string
+
+      if Self[i] = '-' then
+      begin
+        Result[c] += Self[i];
+        Inc(i);
+      end;
+      Result[c] += Self[i]; // should always be $
+      inc(i);
+      while (i <= L) and (Self[i] in ['0'..'9', 'A'..'F', 'a'..'f']) do
+      begin
+        Result[c] += Self[i];
+        Inc(i);
+      end;
+      Inc(c);
+      continue;
+    end;
+
+    // decimal
     // Check for a negative sign or a digit
     if (Self[i] in ['0'..'9']) or ((i < L) and (Self[i] = '-') and (Self[i+1] in ['0'..'9'])) then
     begin

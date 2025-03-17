@@ -204,9 +204,9 @@ begin
   ColorRect.Top += 5;
   ColorRect.Bottom -= 5;
   ColorRect.Left += 5;
-  ColorRect.Right := BaseRect.Left + ColorRect.Height;
+  ColorRect.Right := BaseRect.Left + Round(ColorRect.Height * 1.5);
 
-  ACanvas.FillRect(baseRect);
+  ACanvas.FillRect(BaseRect);
 
   BaseRect.Left := ColorRect.Right + 5;
   BaseRect.Right += ColorRect.Width + 5;

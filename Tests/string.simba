@@ -63,7 +63,10 @@ begin
   Assert(ToString(Str.ExtractFloat) = '123.456');
   Str := '-hello123world.456';
   Assert(ToString(Str.ExtractFloat) = '-123.456');
-  Assert(Str.ExtractNumbers.Equals(['123','456']));
+  Str := '-hello123world.456$F0-$0abF';
+  Assert(Str.ExtractNumbers.Equals(['123','456', '$F0', '-$0abF']));
+  Str := '- 123 456 -1 0 $-99 $0 $000000 -$FFFFFF $FFFFFF $fd0E242 -$b7c4 $abc $ABC';
+  Assert(Str.ExtractNumbers.Equals(['123', '456', '-1', '0', '-99', '$0', '$000000', '-$FFFFFF', '$FFFFFF', '$fd0E242', '-$b7c4', '$abc', '$ABC']));
 end;
 
 procedure TestStringToXXX;
