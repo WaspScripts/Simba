@@ -277,6 +277,7 @@ end;
 procedure TSimbaPackageForm.DoAdvancedClick(Sender: TObject);
 var
   Package: TSimbaPackage;
+  RemoveFiles, RemoveFromList: Boolean;
 begin
   Package := FListBox.Selected;
   if (Package = nil) then
@@ -284,9 +285,14 @@ begin
 
   case Package.IsInstalled() of
     True:
-      case SimbaQuestionDlg('Uninstall Package', ['Uninstall "%s" ?', 'Do you also want to delete the files?',  '*All* files in "%s" will be deleted.'], [Package.DisplayName, Package.InstalledPath]) of
-        ESimbaDialogResult.YES: Package.UnInstall(True);
-        ESimbaDialogResult.NO:  Package.UnInstall(False);
+      if SimbaQuestionDlg('Uninstall Package', ['Do you want to uninstall "%s"'], [Package.DisplayName, Package.InstalledPath]) = ESimbaDialogResult.YES then
+      begin
+        RemoveFiles := SimbaQuestionDlg('Uninstall Package', ['Permanently delete all files in "%s"?'], [Package.InstalledPath]) = ESimbaDialogResult.YES;
+        RemoveFromList := SimbaQuestionDlg('Uninstall Package', 'Also remove the package from the list?', []) = ESimbaDialogResult.YES;
+
+        Package.UnInstall(RemoveFiles, RemoveFromList);
+        if RemoveFromList then
+          FListBox.Remove(Package);
       end;
 
     False:

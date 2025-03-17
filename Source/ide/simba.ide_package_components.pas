@@ -49,6 +49,7 @@ type
     procedure Click; override;
 
     function Add(Package: TSimbaPackage): Integer;
+    procedure Remove(Package: TSimbaPackage);
 
     property Selected: TSimbaPackage read GetSelected;
     property OnInstallClick: TNotifyEvent read FOnInstallClick write FOnInstallClick;
@@ -394,6 +395,20 @@ end;
 function TPackageListBox.Add(Package: TSimbaPackage): Integer;
 begin
   Result := Items.AddObject('', Package);
+end;
+
+procedure TPackageListBox.Remove(Package: TSimbaPackage);
+var
+  I: Integer;
+begin
+  for I := 0 to Items.Count - 1 do
+    if (Items.Objects[I] = Package) then
+    begin
+      Items.Objects[I].Free();
+      Items.Delete(I);
+      ItemIndex := -1;
+      Break;
+    end;
 end;
 
 procedure TPackageInfoGrid.WMMouseWheel(var Message: TLMMouseEvent);

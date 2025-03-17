@@ -54,7 +54,7 @@ type
     FExampleFiles: TStringArray;
     FScriptFiles: TSTringArray;
 
-    procedure ClearConfig;
+    procedure ClearConfig(RemoveURL: Boolean);
     procedure WriteConfig(Key: String; Value: String);
     function ReadConfig(Key: String): String;
 
@@ -80,7 +80,7 @@ type
     procedure Load;
 
     function IsInstalled: Boolean;
-    function UnInstall(RemoveFiles: Boolean): Boolean;
+    function UnInstall(RemoveFiles: Boolean; RemoveURL: Boolean): Boolean;
 
     function HasUpdate: Boolean;
     function HasVersions: Boolean;
@@ -249,7 +249,7 @@ begin
   end;
 end;
 
-procedure TSimbaPackage.ClearConfig;
+procedure TSimbaPackage.ClearConfig(RemoveURL: Boolean);
 var
   Keys: TStringList;
   Key: String;
@@ -259,9 +259,14 @@ begin
   try
     with TIniFile.Create(SimbaEnv.PackagesPath + 'packages.ini') do
     try
-      ReadSection(FURL, Keys);
-      for Key in Keys do
-        DeleteKey(FURL, Key);
+      if RemoveURL then
+        EraseSection(FURL)
+      else
+      begin
+        ReadSection(FURL, Keys);
+        for Key in Keys do
+          DeleteKey(FURL, Key);
+      end;
     finally
       Free();
     end;
@@ -399,7 +404,7 @@ begin
   Result := (InstalledVersion <> '') and DirectoryExists(InstalledPath);
 end;
 
-function TSimbaPackage.UnInstall(RemoveFiles: Boolean): Boolean;
+function TSimbaPackage.UnInstall(RemoveFiles: Boolean; RemoveURL: Boolean): Boolean;
 begin
   Result := IsInstalled();
 
@@ -408,7 +413,7 @@ begin
     if RemoveFiles and TSimbaPath.PathIsInDir(InstalledPath, SimbaEnv.SimbaPath) then
       TSimbaDir.DirDelete(InstalledPath, False);
 
-    ClearConfig();
+    ClearConfig(RemoveURL);
   end;
 end;
 
