@@ -402,7 +402,7 @@ end;
 *)
 procedure _LapeJSONParser_CreateFromFile(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONParser(Result)^ := TSimbaJSONParser.Create(PString(Params^[0])^);
+  PSimbaJSONParser(Result)^ := TSimbaJSONParser.CreateFromFile(PString(Params^[0])^);
 end;
 
 (*
