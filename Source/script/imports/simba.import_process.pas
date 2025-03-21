@@ -208,6 +208,9 @@ end;
 (*
 TRunningProcess.Free
 --------------------
+```
+procedure TRunningProcess.Free;
+```
 *)
 procedure _LapeRunningProcess_Free(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -218,8 +221,8 @@ end;
 TRunningProcess.WaitOnExit
 --------------------------
 ```
-function WaitOnExit: Boolean; overload;
-function WaitOnExit(Timeout: Integer): Boolean; overload;
+function TRunningProcess.WaitOnExit: Boolean; overload;
+function TRunningProcess.WaitOnExit(Timeout: Integer): Boolean; overload;
 ```
 *)
 procedure _LapeRunningProcess_WaitOnExit1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -375,8 +378,6 @@ StartProcessPiped
 -----------------
 ```
 function StartProcessPiped(Executable: String; Params: TStringArray): TRunningProcessPiped;
-```
-```
 function StartProcessPiped(Executable: String; Params: TStringArray; Cwd: String; Env: TStringArray = []): TRunningProcessPiped;
 ```
 *)

@@ -40,15 +40,14 @@ type
     class function Create(AYear, AMonth, ADay: Integer): TDateTime; static; overload;
     class function Create(AHour, AMin, ASecond, AMillisecond: Integer): TDateTime; static; overload;
     class function CreateFromUnix(UnixTime: Int64): TDateTime; static;
-    class function CreateFromString(Value: String): TDateTime; static; overload;
-    class function CreateFromString(Fmt, Value: String): TDateTime; static; overload;
+    class function CreateFromISO(Value: String): TDateTime; static; overload;
 
     class function Now: TDateTime; static;
     class function NowUTC: TDateTime; static;
 
     function ToUnix(IsUTC: Boolean = True): Int64;
+    function ToISO(IsUTC: Boolean = True): String;
     function ToString(Fmt: String): String;
-    function ToString: String;
 
     function AddYears(Amount: Integer = 1): TDateTime;
     function AddMonths(Amount: Integer = 1): TDateTime;
@@ -203,24 +202,9 @@ begin
   Result := UnixToDateTime(UnixTime);
 end;
 
-class function TDateTimeHelper.CreateFromString(Value: String): TDateTime;
+class function TDateTimeHelper.CreateFromISO(Value: String): TDateTime;
 begin
-  Result := StrToDateTime(Value);
-end;
-
-class function TDateTimeHelper.CreateFromString(Fmt, Value: String): TDateTime;
-begin
-  case Fmt of
-    'iso':
-      if not TryISOStrToDateTime(Value, Result) then
-        raise EConvertError.CreateFmt('Invalid ISO value ""', [Value]);
-    'iso8601':
-      Result := ISO8601ToDate(Value);
-    'unix':
-      Result := UnixToDateTime(StrToInt64(Value));
-    else
-      Result := ScanDateTime(Fmt, Value);
-  end;
+  Result := ISO8601ToDate(Value);
 end;
 
 class function TDateTimeHelper.Now: TDateTime;
@@ -243,9 +227,9 @@ begin
   Result := FormatDateTime(Fmt, Self);
 end;
 
-function TDateTimeHelper.ToString: String;
+function TDateTimeHelper.ToISO(IsUTC: Boolean): String;
 begin
-  Result := DateToStr(Self);
+  Result := DateToISO8601(Self, IsUTC);
 end;
 
 function TDateTimeHelper.AddYears(Amount: Integer): TDateTime;

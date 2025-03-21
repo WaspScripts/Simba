@@ -20,6 +20,7 @@ uses
 (*
 Date & Time
 ===========
+TDateTime type and timing methods.
 *)
 
 (*
@@ -75,27 +76,21 @@ begin
 end;
 
 (*
-TDateTime.CreateFromString
---------------------------
+TDateTime.CreateFromISO
+-----------------------
 ```
-function TDateTime.CreateFromString(Value: String): TDateTime; static;
+function TDateTime.CreateFromISO(Value: String): TDateTime; static;
 ```
-*)
-procedure _LapeDateTime_CreateFromString1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PDateTime(Result)^ := TDateTime.CreateFromString(PString(Params^[0])^);
-end;
+Create from ISO 8601 string `YYYYMMDDThhmmss` and `YYYY-MM-DD hh:mm:ss` format
 
-(*
-TDateTime.CreateFromString
---------------------------
-```
-function TDateTime.CreateFromString(Fmt, Value: String): TDateTime; static;
-```
+Examples:
+ - `2022-08-30T13:45:38+0000`
+ - `2022-08-30T13:45:38`
+ - `20220830 134538`
 *)
-procedure _LapeDateTime_CreateFromString2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeDateTime_CreateFromISO(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PDateTime(Result)^ := TDateTime.CreateFromString(PString(Params^[0])^, PString(Params^[1])^);
+  PDateTime(Result)^ := TDateTime.CreateFromISO(PString(Params^[0])^);
 end;
 
 (*
@@ -104,6 +99,8 @@ TDateTime.ToUnix
 ```
 function TDateTime.ToUnix(IsUTC: Boolean = True): Int64;
 ```
+
+Convert to unix time. `IsUTC` determines if `Self` is already UTC otherwise it will need to be converted.
 *)
 procedure _LapeDateTime_ToUnix(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -111,27 +108,59 @@ begin
 end;
 
 (*
-TDateTime.ToString
-------------------
+TDateTime.ToISO
+---------------
 ```
-function TDateTime.ToString(Fmt: String): String;
+function TDateTime.ToISO(IsUTC: Boolean = True): String;
 ```
+
+Convert to ISO 8601 string. `IsUTC` determines if `Self` is already UTC otherwise it will need to be converted.
 *)
-procedure _LapeDateTime_ToString1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeDateTime_ToISO(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PDateTime(Params^[0])^.ToString(PString(Params^[1])^);
+  PString(Result)^ := PDateTime(Params^[0])^.ToISO(PBoolean(Params^[1])^);
 end;
 
 (*
 TDateTime.ToString
 ------------------
 ```
-function TDateTime.ToString: String;
+function TDateTime.ToString(Fmt: String = 'c'): String;
+```
+Convert to a human like string.
+If fmt is unspecified `c` is used which will produce `YYYY-MM-DD hh:mm:ss`
+
+```
+  y 	   = Year last 2 digits
+  yy 	   = Year last 2 digits
+  yyyy 	 = Year as 4 digits
+  m 	   = Month number no-leading 0
+  mm 	   = Month number as 2 digits
+  mmm 	 = Month using ShortDayNames (Jan)
+  mmmm 	 = Month using LongDayNames (January)
+  d 	   = Day number no-leading 0
+  dd 	   = Day number as 2 digits
+  ddd    = Day using ShortDayNames (Sun)
+  dddd 	 = Day using LongDayNames  (Sunday)
+  ddddd  = Day in ShortDateFormat
+  dddddd = Day in LongDateFormat
+
+  c 	= Use ShortDateFormat + LongTimeFormat
+  h 	= Hour number no-leading 0
+  hh 	= Hour number as 2 digits
+  n	  = Minute number no-leading 0
+  nn 	= Minute number as 2 digits
+  s 	= Second number no-leading 0
+  ss 	= Second number as 2 digits
+  z	  = Milli-sec number no-leading 0s
+  zzz = Milli-sec number as 3 digits
+  t 	= Use ShortTimeFormat
+  tt 	= Use LongTimeFormat
 ```
 *)
-procedure _LapeDateTime_ToString2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeDateTime_ToString(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PDateTime(Params^[0])^.ToString();
+  PString(Result)^ := PDateTime(Params^[0])^.ToString(PString(Params^[1])^);
 end;
 
 (*
@@ -319,8 +348,6 @@ TDateTime.Date
 --------------
 ```
 property TDateTime.Date: TDateTime
-```
-```
 property TDateTime.Date(NewValue: TDateTime)
 ```
 
@@ -341,8 +368,6 @@ TDateTime.Time
 --------------
 ```
 property TDateTime.Time: TDateTime
-```
-```
 property TDateTime.Time(NewValue: TDateTime)
 ```
 *)
@@ -361,8 +386,6 @@ TDateTime.Year
 --------------
 ```
 property TDateTime.Year: Integer
-```
-```
 property TDateTime.Year(NewValue: Integer)
 ```
 *)
@@ -381,8 +404,6 @@ TDateTime.Month
 --------------
 ```
 property TDateTime.Month: Integer
-```
-```
 property TDateTime.Month(NewValue: Integer)
 ```
 *)
@@ -401,8 +422,6 @@ TDateTime.Day
 --------------
 ```
 property TDateTime.Day: Integer
-```
-```
 property TDateTime.Day(NewValue: Integer)
 ```
 *)
@@ -421,8 +440,6 @@ TDateTime.Hour
 --------------
 ```
 property TDateTime.Hour: Integer
-```
-```
 property TDateTime.Hour(NewValue: Integer)
 ```
 *)
@@ -441,8 +458,6 @@ TDateTime.Minute
 ----------------
 ```
 property TDateTime.Minute: Integer
-```
-```
 property TDateTime.Minute(NewValue: Integer)
 ```
 *)
@@ -461,8 +476,6 @@ TDateTime.Second
 ----------------
 ```
 property TDateTime.Second: Integer
-```
-```
 property TDateTime.Second(NewValue: Integer)
 ```
 *)
@@ -481,8 +494,6 @@ TDateTime.Millisecond
 ---------------------
 ```
 property TDateTime.Millisecond: Integer
-```
-```
 property TDateTime.Millisecond(NewValue: Integer)
 ```
 *)
@@ -629,12 +640,11 @@ begin
     addGlobalFunc('function TDateTime.Create(AYear, AMonth, ADay: Integer): TDateTime; static; overload', @_LapeDateTime_Create2);
     addGlobalFunc('function TDateTime.Create(AHour, AMin, ASecond, AMillisecond: Integer): TDateTime; static; overload', @_LapeDateTime_Create3);
     addGlobalFunc('function TDateTime.CreateFromUnix(UnixTime: Int64): TDateTime; static;', @_LapeDateTime_CreateFromUnix);
-    addGlobalFunc('function TDateTime.CreateFromString(Value: String): TDateTime; static; overload;', @_LapeDateTime_CreateFromString1);
-    addGlobalFunc('function TDateTime.CreateFromString(Fmt, Value: String): TDateTime; static; overload;', @_LapeDateTime_CreateFromString2);
+    addGlobalFunc('function TDateTime.CreateFromISO(Value: String): TDateTime; static; overload;', @_LapeDateTime_CreateFromISO);
 
     addGlobalFunc('function TDateTime.ToUnix(IsUTC: Boolean = True): Int64', @_LapeDateTime_ToUnix);
-    addGlobalFunc('function TDateTime.ToString(Fmt: String): String; overload', @_LapeDateTime_ToString1);
-    addGlobalFunc('function TDateTime.ToString: String; overload', @_LapeDateTime_ToString2);
+    addGlobalFunc('function TDateTime.ToISO(IsUTC: Boolean = True): String', @_LapeDateTime_ToISO);
+    addGlobalFunc('function TDateTime.ToString(Fmt: String = "c"): String', @_LapeDateTime_ToString);
 
     addGlobalFunc('function TDateTime.AddYears(Amount: Integer = 1): TDateTime;', @_LapeDateTime_AddYears);
     addGlobalFunc('function TDateTime.AddMonths(Amount: Integer = 1): TDateTime;', @_LapeDateTime_AddMonths);
@@ -679,14 +689,12 @@ begin
     addDelayedCode([
       'type',
       '  TStopwatch = record',
-      '    Name: String;',
       '    StartTime: Double;',
       '    StopTime: Double;',
       '  end;',
       '',
-      'procedure TStopwatch.Start(AName: String = "");',
+      'procedure TStopwatch.Start;',
       'begin',
-      '  Self.Name := AName;',
       '  Self.StartTime := PerformanceTimer();',
       'end;',
       '',
@@ -695,7 +703,7 @@ begin
       '  Self.StopTime := PerformanceTimer();',
       'end;',
       '',
-      'function TStopwatch.Elapsed: Double;',
+      'property TStopwatch.Elapsed: Double;',
       'begin',
       '  if (Self.StopTime > 0) then',
       '    Result := Self.StopTime - Self.StartTime',
@@ -705,14 +713,14 @@ begin
       '',
       'function TStopwatch.ElapsedFmt(Format: String = "u"): String;',
       'begin',
-      '  Result := FormatMilliseconds(Self.Elapsed(), Format);',
+      '  Result := FormatMilliseconds(Self.Elapsed, Format);',
       'end;',
       '',
       'procedure TStopwatch.Reset;',
       'begin',
       '  Self.StopTime := Self.StartTime := 0;',
-      'end;'
-    ]);
+      'end;'],
+      DumpSection);
 
     DumpSection := '';
   end;

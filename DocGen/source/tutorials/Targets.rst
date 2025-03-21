@@ -34,6 +34,7 @@ Searching on a image
 :code:`TImage` has basic :code:`FindColor` and :code:`FindImage` methods however if you need the full finder methods you can do:
 
 .. code-block::
+
   var MyTarget: TTarget;
 
   MyTarget.SetImage(MyImage); 

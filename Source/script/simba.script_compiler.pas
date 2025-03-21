@@ -61,6 +61,7 @@ type
     function addGlobalFunc(Header: lpString; Value: Pointer): TLapeGlobalVar; override;
     function addGlobalType(Str: lpString; AName: lpString): TLapeType; override;
     function addGlobalType(Typ: TLapeType; AName: lpString = ''; ACopy: Boolean = True): TLapeType; override;
+    function addDelayedCode(ACode: lpString; AFileName: lpString = ''; AfterCompilation: Boolean = True; IsGlobal: Boolean = True): TLapeTree_Base; override;
 
     // Compiler addons
     procedure pushCode(Code: String);
@@ -527,6 +528,14 @@ begin
     DumpType(AName, Typ.Name);
 
   Result := inherited;
+end;
+
+function TScriptCompiler.addDelayedCode(ACode: lpString; AFileName: lpString; AfterCompilation: Boolean; IsGlobal: Boolean): TLapeTree_Base;
+begin
+  if (FDump <> nil) and (AFileName <> '') and (not AFileName.StartsWith('!')) then
+    DumpCode(AFileName, ACode);
+
+  Result := inherited addDelayedCode(ACode, AFileName, AfterCompilation, IsGlobal);
 end;
 
 procedure TScriptCompiler.pushCode(Code: String);

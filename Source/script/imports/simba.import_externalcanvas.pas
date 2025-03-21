@@ -30,161 +30,81 @@ begin
   PSimbaExternalCanvas(Params^[0])^.Free();
 end;
 
-(*
-TExternalCanvas.Width
---------------------
-> property TExternalCanvas.Width: Integer;
-*)
 procedure _LapeExternalCanvas_Width_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PInteger(Result)^ := PSimbaExternalCanvas(Params^[0])^.Width;
 end;
 
-(*
-TExternalCanvas.Height
----------------------
-> property TExternalCanvas.Height: Integer;
-*)
 procedure _LapeExternalCanvas_Height_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PInteger(Result)^ := PSimbaExternalCanvas(Params^[0])^.Height;
 end;
 
-(*
-TExternalCanvas.GetDefaultPixel
-------------------------------
-> function TExternalCanvas.GetDefaultPixel: TColorBGRA;
-*)
 procedure _LapeExternalCanvas_DefaultPixel_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PColorBGRA(Result)^ := PSimbaExternalCanvas(Params^[0])^.DefaultPixel;
 end;
 
-(*
-TExternalCanvas.SetDefaultPixel
-------------------------------
-> procedure TExternalCanvas.SetDefaultPixel(Value: TColorBGRA);
-*)
 procedure _LapeExternalCanvas_DefaultPixel_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.DefaultPixel := PColorBGRA(Params^[1])^;
 end;
 
-(*
-TExternalCanvas.GetFontName
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-> function TExternalCanvas.GetFontName: String;
-*)
 procedure _LapeExternalCanvas_FontName_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PString(Result)^ := PSimbaExternalCanvas(Params^[0])^.FontName;
 end;
 
-(*
-TExternalCanvas.SetFontName
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-> procedure TExternalCanvas.SetFontName(Value: String);
-*)
 procedure _LapeExternalCanvas_FontName_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.FontName := PString(Params^[1])^;
 end;
 
-(*
-TExternalCanvas.GetFontSize
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-> function TExternalCanvas.GetFontSize: Single;
-*)
 procedure _LapeExternalCanvas_FontSize_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PSingle(Result)^ := PSimbaExternalCanvas(Params^[0])^.FontSize;
 end;
 
-(*
-TExternalCanvas.SetFontSize
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-> procedure TExternalCanvas.SetFontSize(Value: Single);
-*)
 procedure _LapeExternalCanvas_FontSize_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.FontSize := PSingle(Params^[1])^;
 end;
 
-(*
-TExternalCanvas.GetFontAntialiasing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> function TExternalCanvas.GetFontAntialiasing: Boolean;
-*)
 procedure _LapeExternalCanvas_FontAntialiasing_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PBoolean(Result)^ := PSimbaExternalCanvas(Params^[0])^.FontAntialiasing;
 end;
 
-(*
-TExternalCanvas.SetFontAntialiasing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> procedure TExternalCanvas.SetFontAntialiasing(Value: Boolean);
-*)
 procedure _LapeExternalCanvas_FontAntialiasing_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.FontAntialiasing := PBoolean(Params^[1])^;
 end;
 
-(*
-TExternalCanvas.GetFontBold
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-> function TExternalCanvas.GetFontBold: Boolean;
-*)
 procedure _LapeExternalCanvas_FontBold_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PBoolean(Result)^ := PSimbaExternalCanvas(Params^[0])^.FontBold;
 end;
 
-(*
-TExternalCanvas.SetFontBold
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-> procedure TExternalCanvas.SetFontBold(Value: Boolean);
-*)
 procedure _LapeExternalCanvas_FontBold_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.FontBold := PBoolean(Params^[1])^;
 end;
 
-(*
-TExternalCanvas.GetFontItalic
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> function TExternalCanvas.GetFontItalic: Boolean;
-*)
 procedure _LapeExternalCanvas_FontItalic_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PBoolean(Result)^ := PSimbaExternalCanvas(Params^[0])^.FontItalic;
 end;
 
-(*
-TExternalCanvas.SetFontItalic
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> procedure TExternalCanvas.SetFontItalic(Value: Boolean);
-*)
 procedure _LapeExternalCanvas_FontItalic_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.FontItalic := PBoolean(Params^[1])^;
 end;
 
-(*
-TExternalCanvas.TextWidth
-~~~~~~~~~~~~~~~~~~~~~~~~
-> function TExternalCanvas.TextWidth(Text: String): Integer;
-*)
 procedure _LapeExternalCanvas_TextWidth(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PInteger(Result)^ := PSimbaExternalCanvas(Params^[0])^.TextWidth(PString(Params^[1])^);
 end;
 
-(*
-TExternalCanvas.TextHeight
-~~~~~~~~~~~~~~~~~~~~~~~~~
-> function TExternalCanvas.TextHeight(Text: String): Integer;
-*)
 procedure _LapeExternalCanvas_TextHeight(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PInteger(Result)^ := PSimbaExternalCanvas(Params^[0])^.TextHeight(PString(Params^[1])^);
@@ -205,166 +125,71 @@ begin
   PSimbaExternalCanvas(Params^[0])^.ClearInverted(PBox(Params^[1])^);
 end;
 
-(*
-TExternalCanvas.TextSize
-~~~~~~~~~~~~~~~~~~~~~~~
-> function TExternalCanvas.TextSize(Text: String): TPoint;
-*)
 procedure _LapeExternalCanvas_TextSize(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PPoint(Result)^ := PSimbaExternalCanvas(Params^[0])^.TextSize(PString(Params^[1])^);
 end;
 
-(*
-TExternalCanvas.GetAlpha
------------------------
-> function TExternalCanvas.GetAlpha(X, Y: Integer): Byte;
-*)
 procedure _LapeExternalCanvas_Alpha_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PByte(Result)^ := PSimbaExternalCanvas(Params^[0])^.Alpha[PInteger(Params^[1])^, PInteger(Params^[2])^];
 end;
 
-(*
-TExternalCanvas.SetAlpha
------------------------
-> procedure TExternalCanvas.SetAlpha(X, Y: Integer; Alpha: Byte);
-*)
 procedure _LapeExternalCanvas_Alpha_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.Alpha[PInteger(Params^[1])^, PInteger(Params^[2])^] := PByte(Params^[3])^;
 end;
 
-(*
-TExternalCanvas.GetPixel
------------------------
-> function TExternalCanvas.GetPixel(X, Y: Integer): TColor;
-*)
 procedure _LapeExternalCanvas_Pixel_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PColor(Result)^ := PSimbaExternalCanvas(Params^[0])^.Pixel[PInteger(Params^[1])^, PInteger(Params^[2])^];
 end;
 
-(*
-TExternalCanvas.SetPixel
------------------------
-> procedure TExternalCanvas.SetPixel(X, Y: Integer; Color: TColor);
-*)
 procedure _LapeExternalCanvas_Pixel_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.Pixel[PInteger(Params^[1])^, PInteger(Params^[2])^] := PColor(Params^[3])^;
 end;
 
-(*
-TExternalCanvas.SetPixels
-------------------------
-> procedure TExternalCanvas.SetPixels(Points: TPointArray; Color: TColor);
-*)
 procedure _LapeExternalCanvas_SetPixels1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.SetPixels(PPointArray(Params^[1])^, PColor(Params^[2])^);
 end;
 
-(*
-TExternalCanvas.SetPixels
-------------------------
-> procedure TExternalCanvas.SetPixels(Points: TPointArray; Colors: TColorArray);
-*)
 procedure _LapeExternalCanvas_SetPixels2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.SetPixels(PPointArray(Params^[1])^, PIntegerArray(Params^[2])^);
 end;
 
-(*
-TExternalCanvas.GetDrawColor
----------------------------
-> function TExternalCanvas.GetDrawColor: TColor;
-
-Returns the current drawing color.
-
-```{note}
-Red is the default value.
-```
-*)
 procedure _LapeExternalCanvas_DrawColor_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PColor(Result)^ := PSimbaExternalCanvas(Params^[0])^.DrawColor;
 end;
 
-(*
-TExternalCanvas.SetDrawColor
----------------------------
-> procedure TExternalCanvas.SetDrawColor(Color: TColor);
-
-Sets the current draw color.
-
-```{note}
-Red is the default value.
-```
-*)
 procedure _LapeExternalCanvas_DrawColor_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.DrawColor := PColor(Params^[1])^;
 end;
 
-(*
-TExternalCanvas.GetDrawAlpha
----------------------------
-> function TExternalCanvas.GetDrawAlpha: Byte;
-
-Returns the current draw alpha.
-0 is completely transparent and 255 is completely opauge.
-
-```{note}
-255 is the default value.
-```
-*)
 procedure _LapeExternalCanvas_DrawAlpha_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PByte(Result)^ := PSimbaExternalCanvas(Params^[0])^.DrawAlpha;
 end;
 
-(*
-TExternalCanvas.SetDrawAlpha
----------------------------
-> procedure TExternalCanvas.SetDrawAlpha(Value: Byte);
-
-Sets the current draw color. This determines how transparent something is drawn.
-
-```{note}
-255 is the default value.
-```
-*)
 procedure _LapeExternalCanvas_DrawAlpha_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.DrawAlpha := PByte(Params^[1])^;
 end;
 
-(*
-TExternalCanvas.DrawText
-~~~~~~~~~~~~~~~~~~~~~~~
-> procedure TExternalCanvas.DrawText(Text: String; Position: TPoint);
-*)
 procedure _LapeExternalCanvas_DrawText(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.DrawText(PString(Params^[1])^, PPoint(Params^[2])^);
 end;
 
-(*
-TExternalCanvas.DrawText
-~~~~~~~~~~~~~~~~~~~~~~~
-> procedure TExternalCanvas.DrawText(Text: String; Box: TBox; Alignments: EImageTextAlign);
-*)
 procedure _LapeExternalCanvas_DrawTextEx(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.DrawText(PString(Params^[1])^, PBox(Params^[2])^, EImageTextAlign(Params^[3]^));
 end;
 
-(*
-TExternalCanvas.DrawTextLines
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> procedure TExternalCanvas.DrawTextLines(Text: TStringArray; Position: TPoint);
-*)
 procedure _LapeExternalCanvas_DrawTextLines(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaExternalCanvas(Params^[0])^.DrawTextLines(PStringArray(Params^[1])^, PPoint(Params^[2])^);
