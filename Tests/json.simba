@@ -1,105 +1,193 @@
 {$assertions on}
 
-const
-  TEST = '{'                                               + LINE_SEP +
-          '  "ThisIsAInteger" : 1,'                        + LINE_SEP +
-          '  "ThisIsALargeInteger" : 9223372036854775807,' + LINE_SEP +
-          '  "ThisIsAFloat" : 1.5000000000000000E+000,'    + LINE_SEP +
-          '  "ThisIsAString" : "HelloWorld",'              + LINE_SEP +
-          '  "ThisIsTrue" : true,'                         + LINE_SEP +
-          '  "ThisIsFalse" : false,'                       + LINE_SEP +
-          '  "ThisIsAObject" : {'                          + LINE_SEP +
-          '    "ObjectKey" : "ObjectValue"'                + LINE_SEP +
-          '  },'                                           + LINE_SEP +
-          '  "ThisIsAArray" : ['                           + LINE_SEP +
-          '    1,'                                         + LINE_SEP +
-          '    "2",'                                       + LINE_SEP +
-          '    3.0000000000000000E+000,'                   + LINE_SEP +
-          '    {'                                          + LINE_SEP +
-          '      "Key" : "Value"'                          + LINE_SEP +
-          '    }'                                          + LINE_SEP +
-          '  ]'                                            + LINE_SEP +
-          '}';
-
-  TEST2 = '{'                                              + LINE_SEP +
-          '  "fruits_clone" : {'                           + LINE_SEP +
-          '    "apple" : "red",'                           + LINE_SEP +
-          '    "bananna" : "yellow"'                       + LINE_SEP +
-          '  },'                                           + LINE_SEP +
-          '  "apple_clone" : "red"'                        + LINE_SEP +
-          '}';
-
-  TEST3 = '['           + LINE_SEP +
-          '  1,'        + LINE_SEP +
-          '  2,'        + LINE_SEP +
-          '  3,'        + LINE_SEP +
-          '  "four"'    + LINE_SEP +
-          ']';
-
-  TEST4 = '{'           + LINE_SEP +
-          '  "arr" : [' + LINE_SEP +
-          '    1,'      + LINE_SEP +
-          '    2,'      + LINE_SEP +
-          '    true,'   + LINE_SEP +
-          '    false'   + LINE_SEP +
-          '  ]'         + LINE_SEP +
-          '}';
-
+procedure TestParseObject;
 var
-  Expected: String;
-  Parser: TJSONParser;
-  Element: TJSONElement;
+  json: TJSONItem;
 begin
-  Parser := TJSONParser.Create('');
-  Parser.AddValue('ThisIsAInteger', 1);
-  Parser.AddValue('ThisIsALargeInteger', High(Int64));
-  Parser.AddValue('ThisIsAFloat', 1.5);
-  Parser.AddValue('ThisIsAString', 'HelloWorld');
-  Parser.AddValue('ThisIsTrue', True);
-  Parser.AddValue('ThisIsFalse', False);
-  Parser.AddObject('ThisIsAObject').AddValue('ObjectKey', 'ObjectValue');
+  json := ParseJSON("{str: 'abc', int: 123, float: 1.23, bool: true, arr: [], obj: {}}");
+  Assert(json.Count = 6);
+  Assert(json.Typ = EJSONType.OBJ);
+  Assert(json.Items[0].Typ = EJSONType.STR);
+  Assert(json.Items[1].Typ = EJSONType.INT);
+  Assert(json.Items[2].Typ = EJSONType.FLOAT);
+  Assert(json.Items[3].Typ = EJSONType.BOOL);
+  Assert(json.Items[4].Typ = EJSONType.ARR);
+  Assert(json.Items[5].Typ = EJSONType.OBJ);
+  Assert(Length(json.Keys) = 6);
+  Assert(json.Keys[0] = 'str');
+  Assert(json.Keys[1] = 'int');
+  Assert(json.Keys[2] = 'float');
+  Assert(json.Keys[3] = 'bool');
+  Assert(json.Keys[4] = 'arr');
+  Assert(json.Keys[5] = 'obj');
+  json.Free();
+end;
 
-  Element := Parser.AddArray('ThisIsAArray');
-  Element.AddValue('', 1);
-  Element.AddValue('', '2');
-  Element.AddValue('', 3.0);
+procedure TestBuildObject;
+var
+  json: TJSONItem;
+begin
+  json := NewJSONObject();
+  json.AddString('str', 'abc');
+  json.AddInt('int', 123);
+  json.AddFloat('float', 1.23);
+  json.AddBool('bool', True);
+  json.AddArray('arr', NewJSONArray());
+  json.AddObject('obj', NewJSONObject());
+  Assert(json.Count = 6);
+  Assert(json.Typ = EJSONType.OBJ);
+  Assert(json.Items[0].Typ = EJSONType.STR);
+  Assert(json.Items[1].Typ = EJSONType.INT);
+  Assert(json.Items[2].Typ = EJSONType.FLOAT);
+  Assert(json.Items[3].Typ = EJSONType.BOOL);
+  Assert(json.Items[4].Typ = EJSONType.ARR);
+  Assert(json.Items[5].Typ = EJSONType.OBJ);
+  Assert(Length(json.Keys) = 6);
+  Assert(json.Keys[0] = 'str');
+  Assert(json.Keys[1] = 'int');
+  Assert(json.Keys[2] = 'float');
+  Assert(json.Keys[3] = 'bool');
+  Assert(json.Keys[4] = 'arr');
+  Assert(json.Keys[5] = 'obj');
+  json.Free();
+end;
 
-  Element := Element.AddObject('ArrayObject');
-  Element.AddValue('Key', 'Value');
+procedure TestParseArray;
+var
+  json: TJSONItem;
+begin
+  json := ParseJSON("['abc', 123, 1.23, true, [], {}]");
+  Assert(json.Count = 6);
+  Assert(json.Typ = EJSONType.ARR);
+  Assert(json.Items[0].Typ = EJSONType.STR);
+  Assert(json.Items[1].Typ = EJSONType.INT);
+  Assert(json.Items[2].Typ = EJSONType.FLOAT);
+  Assert(json.Items[3].Typ = EJSONType.BOOL);
+  Assert(json.Items[4].Typ = EJSONType.ARR);
+  Assert(json.Items[5].Typ = EJSONType.OBJ);
+  json.Free();
+end;
 
-  Assert(Parser.AsString = TEST);
+procedure TestBuildArray;
+var
+  json: TJSONItem;
+begin
+  json := NewJSONArray();
+  json.AddString('', 'abc');
+  json.AddInt('', 123);
+  json.AddFloat('', 1.23);
+  json.AddBool('', True);
+  json.AddArray('', NewJSONArray());
+  json.AddObject('', NewJSONObject());
+  Assert(json.Count = 6);
+  Assert(json.Typ = EJSONType.ARR);
+  Assert(json.Items[0].Typ = EJSONType.STR);
+  Assert(json.Items[1].Typ = EJSONType.INT);
+  Assert(json.Items[2].Typ = EJSONType.FLOAT);
+  Assert(json.Items[3].Typ = EJSONType.BOOL);
+  Assert(json.Items[4].Typ = EJSONType.ARR);
+  Assert(json.Items[5].Typ = EJSONType.OBJ);
+  json.Free();
+end;
 
-  Assert(Parser.FindPath('ThisIsAArray[1]', Element));
-  Assert(Element.IsValue);
-  Assert(Element.Value = '2');
+procedure TestObjectHas;
+var
+  json: TJSONItem;
+begin
+  json := ParseJSON("{str: 'abc', int: 123, float: 1.23, bool: true, arr: [], obj: {}}");
+  Assert(json.Has('str') = True);
+  Assert(json.Has('strs') = False);
+  Assert(json.Has('str', EJSONType.STR) = True);
+  Assert(json.Has('str', EJSONType.INT) = False);
+  Assert(json.Has('float', EJSONType.FLOAT) = True);
+  Assert(json.Has('float', EJSONType.INT) = False);
+  json.Free();
+end;
 
-  Assert(Parser.FindPath('ThisIsAObject.ObjectKey', Element));
-  Assert(Element.IsValue);
-  Assert(Element.ValueType = EJSONValueType.STR);
-  Assert(Element.Value = 'ObjectValue');
+procedure TestObjectGet;
+var
+  json: TJSONItem;
+  s: String;
+  i: Int64;
+  f: Double;
+  b: Boolean;
+  a: TJSONItem;
+  o: TJSONItem;
+begin
+  json := ParseJSON("{str: 'abc', int: 123, float: 1.23, bool: true, arr: [], obj: {}}");
 
-  Parser.Clear();
-  Parser.AddObject('fruits').AddValue('apple', 'red');
-  Assert(Parser.Find('fruits', Element));
-  Element.AddValue('bananna', 'yellow');
+  Assert(json.GetString('str', s));
+  Assert(s = 'abc');
+  Assert(json.GetInt('int', i));
+  Assert(i = 123);
+  Assert(json.GetFloat('float', f));
+  Assert(Abs(f - 1.23) < 0.001);
+  Assert(json.GetBool('bool', b));
+  Assert(b = True);
+  Assert(json.GetArray('arr', a));
+  Assert(a <> nil);
+  Assert(json.GetObject('obj', o));
+  Assert(o <> nil);
 
-  Parser.AddElement('fruits_clone', Element.Clone());
-  Parser.AddElement('apple_clone', Element.Item[0].Clone());
-  Parser.Delete('fruits');
+  Assert(json.GetInt('str', i) = False);
+  Assert(json.GetString('int', s) = False);
+  Assert(json.GetFloat('int', f) = False);
+  Assert(json.GetBool('int', b) = False);
+  Assert(json.GetArray('int', a) = False);
+  Assert(json.GetObject('int', o) = False);
 
-  Assert(Parser.AsString = TEST2);
+  json.Free();
+end;
 
-  Parser.Clear();
-  Parser.AddArray('', [1,2,3,'four']);
+procedure TestFindPath;
+var
+  json: TJSONItem;
+begin
+  json := ParseJSON("{person: {age: 1, names: ['foo', 'bar']} }");
+  Assert(json.FindPath('person.names[1]') <> nil);
+  Assert(json.FindPath('person.names[1]').AsString = 'bar');
+  json.Free();
+end;
 
-  Assert(Parser.AsString = TEST3);
-  Assert(ToStr(Parser.Values) = '[1, 2, 3, four]');
+procedure TestIndexingObject;
+var
+  json: TJSONItem;
+  i: Integer;
+begin
+  json := ParseJSON("{a: 1, b: 2, c: 3, d: 4}");
+  Assert(json.Count = 4);
+  for i:=0 to json.Count-1 do
+    Assert(json.Items[i].AsInt = i+1);
+  Assert(json.Items['a'].AsInt = 1);
+  Assert(json.Items['b'].AsInt = 2);
+  Assert(json.Items['c'].AsInt = 3);
+  Assert(json.Items['d'].AsInt = 4);
+  json.Free();
+end;
 
-  Parser.Clear();
-  Parser.AddArray('arr', [1,2,True,False]);
+procedure TestIndexingArray;
+var
+  json: TJSONItem;
+  i: Integer;
+begin
+  json := ParseJSON("[1,2,3,4,5,6]");
+  Assert(json.Count = 6);
+  for i:=0 to json.Count-1 do
+    Assert(json.Items[i].AsInt = i+1);
+  json.Free();
+end;
 
-  Assert(Parser.AsString = TEST4);
-  Assert(ToStr(Parser.Item[0].Values) = '[1, 2, True, False]');
+begin
+  TestParseObject();
+  TestBuildObject();
+  TestParseArray();
+  TestBuildArray();
 
-  Parser.Free();
+  TestObjectHas();
+  TestObjectGet();
+
+  TestFindPath();
+
+  TestIndexingObject();
+  TestIndexingArray();
 end;

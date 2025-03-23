@@ -16,635 +16,224 @@ uses
   lptypes,
   simba.json;
 
-type
-  PSimbaJSONElement = ^TSimbaJSONElement;
-  PSimbaJSONParser = ^TSimbaJSONParser;
-
 (*
 JSON
 ====
 JSON parser.
-
-It is `Variant` based and the parser must be freed.
-
-```
-var
-  JsonParser: TJsonParser;
-  Element: TJSONElement;
-  I: Integer;
-begin
-  JsonParser := TJSONParser.Create();
-
-  Element := JsonParser.AddObject('someObject');
-  Element.AddValue('someInteger', 123);
-  Element.AddValue('someString', 'HelloWorld');
-
-  for I := 0 to Element.Count - 1 do
-    WriteLn(Element.Item[I].ValueType);
-end.
-```
 *)
 
-(*
-TJSONElement.Keys
------------------
-```
-property TJSONElement.Keys: TStringArray;
-```
-*)
-procedure _LapeJSONElement_Keys_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+type
+  PJSONItemType = ^EJSONItemType;
+  PSimbaJSONItem = ^TSimbaJSONItem;
+
+procedure _LapeJSONItem_ItemType_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PStringArray(Result)^ := PSimbaJSONElement(Params^[0])^.Keys;
+  PJSONItemType(Result)^ := PSimbaJSONItem(Params^[0])^.Typ;
 end;
 
-(*
-TJSONElement.Values
--------------------
-```
-property TJSONElement.Values: TVariantArray;
-```
-*)
-procedure _LapeJSONElement_Values_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AsInt_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PVariantArray(Result)^ := PSimbaJSONElement(Params^[0])^.Values;
+  PInt64(Result)^ := PSimbaJSONItem(Params^[0])^.AsInt;
 end;
 
-(*
-TJSONElement.Count
-------------------
-```
-property TJSONElement.Count: Integer;
-```
-*)
-procedure _LapeJSONElement_Count_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AsInt_Write(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PSimbaJSONElement(Params^[0])^.Count;
+  PSimbaJSONItem(Params^[0])^.AsInt := PInt64(Params^[1])^;
 end;
 
-(*
-TJSONElement.Item
------------------
-```
-property TJSONElement.Item[Index: Integer]: TJSONElement;
-```
-*)
-procedure _LapeJSONElement_Item_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AsFloat_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Result)^ := PSimbaJSONElement(Params^[0])^.Items[PInteger(Params^[1])^];
+  PDouble(Result)^ := PSimbaJSONItem(Params^[0])^.AsFloat;
 end;
 
-(*
-TJSONElement.ValueType
-----------------------
-```
-property TJSONElement.ValueType: EJSONValueType;
-```
-*)
-procedure _LapeJSONElement_ValueType_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AsFloat_Write(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  ESimbaJSONValueType(Result^) := PSimbaJSONElement(Params^[0])^.ValueType;
+  PSimbaJSONItem(Params^[0])^.AsFloat := PDouble(Params^[1])^;
 end;
 
-(*
-TJSONElement.Value
-------------------
-```
-property TJSONElement.Value: Variant;
-```
-```
-property TJSONElement.Value(NewValue: Variant);
-```
-*)
-procedure _LapeJSONElement_Value_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AsString_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PVariant(Result)^ := PSimbaJSONElement(Params^[0])^.Value;
+  PString(Result)^ := PSimbaJSONItem(Params^[0])^.AsString;
 end;
 
-procedure _LapeJSONElement_Value_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AsString_Write(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Params^[0])^.Value := PVariant(Params^[1])^;
+  PSimbaJSONItem(Params^[0])^.AsString := PString(Params^[1])^;
 end;
 
-(*
-TJSONElement.IsValue
---------------------
-```
-property TJSONElement.IsValue: Boolean;
-```
-*)
-procedure _LapeJSONElement_IsValue_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AsUnicodeString_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONElement(Params^[0])^.IsValue;
+  PUnicodeString(Result)^ := PSimbaJSONItem(Params^[0])^.AsUnicodeString;
 end;
 
-(*
-TJSONElement.IsArray
---------------------
-```
-property TJSONElement.IsArray: Boolean;
-```
-*)
-procedure _LapeJSONElement_IsArray_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AsUnicodeString_Write(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONElement(Params^[0])^.IsArray;
+  PSimbaJSONItem(Params^[0])^.AsUnicodeString := PUnicodeString(Params^[1])^;
 end;
 
-(*
-TJSONElement.IsObject
----------------------
-```
-property TJSONElement.IsObject: Boolean;
-```
-*)
-procedure _LapeJSONElement_IsObject_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AsBool_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONElement(Params^[0])^.IsObject;
+  PBoolean(Result)^ := PSimbaJSONItem(Params^[0])^.AsBool;
 end;
 
-(*
-TJSONElement.AsString
----------------------
-```
-property TJSONElement.AsString: String;
-```
-*)
-procedure _LapeJSONElement_AsString_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AsBool_Write(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PSimbaJSONElement(Params^[0])^.AsString;
+  PSimbaJSONItem(Params^[0])^.AsBool := PBoolean(Params^[1])^;
 end;
 
-(*
-TJSONElement.AddValue
----------------------
-```
-procedure TJSONElement.AddValue(Key: String; Value: Variant);
-```
-*)
-procedure _LapeJSONElement_AddValue(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_Count_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Params^[0])^.AddValue(PString(Params^[1])^, PVariant(Params^[2])^);
+  PInteger(Result)^ := PSimbaJSONItem(Params^[0])^.Count;
 end;
 
-(*
-TJSONElement.AddArray
----------------------
-```
-function TJSONElement.AddArray(Key: String): TJSONElement;
-```
-*)
-procedure _LapeJSONElement_AddArray1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_Keys_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Result)^ := PSimbaJSONElement(Params^[0])^.AddArray(PString(Params^[1])^);
+  PStringArray(Result)^ := PSimbaJSONItem(Params^[0])^.Keys;
 end;
 
-(*
-TJSONElement.AddArray
----------------------
-```
-function TJSONElement.AddArray(Key: String; Values: TVariantArray): TJSONElement;
-```
-*)
-procedure _LapeJSONElement_AddArray2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_ItemsByKey_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Result)^ := PSimbaJSONElement(Params^[0])^.AddArray(PString(Params^[1])^, PVariantArray(Params^[2])^);
+  PSimbaJSONItem(Result)^ := PSimbaJSONItem(Params^[0])^.ItemsByKey[PString(Params^[1])^];
 end;
 
-(*
-TJSONElement.AddObject
-----------------------
-```
-function TJSONElement.AddObject(Key: String): TJSONElement;
-```
-*)
-procedure _LapeJSONElement_AddObject(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_ItemsByIndex_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Result)^ := PSimbaJSONElement(Params^[0])^.AddObject(PString(Params^[1])^);
+  PSimbaJSONItem(Result)^ := PSimbaJSONItem(Params^[0])^.ItemsByIndex[PInteger(Params^[1])^];
 end;
 
-(*
-TJSONElement.AddNull
---------------------
-```
-function TJSONElement.AddNull(Key: String): TJSONElement;
-```
-*)
-procedure _LapeJSONElement_AddNull(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_Add(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Result)^ := PSimbaJSONElement(Params^[0])^.AddNull(PString(Params^[1])^);
+  PSimbaJSONItem(Params^[0])^.Add(PString(Params^[1])^, PSimbaJSONItem(Params^[2])^);
 end;
 
-(*
-TJSONElement.AddElement
------------------------
-```
-procedure TJSONElement.AddElement(Key: String; Element: TJSONElement);
-```
-*)
-procedure _LapeJSONElement_AddElement(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AddInt(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Params^[0])^.AddElement(PString(Params^[1])^, PSimbaJSONElement(Params^[2])^);
+  PSimbaJSONItem(Params^[0])^.AddInt(PString(Params^[1])^, PInt64(Params^[2])^);
 end;
 
-(*
-TJSONElement.Clone
-------------------
-```
-function TJSONElement.Clone: TJSONElement;
-```
-*)
-procedure _LapeJSONElement_Clone(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AddFloat(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Result)^ := PSimbaJSONElement(Params^[0])^.Clone();
+  PSimbaJSONItem(Params^[0])^.AddFloat(PString(Params^[1])^, PDouble(Params^[2])^);
 end;
 
-(*
-TJSONElement.Delete
--------------------
-```
-procedure TJSONElement.Delete(Key: String);
-```
-*)
-procedure _LapeJSONElement_Delete1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AddString(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Params^[0])^.Delete(PString(Params^[1])^);
+  PSimbaJSONItem(Params^[0])^.AddString(PString(Params^[1])^, PString(Params^[2])^);
 end;
 
-(*
-TJSONElement.Delete
--------------------
-```
-procedure TJSONElement.Delete(Index: Integer);
-```
-*)
-procedure _LapeJSONElement_Delete2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AddBool(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Params^[0])^.Delete(PInteger(Params^[1])^);
+  PSimbaJSONItem(Params^[0])^.AddBool(PString(Params^[1])^, PBoolean(Params^[2])^);
 end;
 
-(*
-TJSONElement.Clear
-------------------
-```
-procedure TJSONElement.Clear;
-```
-*)
-procedure _LapeJSONElement_Clear(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AddArray(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Params^[0])^.Clear();
+  PSimbaJSONItem(Params^[0])^.AddArray(PString(Params^[1])^, PSimbaJSONItem(Params^[2])^);
 end;
 
-(*
-TJSONElement.Find
------------------
-```
-function TJSONElement.Find(Key: String; out Element: TJSONElement): Boolean;
-```
-*)
-procedure _LapeJSONElement_Find(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_AddObject(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONElement(Params^[0])^.Find(PString(Params^[1])^, PSimbaJSONElement(Params^[2])^);
+  PSimbaJSONItem(Params^[0])^.AddObject(PString(Params^[1])^, PSimbaJSONItem(Params^[2])^);
 end;
 
-(*
-TJSONElement.HasKey
--------------------
-```
-function TJSONElement.HasKey(Key: String): Boolean;
-```
-
-Returns `True` if the `Key` exists in the JSON object.
-*)
-procedure _LapeJSONElement_HasKey1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_Has1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONElement(Params^[0])^.HasKey(PString(Params^[1])^);
+  PBoolean(Result)^ := PSimbaJSONItem(Params^[0])^.Has(PString(Params^[1])^);
 end;
 
-(*
-TJSONElement.HasKey
--------------------
-```
-function TJSONElement.HasKey(Keys: TStringArray): Boolean;
-```
-
-Returns `True` if **any** of the `Keys` exists in the JSON object.
-*)
-procedure _LapeJSONElement_HasKey2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_Has2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONElement(Params^[0])^.HasKey(PStringArray(Params^[1])^);
+  PBoolean(Result)^ := PSimbaJSONItem(Params^[0])^.Has(PString(Params^[1])^, PJSONItemType(Params^[2])^);
 end;
 
-(*
-TJSONElement.HasKeys
---------------------
-```
-function TJSONElement.HasKeys(Keys: TStringArray): Boolean;
-```
-
-Returns `True` if **all** `Keys` exists in the JSON object.
-*)
-procedure _LapeJSONElement_HasKeys(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_GetInt(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONElement(Params^[0])^.HasKeys(PStringArray(Params^[1])^);
+  PBoolean(Result)^ := PSimbaJSONItem(Params^[0])^.GetInt(PString(Params^[1])^, PInt64(Params^[2])^);
 end;
 
-(*
-TJSONParser.Create
-------------------
-```
-function TJSONParser.Create(Str: String = ''): TJSONParser; static;
-```
-
-Create a JSON Parser. Optional `Str` parameter which will parse the string into the parser.
-
-- This needs to be free'd when finished.
-- This is a `static` method.
-
-Example:
-
-```
-var MyJsonParser: TJSONParser;
+procedure _LapeJSONItem_GetString(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  MyJsonParser := TJSONParser.Create();
-  MyJsonParser.AddValue('someString', 'HelloWorld');
-  MyJsonParser.AddValue('someInt', 1234);
-  WriteLn MyJsonParser.AsString();
-  MyJsonParser.Free();
-end;
-```
-*)
-procedure _LapeJSONParser_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaJSONParser(Result)^ := TSimbaJSONParser.Create(PString(Params^[0])^);
+  PBoolean(Result)^ := PSimbaJSONItem(Params^[0])^.GetString(PString(Params^[1])^, PString(Params^[2])^);
 end;
 
-(*
-TJSONParser.CreateFromFile
---------------------------
-```
-function TJSONParser.CreateFromFile(FileName: String): TJSONParser; static;
-```
-
-Create a JSON parser from a json file.
-
-- This needs to be free'd when finished.
-- This is a `static` method.
-
-Example:
-
-```
-var MyJsonParser: TJSONParser;
+procedure _LapeJSONItem_GetUnicodeString(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  MyJsonParser := TJSONParser.CreateFromFile('somefile.json');
-  WriteLn(MyJsonParser.Keys());
-  MyJsonParser.Free();
-end;
-```
-*)
-procedure _LapeJSONParser_CreateFromFile(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaJSONParser(Result)^ := TSimbaJSONParser.CreateFromFile(PString(Params^[0])^);
+  PBoolean(Result)^ := PSimbaJSONItem(Params^[0])^.GetUnicodeString(PString(Params^[1])^, PUnicodeString(Params^[2])^);
 end;
 
-(*
-TJSONParser.SaveToFile
-----------------------
-```
-function TJSONParser.SaveToFile(FileName: String): Boolean;
-```
-*)
-procedure _LapeJSONParser_SaveToFile(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_GetBool(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONParser(Params^[0])^.SaveToFile(PString(Params^[1])^);
+  PBoolean(Result)^ := PSimbaJSONItem(Params^[0])^.GetBool(PString(Params^[1])^, PBoolean(Params^[2])^);
 end;
 
-(*
-TJSONParser.Clear
------------------
-```
-procedure TJSONParser.Clear;
-```
-*)
-procedure _LapeJSONParser_Clear(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_GetArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONParser(Params^[0])^.Clear();
+  PBoolean(Result)^ := PSimbaJSONItem(Params^[0])^.GetArray(PString(Params^[1])^, PSimbaJSONItem(Params^[2])^);
 end;
 
-(*
-TJSONParser.AddNull
---------------------
-```
-function TJSONParser.AddNull(Key: String): TJSONElement;
-```
-*)
-procedure _LapeJSONParser_AddNull(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_GetObject(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Result)^ := PSimbaJSONParser(Params^[0])^.AddNull(PString(Params^[1])^);
+  PBoolean(Result)^ := PSimbaJSONItem(Params^[0])^.GetObject(PString(Params^[1])^, PSimbaJSONItem(Params^[2])^);
 end;
 
-(*
-TJSONParser.AddValue
---------------------
-```
-procedure TJSONParser.AddValue(Key: String; Value: Variant);
-```
-*)
-procedure _LapeJSONParser_AddValue(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_GetFloat(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONParser(Params^[0])^.AddValue(PString(Params^[1])^, PVariant(Params^[2])^);
+  PBoolean(Result)^ := PSimbaJSONItem(Params^[0])^.GetFloat(PString(Params^[1])^, PDouble(Params^[2])^);
 end;
 
-(*
-TJSONParser.AddArray
---------------------
-```
-function TJSONParser.AddArray(Key: String): TJSONElement;
-```
-```
-function TJSONParser.AddArray(Key: String; Values: TVariantArray): TSimbaJSONElement;
-```
-*)
-procedure _LapeJSONParser_AddArray1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_FindPath(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Result)^ := PSimbaJSONParser(Params^[0])^.AddArray(PString(Params^[1])^);
+  PSimbaJSONItem(Result)^ := PSimbaJSONItem(Params^[0])^.FindPath(PString(Params^[1])^);
 end;
 
-procedure _LapeJSONParser_AddArray2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_Clone(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Result)^ := PSimbaJSONParser(Params^[0])^.AddArray(PString(Params^[1])^, PVariantArray(Params^[2])^);
+  PSimbaJSONItem(Result)^ := PSimbaJSONItem(Params^[0])^.Clone();
 end;
 
-(*
-TJSONParser.AddObject
----------------------
-```
-function TJSONParser.AddObject(Key: String): TJSONElement;
-```
-*)
-procedure _LapeJSONParser_AddObject(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_Delete(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONElement(Result)^ := PSimbaJSONParser(Params^[0])^.AddObject(PString(Params^[1])^);
+  PSimbaJSONItem(Params^[0])^.Delete(PSimbaJSONItem(Params^[1])^);
 end;
 
-(*
-TJSONParser.AddElement
-----------------------
-```
-procedure TJSONParser.AddElement(Key: String; Element: TJSONElement);
-```
-*)
-procedure _LapeJSONParser_AddElement(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_Clear(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONParser(Params^[0])^.AddElement(PString(Params^[1])^, PSimbaJSONElement(Params^[2])^);
+  PSimbaJSONItem(Params^[0])^.Clear();
 end;
 
-(*
-TJSONParser.Find
-----------------
-```
-function TJSONParser.Find(Key: String; out Element: TJSONElement): Boolean;
-```
-*)
-procedure _LapeJSONParser_Find(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_Free(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONParser(Params^[0])^.Find(PString(Params^[1])^, PSimbaJSONElement(Params^[2])^);
+  PSimbaJSONItem(Params^[0])^.Free();
 end;
 
-(*
-TJSONParser.Delete
-------------------
-```
-procedure TJSONParser.Delete(Key: String);
-```
-*)
-procedure _LapeJSONParser_Delete1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_ToJSON(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONParser(Params^[0])^.Delete(PString(Params^[1])^);
+  PString(Result)^ := PSimbaJSONItem(Params^[0])^.ToJSON;
 end;
 
-(*
-TJSONParser.Delete
-------------------
-```
-procedure TJSONParser.Delete(Index: Integer);
-```
-*)
-procedure _LapeJSONParser_Delete2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeNewJSONObject(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaJSONParser(Params^[0])^.Delete(PInteger(Params^[1])^);
+  PSimbaJSONItem(Result)^ := NewJSONObject();
 end;
 
-(*
-TJSONParser.FindPath
---------------------
-```
-function TJSONParser.FindPath(Path: String; out Element: TJSONElement): Boolean;
-```
-*)
-procedure _LapeJSONParser_FindPath(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeNewJSONArray(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONParser(Params^[0])^.FindPath(PString(Params^[1])^, PSimbaJSONElement(Params^[2])^);
+  PSimbaJSONItem(Result)^ := NewJSONArray();
 end;
 
-(*
-TJSONParser.HasKey
--------------------
-```
-function TJSONParser.HasKey(Key: String): Boolean;
-```
-
-Returns `True` if the `Key` exists in the root JSON parser.
-*)
-procedure _LapeJSONParser_HasKey1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeParseJSON(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONParser(Params^[0])^.HasKey(PString(Params^[1])^);
+  PSimbaJSONItem(Result)^ := ParseJSON(PString(Params^[0])^);
 end;
 
-(*
-TJSONParser.HasKey
--------------------
-```
-function TJSONParser.HasKey(Keys: TStringArray): Boolean;
-```
-
-Returns `True` if **any** of the `Keys` exists in the root JSON parser.
-*)
-procedure _LapeJSONParser_HasKey2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeLoadJSON(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONParser(Params^[0])^.HasKey(PStringArray(Params^[1])^);
+  PSimbaJSONItem(Result)^ := LoadJSON(PString(Params^[0])^);
 end;
 
-(*
-TJSONParser.HasKeys
---------------------
-```
-function TJSONParser.HasKeys(Keys: TStringArray): Boolean;
-```
-
-Returns `True` if **all** `Keys` exists in the root JSON parser.
-*)
-procedure _LapeJSONParser_HasKeys(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeSaveJSON(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaJSONParser(Params^[0])^.HasKeys(PStringArray(Params^[1])^);
-end;
-
-(*
-TJSONParser.Count
------------------
-```
-property TJSONParser.Count: Integer;
-```
-*)
-procedure _LapeJSONParser_Count_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PInteger(Result)^ := PSimbaJSONParser(Params^[0])^.Count;
-end;
-
-(*
-TJSONParser.Item
-----------------
-```
-property TJSONParser.Item[Index: Integer]: TJSONElement;
-```
-*)
-procedure _LapeJSONParser_Item_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaJSONElement(Result)^ := PSimbaJSONParser(Params^[0])^.Items[PInteger(Params^[1])^];
-end;
-
-(*
-TJSONParser.AsString
---------------------
-```
-property TJSONParser.AsString: String;
-```
-*)
-procedure _LapeJSONParser_AsString_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PString(Result)^ := PSimbaJSONParser(Params^[0])^.AsString;
-end;
-
-(*
-TJSONParser.Values
-------------------
-```
-property TJSONParser.Values: TVariantArray;
-```
-*)
-procedure _LapeJSONParser_Values_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PVariantArray(Result)^ := PSimbaJSONParser(Params^[0])^.Values;
-end;
-
-(*
-TJSONParser.Keys
-----------------
-```
-function TJSONParser.Keys: TStringArray;
-```
-*)
-procedure _LapeJSONParser_Keys_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PStringArray(Result)^ := PSimbaJSONParser(Params^[0])^.Keys;
+  SaveJSON(PSimbaJSONItem(Params^[0])^, PString(Params^[1])^);
 end;
 
 procedure ImportJSON(Script: TSimbaScript);
@@ -653,69 +242,50 @@ begin
   begin
     DumpSection := 'JSON';
 
-    addGlobalType('enum(UNKNOWN, NULL, INT, FLOAT, STR, BOOL)', 'EJSONValueType');
-    with addGlobalType('record {%CODETOOLS OFF}InternalData: Pointer;{%CODETOOLS ON} end', 'TJSONElement') do
-      if (Size <> SizeOf(TSimbaJSONParser)) then
-        SimbaException('SizeOf(TJSONElement) is wrong!');
+    addGlobalType('enum(UNKNOWN, INT, FLOAT, STR, BOOL, NULL, ARR, OBJ)', 'EJSONType');
+    addGlobalType('type Pointer', 'TJSONItem');
 
-    addGlobalFunc('procedure TJSONElement.AddValue(Key: String; Value: Variant)', @_LapeJSONElement_AddValue);
-    addGlobalFunc('function TJSONElement.AddArray(Key: String): TJSONElement; overload;', @_LapeJSONElement_AddArray1);
-    addGlobalFunc('function TJSONElement.AddArray(Key: String; Values: TVariantArray): TJSONElement; overload;', @_LapeJSONElement_AddArray2);
-    addGlobalFunc('function TJSONElement.AddObject(Key: String): TJSONElement', @_LapeJSONElement_AddObject);
-    addGlobalFunc('procedure TJSONElement.AddElement(Key: String; Element: TJSONElement)', @_LapeJSONElement_AddElement);
-    addGlobalFunc('function TJSONElement.AddNull(Key: String): TJSONElement', @_LapeJSONElement_AddNull);
-    addGlobalFunc('function TJSONElement.Clone: TJSONElement', @_LapeJSONElement_Clone);
-    addGlobalFunc('procedure TJSONElement.Clear', @_LapeJSONElement_Clear);
-    addGlobalFunc('procedure TJSONElement.Delete(Key: String); overload', @_LapeJSONElement_Delete1);
-    addGlobalFunc('procedure TJSONElement.Delete(Index: Integer); overload', @_LapeJSONElement_Delete2);
-    addGlobalFunc('function TJSONElement.Find(Key: String; out Element: TJSONElement): Boolean;', @_LapeJSONElement_Find);
-    addGlobalFunc('function TJSONElement.HasKey(Key: String): Boolean; overload', @_LapeJSONElement_HasKey1);
-    addGlobalFunc('function TJSONElement.HasKey(Keys: TStringArray): Boolean; overload', @_LapeJSONElement_HasKey2);
-    addGlobalFunc('function TJSONElement.HasKeys(Keys: TStringArray): Boolean', @_LapeJSONElement_HasKeys);
+    addProperty('TJSONItem', 'Typ', 'EJSONType', @_LapeJSONItem_ItemType_Read);
+    addProperty('TJSONItem', 'AsInt', 'Int64', @_LapeJSONItem_AsInt_Read, @_LapeJSONItem_AsInt_Write);
+    addProperty('TJSONItem', 'AsString', 'String', @_LapeJSONItem_AsString_Read, @_LapeJSONItem_AsString_Write);
+    addProperty('TJSONItem', 'AsUnicodeString', 'UnicodeString', @_LapeJSONItem_AsUnicodeString_Read, @_LapeJSONItem_AsUnicodeString_Write);
+    addProperty('TJSONItem', 'AsBool', 'Boolean', @_LapeJSONItem_AsBool_Read, @_LapeJSONItem_AsBool_Write);
+    addProperty('TJSONItem', 'AsFloat', 'Double', @_LapeJSONItem_AsFloat_Read, @_LapeJSONItem_AsFloat_Write);
+    addProperty('TJSONItem', 'Count', 'Integer', @_LapeJSONItem_Count_Read);
+    addProperty('TJSONItem', 'Keys', 'TStringArray', @_LapeJSONItem_Keys_Read);
+    addPropertyIndexed('TJSONItem', 'Items', 'Key: String', 'TJSONItem', @_LapeJSONItem_ItemsByKey_Read);
+    addPropertyIndexed('TJSONItem', 'Items', 'Index: Integer', 'TJSONItem', @_LapeJSONItem_ItemsByIndex_Read);
 
-    addPropertyIndexed('TJSONElement', 'Item', 'Index: Integer', 'TJSONElement', @_LapeJSONElement_Item_Read);
-    addProperty('TJSONElement', 'Values', 'TVariantArray', @_LapeJSONElement_Values_Read);
-    addProperty('TJSONElement', 'Keys', 'TStringArray', @_LapeJSONElement_Keys_Read);
-    addProperty('TJSONElement', 'Count', 'Integer', @_LapeJSONElement_Count_Read);
-    addProperty('TJSONElement', 'ValueType', 'EJSONValueType', @_LapeJSONElement_ValueType_Read);
-    addProperty('TJSONElement', 'Value', 'Variant', @_LapeJSONElement_Value_Read, @_LapeJSONElement_Value_Write);
-    addProperty('TJSONElement', 'IsValue', 'Boolean', @_LapeJSONElement_IsValue_Read);
-    addProperty('TJSONElement', 'IsArray', 'Boolean', @_LapeJSONElement_IsArray_Read);
-    addProperty('TJSONElement', 'IsObject', 'Boolean', @_LapeJSONElement_IsObject_Read);
-    addProperty('TJSONElement', 'AsString', 'String', @_LapeJSONElement_AsString_Read);
+    addGlobalFunc('function TJSONItem.ToJSON: String', @_LapeJSONItem_ToJSON);
+    addGlobalFunc('procedure TJSONItem.Add(Key: String; Item: TJSONItem)', @_LapeJSONItem_Add);
+    addGlobalFunc('procedure TJSONItem.AddInt(Key: String; Value: Int64)', @_LapeJSONItem_AddInt);
+    addGlobalFunc('procedure TJSONItem.AddString(Key: String; Value: String)', @_LapeJSONItem_AddString);
+    addGlobalFunc('procedure TJSONItem.AddBool(Key: String; Value: Boolean)', @_LapeJSONItem_AddBool);
+    addGlobalFunc('procedure TJSONItem.AddFloat(Key: String; Value: Double)', @_LapeJSONItem_AddFloat);
+    addGlobalFunc('procedure TJSONItem.AddArray(Key: String; Value: TJSONItem)', @_LapeJSONItem_AddArray);
+    addGlobalFunc('procedure TJSONItem.AddObject(Key: String; Value: TJSONItem)', @_LapeJSONItem_AddObject);
+    addGlobalFunc('function TJSONItem.Has(Key: String): Boolean; overload', @_LapeJSONItem_Has1);
+    addGlobalFunc('function TJSONItem.Has(Key: String; Typ: EJSONType): Boolean; overload', @_LapeJSONItem_Has2);
 
-    addDelayedCode([
-      'function ToString(constref Param: TJSONElement): String; override;',
-      'begin',
-      '  Result := Param.AsString;',
-      'end;'
-    ]);
+    addGlobalFunc('function TJSONItem.GetInt(Key: String; out Value: Int64): Boolean', @_LapeJSONItem_GetInt);
+    addGlobalFunc('function TJSONItem.GetFloat(Key: String; out Value: Double): Boolean', @_LapeJSONItem_GetFloat);
+    addGlobalFunc('function TJSONItem.GetString(Key: String; out Value: String): Boolean', @_LapeJSONItem_GetString);
+    addGlobalFunc('function TJSONItem.GetUnicodeString(Key: String; out Value: String): Boolean', @_LapeJSONItem_GetUnicodeString);
+    addGlobalFunc('function TJSONItem.GetBool(Key: String; out Value: Boolean): Boolean', @_LapeJSONItem_GetBool);
+    addGlobalFunc('function TJSONItem.GetArray(Key: String; out Value: TJSONItem): Boolean', @_LapeJSONItem_GetArray);
+    addGlobalFunc('function TJSONItem.GetObject(Key: String; out Value: TJSONItem): Boolean', @_LapeJSONItem_GetObject);
 
-    addClass('TJSONParser');
+    addGlobalFunc('function TJSONItem.FindPath(Path: String): TJSONItem', @_LapeJSONItem_FindPath);
+    addGlobalFunc('function TJSONItem.Clone: TJSONItem', @_LapeJSONItem_Clone);
+    addGlobalFunc('procedure TJSONItem.Delete(Item: TJSONItem); overload', @_LapeJSONItem_Delete);
+    addGlobalFunc('procedure TJSONItem.Clear', @_LapeJSONItem_Clear);
+    addGlobalFunc('procedure TJSONItem.Free', @_LapeJSONItem_Free);
 
-    addGlobalFunc('function TJSONParser.Create(Str: String = ""): TJSONParser; static;', @_LapeJSONParser_Create);
-    addGlobalFunc('function TJSONParser.CreateFromFile(FileName: String): TJSONParser; static', @_LapeJSONParser_CreateFromFile);
-    addGlobalFunc('function TJSONParser.SaveToFile(FileName: String): Boolean', @_LapeJSONParser_SaveToFile);
-    addGlobalFunc('procedure TJSONParser.Clear;', @_LapeJSONParser_Clear);
-    addGlobalFunc('function TJSONParser.HasKey(Key: String): Boolean; overload', @_LapeJSONParser_HasKey1);
-    addGlobalFunc('function TJSONParser.HasKey(Keys: TStringArray): Boolean; overload', @_LapeJSONParser_HasKey2);
-    addGlobalFunc('function TJSONParser.HasKeys(Keys: TStringArray): Boolean', @_LapeJSONParser_HasKeys);
-    addGlobalFunc('function TJSONParser.AddNull(Key: String): TJSONElement', @_LapeJSONParser_AddNull);
-    addGlobalFunc('procedure TJSONParser.AddValue(Key: String; Value: Variant)', @_LapeJSONParser_AddValue);
-    addGlobalFunc('function TJSONParser.AddArray(Key: String): TJSONElement; overload;', @_LapeJSONParser_AddArray1);
-    addGlobalFunc('function TJSONParser.AddArray(Key: String; Values: TVariantArray): TJSONElement; overload;', @_LapeJSONParser_AddArray2);
-    addGlobalFunc('function TJSONParser.AddObject(Key: String): TJSONElement;', @_LapeJSONParser_AddObject);
-    addGlobalFunc('procedure TJSONParser.AddElement(Key: String; Element: TJSONElement)', @_LapeJSONParser_AddElement);
-    addGlobalFunc('function TJSONParser.Find(Key: String; out Element: TJSONElement): Boolean;', @_LapeJSONParser_Find);
-    addGlobalFunc('procedure TJSONParser.Delete(Key: String); overload;', @_LapeJSONParser_Delete1);
-    addGlobalFunc('procedure TJSONParser.Delete(Index: Integer); overload;', @_LapeJSONParser_Delete2);
-    addGlobalFunc('function TJSONParser.FindPath(Path: String; out Element: TJSONElement): Boolean;', @_LapeJSONParser_FindPath);
-
-    addPropertyIndexed('TJSONParser', 'Item', 'Index: Integer', 'TJSONElement', @_LapeJSONParser_Item_Read);
-    addProperty('TJSONParser', 'Values', 'TVariantArray', @_LapeJSONParser_Values_Read);
-    addProperty('TJSONParser', 'Keys', 'TStringArray', @_LapeJSONParser_Keys_Read);
-    addProperty('TJSONParser', 'Count', 'Integer', @_LapeJSONParser_Count_Read);
-    addProperty('TJSONParser', 'AsString', 'String', @_LapeJSONParser_AsString_Read);
+    addGlobalFunc('function NewJSONObject: TJSONItem;', @_LapeNewJSONObject);
+    addGlobalFunc('function NewJSONArray: TJSONItem;', @_LapeNewJSONArray);
+    addGlobalFunc('function ParseJSON(Str: String): TJSONItem;', @_LapeParseJSON);
+    addGlobalFunc('function LoadJSON(FileName: String): TJSONItem;', @_LapeLoadJSON);
+    addGlobalFunc('procedure SaveJSON(Item: TJSONItem; FileName: String);', @_LapeSaveJSON);
 
     DumpSection := '';
   end;

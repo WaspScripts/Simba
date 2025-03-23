@@ -3,7 +3,7 @@
   Project: Simba (https://github.com/MerlijnWajer/Simba)
   License: GNU General Public License (https://www.gnu.org/licenses/gpl-3.0)
 
-  Wraps FPC's json parser in a more scripting like way.
+  Wraps FPC's json parser
 }
 unit simba.json;
 
@@ -14,589 +14,433 @@ interface
 uses
   Classes, SysUtils,
   fpjson,
-  simba.base, simba.baseclass;
+  simba.base,
+  simba.baseclass;
 
 type
-  ESimbaJSONValueType = (UNKNOWN, NULL, INT, FLOAT, STR, BOOL);
+  {$SCOPEDENUMS ON}
+  EJSONItemType = (UNKNOWN, INT, FLOAT, STR, BOOL, NULL, ARR, OBJ);
+  {$SCOPEDENUMS OFF}
 
-  TSimbaJSONElement = record
+  TSimbaJSONItem = type Pointer;
+  TSimbaJSONItemHelper = type helper for TSimbaJSONItem
   private
-    FData: TJSONData;
+    procedure CheckIsObject;
+    procedure CheckIsObjectOrArray;
 
-    function GetValues: TVariantArray;
+    function GetAsBool: Boolean;
+    function GetAsFloat: Double;
+    function GetAsInt: Int64;
     function GetAsString: String;
-    function GetValue: Variant;
+    function GetAsUnicodeString: UnicodeString;
     function GetCount: Integer;
-    function GetIsArray: Boolean;
-    function GetIsObject: Boolean;
-    function GetIsValue: Boolean;
-    function GetItems(Index: Integer): TSimbaJSONElement;
+    function GetItemByIndex(Index: Integer): TSimbaJSONItem;
+    function GetItemByKey(Key: String): TSimbaJSONItem;
+    function GetItemType: EJSONItemType;
     function GetKeys: TStringArray;
-    function GetValueType: ESimbaJSONValueType;
 
-    procedure SetValue(Value: Variant);
+    procedure SetAsBool(AValue: Boolean);
+    procedure SetAsFloat(AValue: Double);
+    procedure SetAsInt(AValue: Int64);
+    procedure SetAsString(AValue: String);
+    procedure SetAsUnicodeString(AValue: UnicodeString);
   public
-    class operator := (Right: TJSONData): TSimbaJSONElement;
-    class operator := (Right: TSimbaJSONElement): TJSONData;
+    property Typ: EJSONItemType read GetItemType;
 
-    function Clone: TSimbaJSONElement;
-
-    function Find(Key: String; out Element: TSimbaJSONElement): Boolean;
-    function FindPath(Path: String; out Element: TSimbaJSONElement): Boolean;
-
-    function HasKey(Key: String): Boolean; overload;
-    function HasKey(Keys: TStringArray): Boolean; overload;
-    function HasKeys(Keys: TStringArray): Boolean;
-
-    function AddNull(Key: String): TSimbaJSONElement;
-    function AddArray(Key: String): TSimbaJSONElement; overload;
-    function AddArray(Key: String; Elements: TVariantArray): TSimbaJSONElement; overload;
-
-    function AddObject(Key: String): TSimbaJSONElement;
-    procedure AddValue(Key: String; Value: Variant);
-    procedure AddElement(Key: String; Element: TSimbaJSONElement);
-
-    procedure Clear;
-    procedure Delete(Key: String); overload;
-    procedure Delete(Index: Integer); overload;
-
-    property IsValue: Boolean read GetIsValue;
-    property IsArray: Boolean read GetIsArray;
-    property IsObject: Boolean read GetIsObject;
-
-    property ValueType: ESimbaJSONValueType read GetValueType;
-    property Value: Variant read GetValue write SetValue;
-    property Values: TVariantArray read GetValues;
+    property AsInt: Int64 read GetAsInt write SetAsInt;
+    property AsString: String read GetAsString write SetAsString;
+    property AsUnicodeString: UnicodeString read GetAsUnicodeString write SetAsUnicodeString;
+    property AsBool: Boolean read GetAsBool write SetAsBool;
+    property AsFloat: Double read GetAsFloat write SetAsFloat;
 
     property Keys: TStringArray read GetKeys;
     property Count: Integer read GetCount;
-    property Items[Index: Integer]: TSimbaJSONElement read GetItems;
+    property ItemsByIndex[Index: Integer]: TSimbaJSONItem read GetItemByIndex;
+    property ItemsByKey[Key: String]: TSimbaJSONItem read GetItemByKey;
 
-    property AsString: String read GetAsString;
-  end;
+    procedure Add(Key: String; Value: TSimbaJSONItem);
+    procedure AddInt(Key: String; Value: Int64);
+    procedure AddString(Key: String; Value: String);
+    procedure AddUnicodeSring(Key: String; Value: UnicodeString);
+    procedure AddBool(Key: String; Value: Boolean);
+    procedure AddFloat(Key: String; Value: Double);
+    procedure AddArray(Key: String; Value: TSimbaJSONItem);
+    procedure AddObject(Key: String; Value: TSimbaJSONItem);
 
-  TSimbaJSONParser = class(TSimbaBaseClass)
-  protected
-    FRoot: TSimbaJSONElement;
+    function Has(Key: String): Boolean; overload;
+    function Has(Key: String; ItemType: EJSONItemType): Boolean; overload;
 
-    function GetValues: TVariantArray;
-    function GetKeys: TStringArray;
-    function GetAsString: String;
-    function GetCount: Integer;
-    function GetItems(Index: Integer): TSimbaJSONElement;
-  public
-    constructor Create(Str: String);
-    constructor CreateFromFile(FileName: String);
-    destructor Destroy; override;
+    function GetInt(Key: String; out Value: Int64): Boolean;
+    function GetFloat(Key: String; out Value: Double): Boolean;
+    function GetString(Key: String; out Value: String): Boolean;
+    function GetUnicodeString(Key: String; out Value: UnicodeString): Boolean;
+    function GetBool(Key: String; out Value: Boolean): Boolean;
+    function GetArray(Key: String; out Value: TSimbaJSONItem): Boolean;
+    function GetObject(Key: String; out Value: TSimbaJSONItem): Boolean;
 
-    function SaveToFile(FileName: String): Boolean;
-
-    // These all just wrap FRoot.XXX
-    function Find(Key: String; out Element: TSimbaJSONElement): Boolean;
-    function FindPath(Path: String; out Element: TSimbaJSONElement): Boolean;
-
-    function HasKey(Key: String): Boolean; overload;
-    function HasKey(Keys: TStringArray): Boolean; overload;
-    function HasKeys(Keys: TStringArray): Boolean;
-
-    function AddNull(Key: String): TSimbaJSONElement;
-    function AddArray(Key: String): TSimbaJSONElement; overload;
-    function AddArray(Key: String; Values: TVariantArray): TSimbaJSONElement; overload;
-    function AddObject(Key: String): TSimbaJSONElement;
-    procedure AddValue(Key: String; Value: Variant);
-    procedure AddElement(Key: String; Element: TSimbaJSONElement);
-
+    function FindPath(Path: String): TSimbaJSONItem;
+    function Clone: TSimbaJSONItem;
+    procedure Delete(Item: TSimbaJSONItem);
     procedure Clear;
-    procedure Delete(Key: String); overload;
-    procedure Delete(Index: Integer); overload;
 
-    property Values: TVariantArray read GetValues;
-    property Keys: TStringArray read GetKeys;
-    property Count: Integer read GetCount;
-    property Items[Index: Integer]: TSimbaJSONElement read GetItems;
+    function ToJSON: String;
 
-    property AsString: String read GetAsString;
+    procedure Free;
   end;
+
+  function NewJSONObject: TSimbaJSONItem;
+  function NewJSONArray: TSimbaJSONItem;
+  function ParseJSON(Str: String): TSimbaJSONItem;
+  function LoadJSON(FileName: String): TSimbaJSONItem;
+  procedure SaveJSON(Json: TSimbaJSONItem; FileName: String);
 
 implementation
 
 uses
-  jsonscanner, jsonparser, Variants;
+  jsonscanner,
+  jsonparser;
 
-{$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
-
-function TSimbaJSONElement.GetAsString: String;
+procedure TSimbaJSONItemHelper.CheckIsObject;
 begin
-  if (FData <> nil) then
-    Result := FData.FormatJSON()
-  else
-    Result := '';
+  if (TJSONData(Self).JSONType <> jtObject) then
+    raise Exception.CreateFmt('Expected a JSON object. This item is a %s', [JSONTypeName(TJSONData(Self).JSONType)]);
 end;
 
-function TSimbaJSONElement.GetValues: TVariantArray;
-var
-  Cur, I: Integer;
+procedure TSimbaJSONItemHelper.CheckIsObjectOrArray;
 begin
-  SetLength(Result, Count);
-  Cur := 0;
-  for I := 0 to Count - 1 do
-    if Items[I].IsValue then
-    begin
-      Result[Cur] := Items[I].Value;
-      Inc(Cur);
-    end;
-  SetLength(Result, Cur);
+  if (not (TJSONData(Self).JSONType in [jtObject, jtArray])) then
+    raise Exception.CreateFmt('Expected a JSON object/array. This item is a %s', [JSONTypeName(TJSONData(Self).JSONType)]);
 end;
 
-function TSimbaJSONElement.GetValue: Variant;
+function TSimbaJSONItemHelper.GetAsBool: Boolean;
 begin
-  if (FData <> nil) then
-    Result := FData.Value
-  else
-    Result := Null;
+  Result := TJSONData(Self).AsBoolean;
 end;
 
-function TSimbaJSONElement.GetCount: Integer;
+function TSimbaJSONItemHelper.GetAsFloat: Double;
 begin
-  if (FData <> nil) then
-    Result := FData.Count
-  else
-    Result := 0;
+  Result := TJSONData(Self).AsFloat;
 end;
 
-function TSimbaJSONElement.GetIsArray: Boolean;
+function TSimbaJSONItemHelper.GetAsInt: Int64;
 begin
-  Result := FData is TJSONArray;
+  Result := TJSONData(Self).AsInt64;
 end;
 
-function TSimbaJSONElement.GetIsObject: Boolean;
+function TSimbaJSONItemHelper.GetAsString: String;
 begin
-  Result := FData is TJSONObject;
+  Result := TJSONData(Self).AsString;
 end;
 
-function TSimbaJSONElement.GetIsValue: Boolean;
+function TSimbaJSONItemHelper.GetCount: Integer;
 begin
-  Result := (FData <> nil) and (not (FData is TJSONArray)) and (not (FData is TJSONObject));
+  Result := TJSONData(Self).Count;
 end;
 
-function TSimbaJSONElement.GetItems(Index: Integer): TSimbaJSONElement;
+function TSimbaJSONItemHelper.GetItemByIndex(Index: Integer): TSimbaJSONItem;
 begin
-  if (FData = nil) then
-    SimbaException('This element is nil');
-
-  Result := FData.Items[Index];
+  Result := TJSONData(Self).Items[Index];
 end;
 
-function TSimbaJSONElement.GetKeys: TStringArray;
-var
-  I: Integer;
+function TSimbaJSONItemHelper.GetItemByKey(Key: String): TSimbaJSONItem;
 begin
-  if (FData is TJSONObject) then
-  begin
-    SetLength(Result, FData.Count);
-    for I := 0 to FData.Count - 1 do
-      Result[I] := TJSONObject(FData).Names[I];
-  end else
-    Result := [];
+  CheckIsObject();
+
+  Result := TJSONObject(Self).Find(Key);
 end;
 
-function TSimbaJSONElement.GetValueType: ESimbaJSONValueType;
+function TSimbaJSONItemHelper.GetItemType: EJSONItemType;
 begin
-  if (FData = nil) then
-    SimbaException('This element is nil');
-
-  case FData.JSONType of
+  case TJSONData(Self).JSONType of
+    jtUnknown: Result := EJSONItemType.UNKNOWN;
+    jtString:  Result := EJSONItemType.STR;
+    jtBoolean: Result := EJSONItemType.BOOL;
+    jtNull:    Result := EJSONItemType.NULL;
+    jtArray:   Result := EJSONItemType.ARR;
+    jtObject:  Result := EJSONItemType.OBJ;
     jtNumber:
-      begin
-        if (TJSONNumber(FData).NumberType = ntFloat) then
-          Result := ESimbaJSONValueType.FLOAT
-        else
-          Result := ESimbaJSONValueType.INT;
-      end;
-    jtString:  Result := ESimbaJSONValueType.STR;
-    jtBoolean: Result := ESimbaJSONValueType.BOOL;
-    jtNull:    Result := ESimbaJSONValueType.NULL;
-    else
-      Result := ESimbaJSONValueType.UNKNOWN;
+      if (TJSONNumber(Self).NumberType = ntFloat) then
+        Result := EJSONItemType.FLOAT
+      else
+        Result := EJSONItemType.INT;
   end;
 end;
 
-procedure TSimbaJSONElement.SetValue(Value: Variant);
-begin
-  if (FData = nil) then
-    SimbaException('This element is nil');
-
-  FData.Value := Value;
-end;
-
-class operator TSimbaJSONElement.:=(Right: TJSONData): TSimbaJSONElement;
-begin
-  Result.FData := Right;
-end;
-
-class operator TSimbaJSONElement.:=(Right: TSimbaJSONElement): TJSONData;
-begin
-  Result := Right.FData;
-end;
-
-procedure TSimbaJSONElement.AddValue(Key: String; Value: Variant);
-begin
-  if (FData = nil) then
-    FData := TJSONObject.Create(); // default to object, use AddArray('') for a root array object..
-
-  if (FData is TJSONObject) or (FData is TJSONArray) then
-  begin
-    if VarIsStr(Value) then
-      if IsArray then
-        TJSONArray(FData).Add(TJSONStringType(Value))
-      else
-        TJSONObject(FData).Add(Key, TJSONStringType(Value))
-    else
-    if VarIsBool(Value) then
-      if IsArray then
-        TJSONArray(FData).Add(Boolean(Value))
-      else
-        TJSONObject(FData).Add(Key, Boolean(Value))
-    else
-    if VarIsOrdinal(Value) then
-      if IsArray then
-        TJSONArray(FData).Add(TJSONLargeInt(Value))
-      else
-        TJSONObject(FData).Add(Key, TJSONLargeInt(Value))
-    else
-    if VarIsFloat(Value) then
-      if IsArray then
-        TJSONArray(FData).Add(TJSONFloat(Value))
-      else
-        TJSONObject(FData).Add(Key, TJSONFloat(Value))
-    else
-      SimbaException('Invalid JSON variant type: ' + VarTypeAsText(VarType(Value)));
-  end else
-    SimbaException('Element is not json object or array');
-end;
-
-function TSimbaJSONElement.AddArray(Key: String): TSimbaJSONElement;
-begin
-  if (FData = nil) then
-    if (Key = '') then
-    begin
-      FData := TJSONArray.Create();
-      Result := FData;
-      Exit;
-    end
-  else
-    FData := TJSONObject.Create();
-
-  if (FData is TJSONArray) then
-    Result := FData.Items[TJSONArray(FData).Add(TJSONArray.Create())]
-  else
-  if (FData is TJSONObject) then
-    Result := FData.Items[TJSONObject(FData).Add(Key, TJSONArray.Create())]
-  else
-    SimbaException('Element is not json object or array')
-end;
-
-function TSimbaJSONElement.AddArray(Key: String; Elements: TVariantArray): TSimbaJSONElement;
+function TSimbaJSONItemHelper.GetKeys: TStringArray;
 var
   I: Integer;
 begin
-  Result := AddArray(Key);
-  for I := 0 to High(Elements) do
-    Result.AddValue('', Elements[I]);
+  CheckIsObject();
+
+  SetLength(Result, TJSONObject(Self).Count);
+  for I := 0 to TJSONObject(Self).Count - 1 do
+    Result[I] := TJSONObject(Self).Names[I];
 end;
 
-function TSimbaJSONElement.AddObject(Key: String): TSimbaJSONElement;
+function TSimbaJSONItemHelper.GetAsUnicodeString: UnicodeString;
 begin
-  if (FData = nil) then
-    FData := TJSONObject.Create(); // default to object, use AddArray('') for a root array object...
-
-  if (FData is TJSONArray) then
-    Result := FData.Items[TJSONArray(FData).Add(TJSONObject.Create())]
-  else
-  if (FData is TJSONObject) then
-    Result := FData.Items[TJSONObject(FData).Add(Key, TJSONObject.Create())]
-  else
-    SimbaException('Element is not json object or array');
+  Result := TJSONData(Self).AsUnicodeString;
 end;
 
-procedure TSimbaJSONElement.AddElement(Key: String; Element: TSimbaJSONElement);
+function TSimbaJSONItemHelper.ToJSON: String;
 begin
-  if (FData = nil) then
-    FData := TJSONObject.Create(); // default to object, use AddArray for a root array object...
-
-  if (FData is TJSONArray) then
-    TJSONArray(FData).Add(Element)
-  else
-  if (FData is TJSONObject) then
-    TJSONObject(FData).Add(Key, Element)
-  else
-    SimbaException('Element is not json object or array');
+  Result := TJSONData(Self).FormatJSON();
 end;
 
-function TSimbaJSONElement.AddNull(Key: String): TSimbaJSONElement;
+procedure TSimbaJSONItemHelper.SetAsBool(AValue: Boolean);
 begin
-  if (FData = nil) then
-    FData := TJSONObject.Create(); // default to object, use AddArray for a root array object...
-
-  if (FData is TJSONArray) then
-    Result := FData.Items[TJSONArray(FData).Add(TJSONNull.Create())]
-  else
-  if (FData is TJSONObject) then
-    Result := FData.Items[TJSONObject(FData).Add(Key, TJSONNull.Create())]
-  else
-    SimbaException('Element is not json object or array');
+  TJSONData(Self).AsBoolean := AValue;
 end;
 
-procedure TSimbaJSONElement.Clear;
+procedure TSimbaJSONItemHelper.SetAsFloat(AValue: Double);
 begin
-  if (FData <> nil) then
-    FData.Clear();
+  TJSONData(Self).AsFloat := AValue;
 end;
 
-procedure TSimbaJSONElement.Delete(Key: String);
+procedure TSimbaJSONItemHelper.SetAsInt(AValue: Int64);
 begin
-  if (FData is TJSONObject) then
-    TJSONObject(FData).Delete(Key);
+  TJSONData(Self).AsInt64 := AValue;
 end;
 
-procedure TSimbaJSONElement.Delete(Index: Integer);
+procedure TSimbaJSONItemHelper.SetAsString(AValue: String);
 begin
-  if (FData is TJSONArray) then
-    TJSONArray(FData).Delete(Index)
-  else
-  if (FData is TJSONObject) then
-    TJSONObject(FData).Delete(Index);
+  TJSONData(Self).AsString := AValue;
 end;
 
-function TSimbaJSONElement.Find(Key: String; out Element: TSimbaJSONElement): Boolean;
+procedure TSimbaJSONItemHelper.SetAsUnicodeString(AValue: UnicodeString);
+begin
+  TJSONData(Self).AsUnicodeString := AValue;
+end;
+
+procedure TSimbaJSONItemHelper.Add(Key: String; Value: TSimbaJSONItem);
+begin
+  CheckIsObjectOrArray();
+
+  case TJSONData(Self).JSONType of
+    jtObject: TJSONObject(Self).Add(Key, TJSONData(Value));
+    jtArray:  TJSONArray(Self).Add(TJSONData(Value));
+  end;
+end;
+
+procedure TSimbaJSONItemHelper.AddInt(Key: String; Value: Int64);
+begin
+  CheckIsObjectOrArray();
+
+  case TJSONData(Self).JSONType of
+    jtObject: TJSONObject(Self).Add(Key, Value);
+    jtArray:  TJSONArray(Self).Add(Value);
+  end;
+end;
+
+procedure TSimbaJSONItemHelper.AddString(Key: String; Value: String);
+begin
+  CheckIsObjectOrArray();
+
+  case TJSONData(Self).JSONType of
+    jtObject: TJSONObject(Self).Add(Key, Value);
+    jtArray:  TJSONArray(Self).Add(Value);
+  end;
+end;
+
+procedure TSimbaJSONItemHelper.AddUnicodeSring(Key: String; Value: UnicodeString);
+begin
+  CheckIsObjectOrArray();
+
+  case TJSONData(Self).JSONType of
+    jtObject: TJSONObject(Self).Add(Key, Value);
+    jtArray:  TJSONArray(Self).Add(Value);
+  end;
+end;
+
+procedure TSimbaJSONItemHelper.AddBool(Key: String; Value: Boolean);
+begin
+  CheckIsObjectOrArray();
+
+  case TJSONData(Self).JSONType of
+    jtObject: TJSONObject(Self).Add(Key, Value);
+    jtArray:  TJSONArray(Self).Add(Value);
+  end;
+end;
+
+procedure TSimbaJSONItemHelper.AddFloat(Key: String; Value: Double);
+begin
+  CheckIsObjectOrArray();
+
+  case TJSONData(Self).JSONType of
+    jtObject: TJSONObject(Self).Add(Key, Value);
+    jtArray:  TJSONArray(Self).Add(Value);
+  end;
+end;
+
+procedure TSimbaJSONItemHelper.AddArray(Key: String; Value: TSimbaJSONItem);
+begin
+  CheckIsObjectOrArray();
+  if (TJSONData(Value).JSONType <> jtArray) then
+    raise Exception.Create('Value is not a JSON array');
+
+  case TJSONData(Self).JSONType of
+    jtObject: TJSONObject(Self).Add(Key, TJSONArray(Value));
+    jtArray:  TJSONArray(Self).Add(TJSONArray(Value));
+  end;
+end;
+
+procedure TSimbaJSONItemHelper.AddObject(Key: String; Value: TSimbaJSONItem);
+begin
+  CheckIsObjectOrArray();
+  if (TJSONData(Value).JSONType <> jtObject) then
+    raise Exception.Create('Value is not a JSON object');
+
+  case TJSONData(Self).JSONType of
+    jtObject: TJSONObject(Self).Add(Key, TJSONObject(Value));
+    jtArray:  TJSONArray(Self).Add(TJSONObject(Value));
+  end;
+end;
+
+function TSimbaJSONItemHelper.Has(Key: String): Boolean;
+begin
+  CheckIsObject();
+  Result := TJSONObject(Self).Find(Key) <> nil;
+end;
+
+function TSimbaJSONItemHelper.Has(Key: String; ItemType: EJSONItemType): Boolean;
 var
-  Data: TJSONData;
+  Item: TSimbaJSONItem;
 begin
-  if (FData = nil) then
-    Exit(False);
-
-  if (FData is TJSONObject) then
-  begin
-    Result := TJSONObject(FData).Find(Key, Data);
-    if Result then
-      Element := Data;
-  end else
-    SimbaException('Element is not json object');
+  CheckIsObject();
+  Item := ItemsByKey[Key];
+  Result := (Item <> nil) and (Item.Typ = ItemType);
 end;
 
-function TSimbaJSONElement.FindPath(Path: String; out Element: TSimbaJSONElement): Boolean;
-var
-  Data: TJSONData;
+function TSimbaJSONItemHelper.GetInt(Key: String; out Value: Int64): Boolean;
 begin
-  if (FData = nil) then
-    Exit(False);
-
-  Data := FData.FindPath(Path);
-  Result := Assigned(Data);
+  Result := Has(Key, EJSONItemType.INT);
   if Result then
-    Element := Data;
+    Value := ItemsByKey[Key].AsInt;
 end;
 
-function TSimbaJSONElement.HasKey(Key: String): Boolean;
+function TSimbaJSONItemHelper.GetFloat(Key: String; out Value: Double): Boolean;
 begin
-  if (FData is TJSONObject) then
-    Result := Assigned(TJSONObject(FData).Find(Key))
-  else
-    Result := False;
+  Result := Has(Key, EJSONItemType.FLOAT);
+  if Result then
+    Value := ItemsByKey[Key].AsFloat;
 end;
 
-function TSimbaJSONElement.HasKey(Keys: TStringArray): Boolean;
-var
-  Key: String;
+function TSimbaJSONItemHelper.GetString(Key: String; out Value: String): Boolean;
 begin
-  if (FData is TJSONObject) then
-    for Key in Keys do
-      if Assigned(TJSONObject(FData).Find(Key)) then
-        Exit(True);
-
-  Result := False;
+  Result := Has(Key, EJSONItemType.STR);
+  if Result then
+    Value := ItemsByKey[Key].AsString;
 end;
 
-function TSimbaJSONElement.HasKeys(Keys: TStringArray): Boolean;
-var
-  Key: String;
+function TSimbaJSONItemHelper.GetUnicodeString(Key: String; out Value: UnicodeString): Boolean;
 begin
-  Result := False;
+  Result := Has(Key, EJSONItemType.STR);
+  if Result then
+    Value := ItemsByKey[Key].AsUnicodeString;
+end;
 
-  if (FData is TJSONObject) then
-  begin
-    for Key in Keys do
-      if not Assigned(TJSONObject(FData).Find(Key)) then
-        Exit;
+function TSimbaJSONItemHelper.GetBool(Key: String; out Value: Boolean): Boolean;
+begin
+  Result := Has(Key, EJSONItemType.BOOL);
+  if Result then
+    Value := ItemsByKey[Key].AsBool;
+end;
 
-    Result := True;
+function TSimbaJSONItemHelper.GetArray(Key: String; out Value: TSimbaJSONItem): Boolean;
+begin
+  Result := Has(Key, EJSONItemType.ARR);
+  if Result then
+    Value := TJSONArray(ItemsByKey[Key]);
+end;
+
+function TSimbaJSONItemHelper.GetObject(Key: String; out Value: TSimbaJSONItem): Boolean;
+begin
+  Result := Has(Key, EJSONItemType.OBJ);
+  if Result then
+    Value := TJSONObject(ItemsByKey[Key]);
+end;
+
+function TSimbaJSONItemHelper.FindPath(Path: String): TSimbaJSONItem;
+begin
+  Result := TJSONData(Self).FindPath(Path);
+end;
+
+function TSimbaJSONItemHelper.Clone: TSimbaJSONItem;
+begin
+  Result := TJSONData(Self).Clone;
+end;
+
+procedure TSimbaJSONItemHelper.Delete(Item: TSimbaJSONItem);
+begin
+  CheckIsObjectOrArray();
+
+  case TJSONData(Self).JSONType of
+    jtObject: TJSONObject(Self).Delete(TJSONObject(Self).IndexOf(TJSONData(Item)));
+    jtArray:  TJSONArray(Self).Delete(TJSONArray(Self).IndexOf(TJSONData(Item)));
+    else
+      raise Exception.Create('Cannot delete to a non json object/array');
   end;
 end;
 
-function TSimbaJSONElement.Clone: TSimbaJSONElement;
+procedure TSimbaJSONItemHelper.Clear;
 begin
-  if (FData = nil) then
-    SimbaException('Cannot clone a nil json element');
+  CheckIsObjectOrArray();
 
-  Result := FData.Clone;
-end;
-
-constructor TSimbaJSONParser.Create(Str: String);
-var
-  Parser: TJSONParser;
-begin
-  inherited Create();
-
-  if (Str <> '') then
-  begin
-    Parser := TJSONParser.Create(Str, [joUTF8, joComments, joIgnoreTrailingComma]);
-    try
-      FRoot := Parser.Parse();
-    finally
-      Parser.Free();
-    end;
+  case TJSONData(Self).JSONType of
+    jtObject: TJSONObject(Self).Clear;
+    jtArray:  TJSONArray(Self).Clear;
   end;
 end;
 
-constructor TSimbaJSONParser.CreateFromFile(FileName: String);
+procedure TSimbaJSONItemHelper.Free;
+begin
+  FreeAndNil(TJSONData(Self));
+end;
+
+function NewJSONObject: TSimbaJSONItem;
+begin
+  Result := TJSONObject.Create();
+end;
+
+function NewJSONArray: TSimbaJSONItem;
+begin
+  Result := TJSONArray.Create();
+end;
+
+function ParseJSON(Str: String): TSimbaJSONItem;
+begin
+  Result := TSimbaJSONItem(GetJSON(Str));
+end;
+
+function LoadJSON(FileName: String): TSimbaJSONItem;
 var
   Stream: TFileStream;
 begin
-  inherited Create();
-
   Stream := TFileStream.Create(FileName, fmOpenRead);
   try
-    FRoot := GetJSON(Stream);
+    Result := TSimbaJSONItem(GetJSON(Stream));
   finally
     Stream.Free();
   end;
 end;
 
-destructor TSimbaJSONParser.Destroy;
-begin
-  if (FRoot.FData <> nil) then
-    FreeAndNil(FRoot.FData);
-
-  inherited Destroy();
-end;
-
-function TSimbaJSONParser.SaveToFile(FileName: String): Boolean;
+procedure SaveJSON(Json: TSimbaJSONItem; FileName: String);
 var
   Stream: TFileStream;
-  Str: String;
+  Text: String;
 begin
-  Result := False;
+  Text := JSON.ToJSON;
 
-  Stream := nil;
+  if FileExists(FileName) then
+    Stream := TFileStream.Create(FileName, fmOpenReadWrite)
+  else
+    Stream := TFileStream.Create(FileName, fmCreate);
+
   try
-    Str := AsString;
-    if FileExists(FileName) then
-      Stream := TFileStream.Create(FileName, fmOpenReadWrite or fmShareDenyWrite)
-    else
-      Stream := TFileStream.Create(FileName, fmCreate or fmShareDenyWrite);
-
-    Stream.WriteBuffer(Str[1], Length(Str));
-  except
-  end;
-
-  if (Stream <> nil) then
+    Stream.Write(Text[1], Length(Text));
+  finally
     Stream.Free();
-end;
-
-procedure TSimbaJSONParser.Clear;
-begin
-  if (FRoot.FData <> nil) then
-    FreeAndNil(FRoot.FData);
-end;
-
-procedure TSimbaJSONParser.AddElement(Key: String; Element: TSimbaJSONElement);
-begin
-  FRoot.AddElement(Key, Element);
-end;
-
-procedure TSimbaJSONParser.AddValue(Key: String; Value: Variant);
-begin
-  FRoot.AddValue(Key, Value);
-end;
-
-function TSimbaJSONParser.AddArray(Key: String): TSimbaJSONElement;
-begin
-  Result := FRoot.AddArray(Key);
-end;
-
-function TSimbaJSONParser.AddArray(Key: String; Values: TVariantArray): TSimbaJSONElement;
-begin
-  Result := FRoot.AddArray(Key, Values);
-end;
-
-function TSimbaJSONParser.AddObject(Key: String): TSimbaJSONElement;
-begin
-  Result := FRoot.AddObject(Key);
-end;
-
-procedure TSimbaJSONParser.Delete(Key: String);
-begin
-  FRoot.Delete(Key);
-end;
-
-procedure TSimbaJSONParser.Delete(Index: Integer);
-begin
-  FRoot.Delete(Index);
-end;
-
-function TSimbaJSONParser.Find(Key: String; out Element: TSimbaJSONElement): Boolean;
-begin
-  Result := FRoot.Find(Key, Element);
-end;
-
-function TSimbaJSONParser.FindPath(Path: String; out Element: TSimbaJSONElement): Boolean;
-begin
-  Result := FRoot.FindPath(Path, Element);
-end;
-
-function TSimbaJSONParser.HasKey(Key: String): Boolean;
-begin
-  Result := FRoot.HasKey(Key);
-end;
-
-function TSimbaJSONParser.HasKey(Keys: TStringArray): Boolean;
-begin
-  Result := FRoot.HasKey(Keys);
-end;
-
-function TSimbaJSONParser.HasKeys(Keys: TStringArray): Boolean;
-begin
-  Result := FRoot.HasKeys(Keys);
-end;
-
-function TSimbaJSONParser.AddNull(Key: String): TSimbaJSONElement;
-begin
-  Result := FRoot.AddNull(Key);
-end;
-
-function TSimbaJSONParser.GetCount: Integer;
-begin
-  Result := FRoot.Count;
-end;
-
-function TSimbaJSONParser.GetValues: TVariantArray;
-begin
-  Result := FRoot.Values;
-end;
-
-function TSimbaJSONParser.GetKeys: TStringArray;
-begin
-  Result := FRoot.Keys;
-end;
-
-function TSimbaJSONParser.GetAsString: String;
-begin
-  Result := FRoot.AsString;
-end;
-
-function TSimbaJSONParser.GetItems(Index: Integer): TSimbaJSONElement;
-begin
-  Result := FRoot.Items[Index];
+  end;
 end;
 
 end.

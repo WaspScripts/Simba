@@ -270,7 +270,7 @@ end;
 TSimbaHTTPClient.GetJson
 ------------------------
 ```
-function TSimbaHTTPClient.GetJson(URL: String): TSimbaJSONParser;
+function TSimbaHTTPClient.GetJson(URL: String): TJsonItem;
 ```
 *)
 procedure _LapeSimbaHTTPClient_GetJson(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -932,7 +932,7 @@ begin
     addGlobalFunc('procedure THTTPClient.Reset', @_LapeSimbaHTTPClient_Reset);
 
     addGlobalFunc('function THTTPClient.Get(URL: String): String', @_LapeSimbaHTTPClient_Get);
-    addGlobalFunc('function THTTPClient.GetJson(URL: String): TJsonParser', @_LapeSimbaHTTPClient_GetJson);
+    addGlobalFunc('function THTTPClient.GetJson(URL: String): TJsonItem', @_LapeSimbaHTTPClient_GetJson);
     addGlobalFunc('procedure THTTPClient.GetFile(URL, LocalFileName: String)', @_LapeSimbaHTTPClient_GetFile);
     addGlobalFunc('procedure THTTPClient.GetZip(URL: String; OutputPath: String)', @_LapeSimbaHTTPClient_GetZIP);
     addGlobalFunc('function THTTPClient.Head(URL: String): EHTTPStatus', @_LapeSimbaHTTPClient_Head);

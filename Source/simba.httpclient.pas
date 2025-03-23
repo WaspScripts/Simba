@@ -184,8 +184,8 @@ type
     // Writes page contents to result
     function Get(URL: String): String;
 
-    // Parses page contents as json and returns
-    function GetJson(URL: String): TSimbaJSONParser;
+    // Parses page contents as json and returns, this can return nil
+    function GetJson(URL: String): TSimbaJSONItem;
 
     // Writes page contents to a file.
     function GetFile(URL, LocalFileName: String): Boolean;
@@ -369,9 +369,9 @@ begin
   end;
 end;
 
-function TSimbaHTTPClient.GetJson(URL: String): TSimbaJSONParser;
+function TSimbaHTTPClient.GetJson(URL: String): TSimbaJSONItem;
 begin
-  Result := TSimbaJSONParser.Create(Get(URL));
+  Result := ParseJSON(Get(URL));
 end;
 
 function TSimbaHTTPClient.GetFile(URL, LocalFileName: String): Boolean;
