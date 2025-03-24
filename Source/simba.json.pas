@@ -13,7 +13,7 @@ interface
 
 uses
   Classes, SysUtils,
-  fpjson,
+  fpjson, jsonreader, jsonscanner,
   simba.base,
   simba.baseclass;
 
@@ -97,8 +97,7 @@ type
 implementation
 
 uses
-  jsonscanner,
-  jsonparser;
+  simba.jsonparser;
 
 procedure TSimbaJSONItemHelper.CheckIsObject;
 begin
@@ -399,17 +398,22 @@ end;
 
 function NewJSONObject: TSimbaJSONItem;
 begin
-  Result := TJSONObject.Create();
+  Result := TSimbaJSONParser.NewObject();
 end;
 
 function NewJSONArray: TSimbaJSONItem;
 begin
-  Result := TJSONArray.Create();
+  Result := TSimbaJSONParser.NewArray();
 end;
 
 function ParseJSON(Str: String): TSimbaJSONItem;
 begin
-  Result := TSimbaJSONItem(GetJSON(Str));
+  with TSimbaJSONParser.Create(TStringStream.Create(Str), True) do
+  try
+    Result := Parse();
+  finally
+    Free();
+  end;
 end;
 
 function LoadJSON(FileName: String): TSimbaJSONItem;
@@ -418,7 +422,12 @@ var
 begin
   Stream := TFileStream.Create(FileName, fmOpenRead);
   try
-    Result := TSimbaJSONItem(GetJSON(Stream));
+    with TSimbaJSONParser.Create(Stream, True) do
+    try
+      Result := Parse();
+    finally
+      Free();
+    end;
   finally
     Stream.Free();
   end;
