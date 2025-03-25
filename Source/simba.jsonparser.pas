@@ -3,7 +3,9 @@
   Project: Simba (https://github.com/MerlijnWajer/Simba)
   License: GNU General Public License (https://www.gnu.org/licenses/gpl-3.0)
   --------------------------------------------------------------------------
-  Reimplment FPC's TJSONParser but with tracking to report unfreed things.
+
+  Reimplement FPC's TJSONParser but with tracking to report unfreed things
+  like how TSimbaImage does.
 }
 unit simba.jsonparser;
 
@@ -57,7 +59,7 @@ type
     procedure EndArray; override;
     procedure EndObject; override;
   public
-    constructor Create(Stream: TStream; DoFree: Boolean); reintroduce;
+    constructor Create(Stream: TStream; FreeStream: Boolean); reintroduce;
 
     function Parse: TJSONData;
 
@@ -494,7 +496,7 @@ begin
     DoExecute;
     Result:=FValue;
   except
-    on E : exception do
+    on E: Exception do
     begin
       FreeAndNil(FValue);
       FStackPos:=0;
@@ -514,11 +516,12 @@ begin
   Result := TSimbaJSONObject.Create(TGarbageList.Create());
 end;
 
-constructor TSimbaJSONParser.Create(Stream: TStream; DoFree: Boolean);
+constructor TSimbaJSONParser.Create(Stream: TStream; FreeStream: Boolean);
 begin
   inherited Create(Stream, DefaultOptions);
-
   FGarbage := TGarbageList.Create();
+  if FreeStream then
+    Stream.Free();
 end;
 
 end.

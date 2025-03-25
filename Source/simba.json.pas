@@ -2,8 +2,9 @@
   Author: Raymond van Venetië and Merlijn Wajer
   Project: Simba (https://github.com/MerlijnWajer/Simba)
   License: GNU General Public License (https://www.gnu.org/licenses/gpl-3.0)
+  --------------------------------------------------------------------------
 
-  Wraps FPC's json parser
+  Wraps FPC's json parser.
 }
 unit simba.json;
 
@@ -13,9 +14,8 @@ interface
 
 uses
   Classes, SysUtils,
-  fpjson, jsonreader, jsonscanner,
-  simba.base,
-  simba.baseclass;
+  fpjson, jsonscanner,
+  simba.base, simba.baseclass;
 
 type
   {$SCOPEDENUMS ON}
@@ -439,6 +439,8 @@ var
   Text: String;
 begin
   Text := JSON.ToJSON;
+  if (Length(Text) = 0) then
+    Exit;
 
   if FileExists(FileName) then
     Stream := TFileStream.Create(FileName, fmOpenReadWrite)

@@ -14,7 +14,7 @@ begin
   Assert(FileRead(TESTFILE) = 'Append');
   Assert(FileAppend(TESTFILE, 'Append'));
   Assert(FileRead(TESTFILE) = 'AppendAppend');
-  Assert(FileReadEx(TESTFILE, 10)='nd');
+  Assert(FileReadEx(TESTFILE, 10,11)='nd');
 
   Assert(FileWrite(TESTFILE, 'Write'));
   Assert(FileRead(TESTFILE) = 'Write');

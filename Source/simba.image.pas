@@ -1569,7 +1569,7 @@ end;
 
 function TSimbaImage.Downsample(Scale: Integer; IgnorePoints: TPointArray): TSimbaImage;
 begin
-  Result := SimbaImage_Downsample(Self, SCale, IgnorePoints);
+  Result := SimbaImage_Downsample(Self, Scale, IgnorePoints);
 end;
 
 function TSimbaImage.GetFontAntialiasing: Boolean;

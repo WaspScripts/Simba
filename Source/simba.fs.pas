@@ -19,22 +19,20 @@ const
 
 type
   TSimbaFile = class
-  protected
-    class function DoFileRead(const FileName: String; var Buffer; const Len: Integer; Offset: Integer = 0): Boolean;
-    class function DoFileWrite(const FileName: String; const Data; const Len: Integer): Boolean;
-    class function DoFileAppend(const FileName: String; const Data; const Len: Integer): Boolean;
+  private
+    class function DoFileRead(const FileName: String; Len, Offset: Integer; out Bytes: TByteArray): Boolean;
+    class function DoFileWrite(const FileName: String; const Bytes: TByteArray; Seek: TSeekOrigin; Offset: Integer): Boolean;
   public
     // Read/Write String
     class function FileRead(FileName: String): String;
-    class function FileReadEx(FileName: String; Offset: Integer): String; overload;
-    class function FileReadEx(FileName: String; Offset, Len: Integer): String; overload;
+    class function FileReadEx(FileName: String; Start, Stop: Integer): String;
+    class function FileReadLines(FileName: String): TStringArray;
     class function FileWrite(FileName: String; Text: String): Boolean;
     class function FileAppend(FileName: String; Text: String): Boolean;
-    class function FileReadLines(FileName: String): TStringArray;
 
     // Read/Write Byte
     class function FileReadBytes(FileName: String): TByteArray;
-    class function FileReadBytesEx(FileName: String; Offset: Integer): TByteArray;
+    class function FileReadBytesEx(FileName: String; Start, Stop: Integer): TByteArray;
     class function FileWriteBytes(FileName: String; Bytes: TByteArray): Boolean;
     class function FileAppendBytes(FileName: String; Bytes: TByteArray): Boolean;
 
@@ -49,6 +47,9 @@ type
     class function FileSizeInMegaBytes(FileName: String): Single;
     class function FileHash(FileName: String; Algo: EHashAlgo = EHashAlgo.SHA1): String;
     class function FileIsText(FileName: String): Boolean;
+
+    class function FileLock(FileName: String): Pointer;
+    class procedure FileUnlock(Lock: Pointer);
   end;
 
   TSimbaPath = class
@@ -105,7 +106,7 @@ uses
   BaseUnix,
   {$ENDIF}
   FileUtil, LazFileUtils, IniFiles,
-  simba.containers, simba.vartype_string;
+  simba.containers, simba.vartype_string, simba.vartype_ordarray;
 
 class function TSimbaDir.DirList(Path: String; Recursive: Boolean): TStringArray;
 var
@@ -371,67 +372,51 @@ begin
   Result := False;
 end;
 
-class function TSimbaFile.DoFileRead(const FileName: String; var Buffer; const Len: Integer; Offset: Integer): Boolean;
-var
-  Stream: TFileStream;
-begin
-  Stream := nil;
-  try
-    Stream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
-    Stream.Seek(Offset, soBeginning);
-    Stream.ReadBuffer(Buffer, Min(Len, Stream.Size - Offset));
-
-    Result := True;
-  except
-    Result := False;
-  end;
-
-  if (Stream <> nil) then
-    Stream.Free();
-end;
-
-class function TSimbaFile.DoFileWrite(const FileName: String; const Data; const Len: Integer): Boolean;
+class function TSimbaFile.DoFileRead(const FileName: String; Len, Offset: Integer; out Bytes: TByteArray): Boolean;
 var
   Stream: TFileStream;
 begin
   Result := False;
-  if (Len = 0) then
+
+  Bytes := [];
+  Stream := nil;
+  try
+    Stream := TFileStream.Create(FileName, fmOpenRead);
+    if (Len = -1) then
+      Len := $FFFFFF;
+    SetLength(Bytes, Min(Len, Stream.Size - Offset));
+    if (Length(Bytes) > 0) then
+    begin
+      Stream.Seek(Offset, soBeginning);
+      Stream.ReadBuffer(Bytes[0], Length(Bytes));
+
+      Result := True;
+    end;
+  except
+  end;
+  if (Stream <> nil) then
+    Stream.Free();
+end;
+
+class function TSimbaFile.DoFileWrite(const FileName: String; const Bytes: TByteArray; Seek: TSeekOrigin; Offset: Integer): Boolean;
+var
+  Stream: TFileStream;
+begin
+  Result := False;
+  if (Length(Bytes) = 0) then
     Exit;
 
   Stream := nil;
   try
     if FileExists(FileName) then
-      Stream := TFileStream.Create(FileName, fmOpenReadWrite or fmShareDenyWrite)
+      Stream := TFileStream.Create(FileName, fmOpenReadWrite)
     else
-      Stream := TFileStream.Create(FileName, fmCreate or fmShareDenyWrite);
-    Stream.Seek(0, soBeginning);
-    Stream.Size := 0;
+      Stream := TFileStream.Create(FileName, fmCreate);
+    Stream.Seek(Offset, Seek);
+    if (Seek = soBeginning) then
+      Stream.Size := 0;
 
-    Result := Stream.Write(Data, Len) = Len;
-  except
-  end;
-
-  if (Stream <> nil) then
-    Stream.Free();
-end;
-
-class function TSimbaFile.DoFileAppend(const FileName: String; const Data; const Len: Integer): Boolean;
-var
-  Stream: TFileStream;
-begin
-  Result := False;
-  if (Len = 0) then
-    Exit;
-
-  Stream := nil;
-  try
-    if FileExists(FileName) then
-      Stream := TFileStream.Create(FileName, fmOpenReadWrite or fmShareDenyWrite)
-    else
-      Stream := TFileStream.Create(FileName, fmCreate or fmShareDenyWrite);
-    Stream.Seek(0, soEnd);
-
-    Result := Stream.Write(Data, Len) = Len;
+    Result := Stream.Write(Bytes[0], Length(Bytes)) = Length(Bytes);
   except
   end;
 
@@ -440,35 +425,23 @@ begin
 end;
 
 class function TSimbaFile.FileRead(FileName: String): String;
+var
+  Bytes: TByteArray;
 begin
-  SetLength(Result, FileSize(FileName));
-
-  if (Length(Result) > 0) and (not DoFileRead(FileName, Result[1], Length(Result))) then
+  if DoFileRead(FileName, -1, 0, Bytes) then
+    Result := Bytes.ToString()
+  else
     Result := '';
 end;
 
-class function TSimbaFile.FileReadEx(FileName: String; Offset: Integer): String;
+class function TSimbaFile.FileReadEx(FileName: String; Start, Stop: Integer): String;
+var
+  Bytes: TByteArray;
 begin
-  SetLength(Result, FileSize(FileName) - Offset);
-  if (Length(Result) > 0) and (not DoFileRead(FileName, Result[1], Length(Result), Offset)) then
+  if DoFileRead(FileName, (Stop-Start)+1, Start, Bytes) then
+    Result := Bytes.ToString()
+  else
     Result := '';
-end;
-
-class function TSimbaFile.FileReadEx(FileName: String; Offset, Len: Integer): String;
-begin
-  SetLength(Result, Len);
-  if (Length(Result) > 0) and (not DoFileRead(FileName, Result[1], Len, Offset)) then
-    Result := '';
-end;
-
-class function TSimbaFile.FileWrite(FileName: String; Text: String): Boolean;
-begin
-  Result := (Length(Text) > 0) and DoFileWrite(FileName, Text[1], Length(Text));
-end;
-
-class function TSimbaFile.FileAppend(FileName: String; Text: String): Boolean;
-begin
-  Result := (Length(Text) > 0) and DoFileAppend(FileName, Text[1], Length(Text));
 end;
 
 class function TSimbaFile.FileReadLines(FileName: String): TStringArray;
@@ -476,28 +449,44 @@ begin
   Result := FileRead(FileName).SplitLines();
 end;
 
-class function TSimbaFile.FileReadBytes(FileName: String): TByteArray;
+class function TSimbaFile.FileWrite(FileName: String; Text: String): Boolean;
 begin
-  SetLength(Result, FileSize(FileName));
-  if (Length(Result) > 0) and (not DoFileRead(FileName, Result[0], Length(Result))) then
+  Result := DoFileWrite(FileName, Text.ToBytes, soBeginning, 0);
+end;
+
+class function TSimbaFile.FileAppend(FileName: String; Text: String): Boolean;
+begin
+  Result := DoFileWrite(FileName, Text.ToBytes, soEnd, 0);
+end;
+
+class function TSimbaFile.FileReadBytes(FileName: String): TByteArray;
+var
+  Bytes: TByteArray;
+begin
+  if DoFileRead(FileName, -1, 0, Bytes) then
+    Result := Bytes
+  else
     Result := [];
 end;
 
-class function TSimbaFile.FileReadBytesEx(FileName: String; Offset: Integer): TByteArray;
+class function TSimbaFile.FileReadBytesEx(FileName: String; Start, Stop: Integer): TByteArray;
+var
+  Bytes: TByteArray;
 begin
-  SetLength(Result, FileSize(FileName) - Offset);
-  if not DoFileRead(FileName, Result[0], Length(Result), Offset) then
+  if DoFileRead(FileName, (Stop-Start)+1, Start, Bytes) then
+    Result := Bytes
+  else
     Result := [];
 end;
 
 class function TSimbaFile.FileWriteBytes(FileName: String; Bytes: TByteArray): Boolean;
 begin
-  Result := (Length(Bytes) > 0) and DoFileWrite(FileName, Bytes[0], Length(Bytes));
+  Result := DoFileWrite(FileName, Bytes, soBeginning, 0);
 end;
 
 class function TSimbaFile.FileAppendBytes(FileName: String; Bytes: TByteArray): Boolean;
 begin
-  Result := (Length(Bytes) > 0) and DoFileAppend(FileName, Bytes[0], Length(Bytes));
+  Result := DoFileWrite(FileName, Bytes, soEnd, 0);
 end;
 
 class function TSimbaFile.FileCopy(SourceFileName, DestFileName: String; OverwriteIfExists: Boolean): Boolean;
@@ -606,6 +595,21 @@ begin
   Result := LazFileUtils.FileIsText(FileName);
 end;
 
+class function TSimbaFile.FileLock(FileName: String): Pointer;
+begin
+  try
+    Result := TFileStream.Create(FileName, fmShareExclusive);
+  except
+    Result := nil;
+  end;
+end;
+
+class procedure TSimbaFile.FileUnlock(Lock: Pointer);
+begin
+  if (Lock <> nil) then
+    TFileStream(Lock).Free();
+end;
+
 function INIFileWrite(FileName: String; Section, Key, Value: String): Boolean;
 begin
   Result := True;
@@ -674,7 +678,6 @@ begin
       Free();
     end;
   except
-
   end;
   if Assigned(List) then
     List.Free();
@@ -699,7 +702,6 @@ begin
     end;
   except
   end;
-
   if Assigned(List) then
     List.Free();
 end;

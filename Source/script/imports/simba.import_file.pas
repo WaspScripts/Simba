@@ -28,126 +28,6 @@ File, Path, Directory related methods.
 *)
 
 (*
-INIFileWrite
-------------
-```
-function INIFileWrite(FileName: String; Section, Key, Value: String): Boolean
-```
-*)
-procedure _LapeINIFileWrite(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := INIFileWrite(PString(Params^[0])^, PString(Params^[1])^, PString(Params^[2])^, PString(Params^[3])^);
-end;
-
-(*
-INIFileRead
------------
-```
-function INIFileDelete(FileName: String; Section, Key: String): Boolean
-```
-*)
-procedure _LapeINIFileRead(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PString(Result)^ := INIFileRead(PString(Params^[0])^, PString(Params^[1])^, PString(Params^[2])^, PString(Params^[3])^);
-end;
-
-(*
-INIFileDelete
--------------
-```
-function INIFileDelete(FileName: String; Section, Key: String): Boolean
-```
-*)
-procedure _LapeINIFileDelete(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := INIFileDelete(PString(Params^[0])^, PString(Params^[1])^, PString(Params^[2])^);
-end;
-
-(*
-INIFileKeys
------------
-```
-function INIFileKeys(FileName: String; Section: String): TStringArray
-```
-*)
-procedure _LapeINIFileKeys(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PStringArray(Result)^ := INIFileKeys(PString(Params^[0])^, PString(Params^[1])^);
-end;
-
-(*
-INIFileSections
----------------
-```
-function INIFileSections(FileName: String): TStringArray
-```
-*)
-procedure _LapeINIFileSections(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PStringArray(Result)^ := INIFileSections(PString(Params^[0])^);
-end;
-
-(*
-ZipExtract
-----------
-```
-function ZipExtract(ZipFileName, OutputDir: String): Boolean;
-```
-*)
-procedure _LapeZipExtract(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := ZipExtract(PString(Params^[0])^, PString(Params^[1])^);
-end;
-
-(*
-ZipExtractEntries
------------------
-```
-function ZipExtractEntries(FileName, OutputDir: String; Entries: TStringArray): Integer;
-```
-*)
-procedure _LapeZipExtractEntries(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PInteger(Result)^ := ZipExtractEntries(PString(Params^[0])^, PString(Params^[1])^, PStringArray(Params^[2])^);
-end;
-
-(*
-ZipExtractEntry
----------------
-```
-function ZipExtractEntry(ZipFileName, FileName, OutputDir: String): Boolean;
-```
-*)
-procedure _LapeZipExtractEntry(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := ZipExtractEntry(PString(Params^[0])^, PString(Params^[1])^, PString(Params^[2])^);
-end;
-
-(*
-ZipFiles
---------
-```
-function ZipFiles(ZipFileName: String; Files: TStringArray): Boolean;
-```
-*)
-procedure _LapeZipFiles(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := ZipFiles(PString(Params^[0])^, PStringArray(Params^[1])^);
-end;
-
-(*
-ZipReadEntries
---------------
-```
-function ZipReadEntries(FileName: String): TStringArray;
-```
-*)
-procedure _LapeZipReadEntries(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PStringArray(Result)^ := ZipReadEntries(PString(Params^[0])^);
-end;
-
-(*
 FileAppend
 ----------
 ```
@@ -213,6 +93,11 @@ FileRead
 ```
 function FileRead(FileName: String): String;
 ```
+
+```{note}
+Other processes could modify the file while this function is being called.<br>
+Use `LockFile` if you need to ensure this can't happen.
+```
 *)
 procedure _LapeFileRead(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -223,12 +108,17 @@ end;
 FileReadEx
 ----------
 ```
-function FileReadEx(FileName: String; Offset: Integer): String;
+function FileReadEx(FileName: String; Start, Stop: Integer): String;
+```
+
+```{note}
+Other processes could modify the file while this function is being called.<br>
+Use `LockFile` if you need to ensure this can't happen.
 ```
 *)
 procedure _LapeFileReadEx(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := TSimbaFile.FileReadEx(PString(Params^[0])^, PInteger(Params^[1])^);
+  PString(Result)^ := TSimbaFile.FileReadEx(PString(Params^[0])^, PInteger(Params^[1])^, PInteger(Params^[2])^);
 end;
 
 (*
@@ -236,6 +126,11 @@ FileReadLines
 -------------
 ```
 function FileReadLines(FileName: String): TStringArray;
+```
+
+```{note}
+Other processes could modify the file while this function is being called.<br>
+Use `LockFile` if you need to ensure this can't happen.
 ```
 *)
 procedure _LapeFileReadLines(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -249,6 +144,11 @@ FileReadBytes
 ```
 function FileReadBytes(FileName: String): TByteArray;
 ```
+
+```{note}
+Other processes could modify the file while this function is being called.<br>
+Use `LockFile` if you need to ensure this can't happen.
+```
 *)
 procedure _LapeFileReadBytes(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -259,12 +159,17 @@ end;
 FileReadBytesEx
 ---------------
 ```
-function FileReadBytesEx(FileName: String; Offset: Integer): TByteArray;
+function FileReadBytesEx(FileName: String; Start, Stop: Integer): TByteArray;
+```
+
+```{note}
+Other processes could modify the file while this function is being called.<br>
+Use `LockFile` if you need to ensure this can't happen.
 ```
 *)
 procedure _LapeFileReadBytesEx(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PByteArray(Result)^ := TSimbaFile.FileReadBytesEx(PString(Params^[0])^, PInteger(Params^[1])^);
+  PByteArray(Result)^ := TSimbaFile.FileReadBytesEx(PString(Params^[0])^, PInteger(Params^[1])^, PInteger(Params^[2])^);
 end;
 
 (*
@@ -272,6 +177,11 @@ FileWriteBytes
 --------------
 ```
 function FileWriteBytes(FileName: String; Bytes: TByteArray): Boolean;
+```
+
+```{note}
+Other processes could modify the file while this function is being called.<br>
+Use `LockFile` if you need to ensure this can't happen.
 ```
 *)
 procedure _LapeFileWriteBytes(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -284,6 +194,11 @@ FileAppendBytes
 ---------------
 ```
 function FileAppendBytes(FileName: String; Bytes: TByteArray): Boolean;
+```
+
+```{note}
+Other processes could modify the file while this function is being called.<br>
+Use `LockFile` if you need to ensure this can't happen.
 ```
 *)
 procedure _LapeFileAppendBytes(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -361,6 +276,34 @@ function FileSizeInMegaBytes(FileName: String): Single;
 procedure _LapeFileSizeInMegaBytes(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PSingle(Result)^ := TSimbaFile.FileSizeInMegaBytes(PString(Params^[0])^);
+end;
+
+(*
+FileLock
+--------
+```
+function FileLock(FileName: String): Pointer;
+```
+Lock a file from another process accessing it.
+- Returns nil not succesfull.
+- This is released when the script ends or when `FileUnlock` is called with the returned pointer.
+*)
+procedure _LapeFileLock(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPointer(Result)^ := TSimbaFile.FileLock(PString(Params^[0])^);
+end;
+
+(*
+FileUnlock
+----------
+```
+procedure FileUnlock(Lock: Pointer);
+```
+Unlock a file locked by `FileLock`.
+*)
+procedure _LapeFileUnLock(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  TSimbaFile.FileUnlock(PPointer(Params^[0])^);
 end;
 
 (*
@@ -676,6 +619,127 @@ begin
 end;
 
 (*
+INIFileWrite
+------------
+```
+function INIFileWrite(FileName: String; Section, Key, Value: String): Boolean
+```
+*)
+procedure _LapeINIFileWrite(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PBoolean(Result)^ := INIFileWrite(PString(Params^[0])^, PString(Params^[1])^, PString(Params^[2])^, PString(Params^[3])^);
+end;
+
+(*
+INIFileRead
+-----------
+```
+function INIFileDelete(FileName: String; Section, Key: String): Boolean
+```
+*)
+procedure _LapeINIFileRead(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PString(Result)^ := INIFileRead(PString(Params^[0])^, PString(Params^[1])^, PString(Params^[2])^, PString(Params^[3])^);
+end;
+
+(*
+INIFileDelete
+-------------
+```
+function INIFileDelete(FileName: String; Section, Key: String): Boolean
+```
+*)
+procedure _LapeINIFileDelete(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PBoolean(Result)^ := INIFileDelete(PString(Params^[0])^, PString(Params^[1])^, PString(Params^[2])^);
+end;
+
+(*
+INIFileKeys
+-----------
+```
+function INIFileKeys(FileName: String; Section: String): TStringArray
+```
+*)
+procedure _LapeINIFileKeys(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PStringArray(Result)^ := INIFileKeys(PString(Params^[0])^, PString(Params^[1])^);
+end;
+
+(*
+INIFileSections
+---------------
+```
+function INIFileSections(FileName: String): TStringArray
+```
+*)
+procedure _LapeINIFileSections(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PStringArray(Result)^ := INIFileSections(PString(Params^[0])^);
+end;
+
+(*
+ZipExtract
+----------
+```
+function ZipExtract(ZipFileName, OutputDir: String): Boolean;
+```
+*)
+procedure _LapeZipExtract(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PBoolean(Result)^ := ZipExtract(PString(Params^[0])^, PString(Params^[1])^);
+end;
+
+(*
+ZipExtractEntries
+-----------------
+```
+function ZipExtractEntries(FileName, OutputDir: String; Entries: TStringArray): Integer;
+```
+*)
+procedure _LapeZipExtractEntries(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PInteger(Result)^ := ZipExtractEntries(PString(Params^[0])^, PString(Params^[1])^, PStringArray(Params^[2])^);
+end;
+
+(*
+ZipExtractEntry
+---------------
+```
+function ZipExtractEntry(ZipFileName, FileName, OutputDir: String): Boolean;
+```
+*)
+procedure _LapeZipExtractEntry(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PBoolean(Result)^ := ZipExtractEntry(PString(Params^[0])^, PString(Params^[1])^, PString(Params^[2])^);
+end;
+
+(*
+ZipFiles
+--------
+```
+function ZipFiles(ZipFileName: String; Files: TStringArray): Boolean;
+```
+*)
+procedure _LapeZipFiles(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PBoolean(Result)^ := ZipFiles(PString(Params^[0])^, PStringArray(Params^[1])^);
+end;
+
+(*
+ZipReadEntries
+--------------
+```
+function ZipReadEntries(FileName: String): TStringArray;
+```
+*)
+procedure _LapeZipReadEntries(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PStringArray(Result)^ := ZipReadEntries(PString(Params^[0])^);
+end;
+
+
+(*
 GetUserDir
 ----------
 ```
@@ -720,30 +784,14 @@ begin
     addGlobalVar(PATH_SEP, 'PATH_SEP').isConstant := True;
     addGlobalVar(LINE_SEP, 'LINE_SEP').isConstant := True;
 
-    addGlobalFunc('function INIFileWrite(FileName: String; Section, Key, Value: String): Boolean', @_LapeINIFileWrite);
-    addGlobalFunc('function INIFileRead(FileName: String; Section, Key, Value: String): String', @_LapeINIFileRead);
-    addGlobalFunc('function INIFileDelete(FileName: String; Section, Key: String): Boolean', @_LapeINIFileDelete);
-    addGlobalFunc('function INIFileKeys(FileName: String; Section: String): TStringArray', @_LapeINIFileKeys);
-    addGlobalFunc('function INIFileSections(FileName: String): TStringArray', @_LapeINIFileSections);
-
-    addGlobalFunc('function ZipExtract(FileName, OutputDir: String): Boolean', @_LapeZipExtract);
-    addGlobalFunc('function ZipExtractEntries(FileName, OutputDir: String; Entries: TStringArray): Integer', @_LapeZipExtractEntries);
-    addGlobalFunc('function ZipExtractEntry(FileName, Entry, OutputDir: String): Boolean', @_LapeZipExtractEntry);
-    addGlobalFunc('function ZipFiles(FileName: String; Files: TStringArray): Boolean', @_LapeZipFiles);
-    addGlobalFunc('function ZipReadEntries(FileName: String): TStringArray', @_LapeZipReadEntries);
-
-    addGlobalFunc('function GetUserDir: String', @_LapeGetUserDir);
-    addGlobalFunc('function GetTempDir: String', @_LapeGetTempDir);
-    addGlobalFunc('function GetTempFileName: String', @_LapeGetTempFileName);
-
     addGlobalFunc('function FileRead(FileName: String): String', @_LapeFileRead);
-    addGlobalFunc('function FileReadEx(FileName: String; Offset: Integer): String', @_LapeFileReadEx);
+    addGlobalFunc('function FileReadEx(FileName: String; Start, Stop: Integer): String', @_LapeFileReadEx);
     addGlobalFunc('function FileWrite(FileName: String; Text: String): Boolean', @_LapeFileWrite);
     addGlobalFunc('function FileAppend(FileName: String; Text: String): Boolean', @_LapeFileAppend);
     addGlobalFunc('function FileReadLines(FileName: String): TStringArray', @_LapeFileReadLines);
 
     addGlobalFunc('function FileReadBytes(FileName: String): TByteArray', @_LapeFileReadBytes);
-    addGlobalFunc('function FileReadBytesEx(FileName: String; Offset: Integer): TByteArray', @_LapeFileReadBytesEx);
+    addGlobalFunc('function FileReadBytesEx(FileName: String; Start, Stop: Integer): TByteArray', @_LapeFileReadBytesEx);
     addGlobalFunc('function FileWriteBytes(FileName: String; Bytes: TByteArray): Boolean', @_LapeFileWriteBytes);
     addGlobalFunc('function FileAppendBytes(FileName: String; Bytes: TByteArray): Boolean', @_LapeFileAppendBytes);
 
@@ -756,6 +804,9 @@ begin
     addGlobalFunc('function FileLastWriteTime(FileName: String): TDateTime', @_LapeFileLastWriteTime);
     addGlobalFunc('function FileSize(FileName: String): Int64', @_LapeFileSize);
     addGlobalFunc('function FileSizeInMegaBytes(FileName: String): Single', @_LapeFileSizeInMegaBytes);
+
+    addGlobalFunc('function FileLock(FileName: String): Pointer', @_LapeFileLock);
+    addGlobalFunc('procedure FileUnlock(Lock: Pointer);', @_LapeFileUnLock);
 
     addGlobalFunc('function PathExists(Path: String): Boolean', @_LapePathExists);
     addGlobalFunc('function PathNormalize(Path: String): String', @_LapePathNormalize);
@@ -784,6 +835,22 @@ begin
     addGlobalFunc('function DirIsEmpty(Path: String): Boolean', @_LapeDirIsEmpty);
     addGlobalFunc('function DirSize(Path: String): Int64', @_LapeDirSize);
     addGlobalFunc('function DirSizeInMegaBytes(Path: String): Single', @_LapeDirSizeInMegaBytes);
+
+    addGlobalFunc('function INIFileWrite(FileName: String; Section, Key, Value: String): Boolean', @_LapeINIFileWrite);
+    addGlobalFunc('function INIFileRead(FileName: String; Section, Key, Value: String): String', @_LapeINIFileRead);
+    addGlobalFunc('function INIFileDelete(FileName: String; Section, Key: String): Boolean', @_LapeINIFileDelete);
+    addGlobalFunc('function INIFileKeys(FileName: String; Section: String): TStringArray', @_LapeINIFileKeys);
+    addGlobalFunc('function INIFileSections(FileName: String): TStringArray', @_LapeINIFileSections);
+
+    addGlobalFunc('function ZipExtract(FileName, OutputDir: String): Boolean', @_LapeZipExtract);
+    addGlobalFunc('function ZipExtractEntries(FileName, OutputDir: String; Entries: TStringArray): Integer', @_LapeZipExtractEntries);
+    addGlobalFunc('function ZipExtractEntry(FileName, Entry, OutputDir: String): Boolean', @_LapeZipExtractEntry);
+    addGlobalFunc('function ZipFiles(FileName: String; Files: TStringArray): Boolean', @_LapeZipFiles);
+    addGlobalFunc('function ZipReadEntries(FileName: String): TStringArray', @_LapeZipReadEntries);
+
+    addGlobalFunc('function GetUserDir: String', @_LapeGetUserDir);
+    addGlobalFunc('function GetTempDir: String', @_LapeGetTempDir);
+    addGlobalFunc('function GetTempFileName: String', @_LapeGetTempFileName);
 
     DumpSection := '';
   end;
