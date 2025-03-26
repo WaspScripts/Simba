@@ -1,56 +1,40 @@
 const
-  SOME_JSON_DATA =
-    '{'                                                                       + LINE_SEP +
-    '    "employee": {'                                                       + LINE_SEP +
-    '        "name": "John",'                                                 + LINE_SEP +
-    '        "age":  9000,'                                                   + LINE_SEP +
-    '        "car":  false'                                                   + LINE_SEP +
-    '    },'                                                                  + LINE_SEP +
-    '   "weekdays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]' + LINE_SEP +
+  SOME_JSON =
+    '{  "postOfficeBox": "123",            ' + LINE_SEP +
+    '   "streetAddress": "456 Main St",    ' + LINE_SEP +
+    '   "region": "State",                 ' + LINE_SEP +
+    '   "postalCode": 12345,               ' + LINE_SEP +
+    '   "open": true                       ' + LINE_SEP +
     '}';
 
 var
-  JsonParser: TJSONParser;
-  Element: TJSONElement;
-  I, J: Integer;
+  json: TJSONItem;
+  I: Integer;
+  street: String;
+  postal: Int64;
 begin
-  JsonParser := TJSONParser.Create(SOME_JSON_DATA);
+  json := ParseJSON(SOME_JSON);
 
-  for I := 0 to JSONParser.Count - 1 do
+  // if you the structure ...
+  if json.GetString('streetAddress', street) then
+    WriteLn(street);
+  if json.GetInt('postalCode', postal) then
+    WriteLn(postal);
+
+  // or loop over the items
+  for I := 0 to json.Count - 1 do
   begin
-    Element := JsonParser.Item[I];
-    if Element.IsObject then
-    begin
-      WriteLn('Item[',I,'] is a json object:');
-      WriteLn('Keys: ', Element.Keys);
-      for J := 0 to Element.Count - 1 do
-        WriteLn('  ', Element.Item[J].ValueType, ' -> ', Element.Item[J].Value);
-    end;
+    WriteLn('Item[', I, ']');
+    WriteLn('  Key = ', json.key[I]);
+    WriteLn('  Typ = ', json.Item[I].Typ);
 
-    if Element.IsArray then
-    begin
-      WriteLn('Item[',I,'] is a json array:');
-      for J := 0 to Element.Count - 1 do
-        WriteLn('  ', Element.Item[J].ValueType, ' -> ', Element.Item[J].Value);
+    case json.Item[i].Typ of
+      EJSONType.INT:   WriteLn('  Value = ', json.Item[i].AsInt);
+      EJSONType.FLOAT: WriteLn('  Value = ', json.Item[i].AsFloat);
+      EJSONType.BOOL:  WriteLn('  Value = ', json.Item[i].AsBool);
+      EJSONType.STR:   WriteLn('  Value = ', json.Item[i].AsString);
     end;
   end;
 
-  // change `john` name to `james`
-  if JsonParser.Find('person', Element) then
-    Element.Item[0].Value := 'james';
-
-  // Add another employee
-  Element := JsonParser.AddObject('anotherEmployee');
-  Element.AddValue('name', 'bob');
-  Element.AddValue('age', 123);
-  Element.AddValue('car', True);
-
-  // Get our updated json string
-  WriteLn JsonParser.AsString;
-
-  // JSON paths are also useful
-  if JsonParser.FindPath('employee.name', Element) then
-    WriteLn('Found employee.name! ', Element.AsString);
-
-  JsonParser.Free();
+  json.Free();
 end;

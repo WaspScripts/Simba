@@ -86,17 +86,17 @@ begin
   PInteger(Result)^ := PSimbaJSONItem(Params^[0])^.Count;
 end;
 
-procedure _LapeJSONItem_Keys_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_Key_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PStringArray(Result)^ := PSimbaJSONItem(Params^[0])^.Keys;
+  PString(Result)^ := PSimbaJSONItem(Params^[0])^.Key[PInteger(Params^[1])^];
 end;
 
-procedure _LapeJSONItem_ItemsByKey_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_Item_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaJSONItem(Result)^ := PSimbaJSONItem(Params^[0])^.ItemsByKey[PString(Params^[1])^];
 end;
 
-procedure _LapeJSONItem_ItemsByIndex_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeJSONItem_ItemFromIndex_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaJSONItem(Result)^ := PSimbaJSONItem(Params^[0])^.ItemsByIndex[PInteger(Params^[1])^];
 end;
@@ -119,6 +119,11 @@ end;
 procedure _LapeJSONItem_AddString(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PSimbaJSONItem(Params^[0])^.AddString(PString(Params^[1])^, PString(Params^[2])^);
+end;
+
+procedure _LapeJSONItem_AddUnicodeString(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSimbaJSONItem(Params^[0])^.AddUnicodeString(PString(Params^[1])^, PUnicodeString(Params^[2])^);
 end;
 
 procedure _LapeJSONItem_AddBool(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -252,14 +257,15 @@ begin
     addProperty('TJSONItem', 'AsBool', 'Boolean', @_LapeJSONItem_AsBool_Read, @_LapeJSONItem_AsBool_Write);
     addProperty('TJSONItem', 'AsFloat', 'Double', @_LapeJSONItem_AsFloat_Read, @_LapeJSONItem_AsFloat_Write);
     addProperty('TJSONItem', 'Count', 'Integer', @_LapeJSONItem_Count_Read);
-    addProperty('TJSONItem', 'Keys', 'TStringArray', @_LapeJSONItem_Keys_Read);
-    addPropertyIndexed('TJSONItem', 'Items', 'Key: String', 'TJSONItem', @_LapeJSONItem_ItemsByKey_Read);
-    addPropertyIndexed('TJSONItem', 'Items', 'Index: Integer', 'TJSONItem', @_LapeJSONItem_ItemsByIndex_Read);
+    addPropertyIndexed('TJSONItem', 'Key', 'Index: Integer', 'String', @_LapeJSONItem_Key_Read);
+    addPropertyIndexed('TJSONItem', 'Item', 'Key: String', 'TJSONItem', @_LapeJSONItem_Item_Read);
+    addPropertyIndexed('TJSONItem', 'Item', 'Index: Integer', 'TJSONItem', @_LapeJSONItem_ItemFromIndex_Read);
 
     addGlobalFunc('function TJSONItem.ToJSON: String', @_LapeJSONItem_ToJSON);
     addGlobalFunc('procedure TJSONItem.Add(Key: String; Item: TJSONItem)', @_LapeJSONItem_Add);
     addGlobalFunc('procedure TJSONItem.AddInt(Key: String; Value: Int64)', @_LapeJSONItem_AddInt);
     addGlobalFunc('procedure TJSONItem.AddString(Key: String; Value: String)', @_LapeJSONItem_AddString);
+    addGlobalFunc('procedure TJSONItem.AddUnicodeString(Key: String; Value: UnicodeString)', @_LapeJSONItem_AddUnicodeString);
     addGlobalFunc('procedure TJSONItem.AddBool(Key: String; Value: Boolean)', @_LapeJSONItem_AddBool);
     addGlobalFunc('procedure TJSONItem.AddFloat(Key: String; Value: Double)', @_LapeJSONItem_AddFloat);
     addGlobalFunc('procedure TJSONItem.AddArray(Key: String; Value: TJSONItem)', @_LapeJSONItem_AddArray);
@@ -277,7 +283,7 @@ begin
 
     addGlobalFunc('function TJSONItem.FindPath(Path: String): TJSONItem', @_LapeJSONItem_FindPath);
     addGlobalFunc('function TJSONItem.Clone: TJSONItem', @_LapeJSONItem_Clone);
-    addGlobalFunc('procedure TJSONItem.Delete(Item: TJSONItem); overload', @_LapeJSONItem_Delete);
+    addGlobalFunc('procedure TJSONItem.Delete(Item: TJSONItem)', @_LapeJSONItem_Delete);
     addGlobalFunc('procedure TJSONItem.Clear', @_LapeJSONItem_Clear);
     addGlobalFunc('procedure TJSONItem.Free', @_LapeJSONItem_Free);
 

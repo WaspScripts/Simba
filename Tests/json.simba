@@ -7,19 +7,18 @@ begin
   json := ParseJSON("{str: 'abc', int: 123, float: 1.23, bool: true, arr: [], obj: {}}");
   Assert(json.Count = 6);
   Assert(json.Typ = EJSONType.OBJ);
-  Assert(json.Items[0].Typ = EJSONType.STR);
-  Assert(json.Items[1].Typ = EJSONType.INT);
-  Assert(json.Items[2].Typ = EJSONType.FLOAT);
-  Assert(json.Items[3].Typ = EJSONType.BOOL);
-  Assert(json.Items[4].Typ = EJSONType.ARR);
-  Assert(json.Items[5].Typ = EJSONType.OBJ);
-  Assert(Length(json.Keys) = 6);
-  Assert(json.Keys[0] = 'str');
-  Assert(json.Keys[1] = 'int');
-  Assert(json.Keys[2] = 'float');
-  Assert(json.Keys[3] = 'bool');
-  Assert(json.Keys[4] = 'arr');
-  Assert(json.Keys[5] = 'obj');
+  Assert(json.Item[0].Typ = EJSONType.STR);
+  Assert(json.Item[1].Typ = EJSONType.INT);
+  Assert(json.Item[2].Typ = EJSONType.FLOAT);
+  Assert(json.Item[3].Typ = EJSONType.BOOL);
+  Assert(json.Item[4].Typ = EJSONType.ARR);
+  Assert(json.Item[5].Typ = EJSONType.OBJ);
+  Assert(json.Key[0] = 'str');
+  Assert(json.Key[1] = 'int');
+  Assert(json.Key[2] = 'float');
+  Assert(json.Key[3] = 'bool');
+  Assert(json.Key[4] = 'arr');
+  Assert(json.Key[5] = 'obj');
   json.Free();
 end;
 
@@ -36,19 +35,29 @@ begin
   json.AddObject('obj', NewJSONObject());
   Assert(json.Count = 6);
   Assert(json.Typ = EJSONType.OBJ);
-  Assert(json.Items[0].Typ = EJSONType.STR);
-  Assert(json.Items[1].Typ = EJSONType.INT);
-  Assert(json.Items[2].Typ = EJSONType.FLOAT);
-  Assert(json.Items[3].Typ = EJSONType.BOOL);
-  Assert(json.Items[4].Typ = EJSONType.ARR);
-  Assert(json.Items[5].Typ = EJSONType.OBJ);
-  Assert(Length(json.Keys) = 6);
-  Assert(json.Keys[0] = 'str');
-  Assert(json.Keys[1] = 'int');
-  Assert(json.Keys[2] = 'float');
-  Assert(json.Keys[3] = 'bool');
-  Assert(json.Keys[4] = 'arr');
-  Assert(json.Keys[5] = 'obj');
+  Assert(json.Item[0].Typ = EJSONType.STR);
+  Assert(json.Item[1].Typ = EJSONType.INT);
+  Assert(json.Item[2].Typ = EJSONType.FLOAT);
+  Assert(json.Item[3].Typ = EJSONType.BOOL);
+  Assert(json.Item[4].Typ = EJSONType.ARR);
+  Assert(json.Item[5].Typ = EJSONType.OBJ);
+  Assert(json.Key[0] = 'str');
+  Assert(json.Key[1] = 'int');
+  Assert(json.Key[2] = 'float');
+  Assert(json.Key[3] = 'bool');
+  Assert(json.Key[4] = 'arr');
+  Assert(json.Key[5] = 'obj');
+  Assert(json.ToJSON =
+    '{'                                     + LINE_SEP +
+    '  "str" : "abc",'                      + LINE_SEP +
+    '  "int" : 123,'                        + LINE_SEP +
+    '  "float" : 1.2300000000000000E+000,'  + LINE_SEP +
+    '  "bool" : true,'                      + LINE_SEP +
+    '  "arr" : ['                           + LINE_SEP +
+    '  ],'                                  + LINE_SEP +
+    '  "obj" : {}'                          + LINE_SEP +
+    '}'
+  );
   json.Free();
 end;
 
@@ -59,12 +68,12 @@ begin
   json := ParseJSON("['abc', 123, 1.23, true, [], {}]");
   Assert(json.Count = 6);
   Assert(json.Typ = EJSONType.ARR);
-  Assert(json.Items[0].Typ = EJSONType.STR);
-  Assert(json.Items[1].Typ = EJSONType.INT);
-  Assert(json.Items[2].Typ = EJSONType.FLOAT);
-  Assert(json.Items[3].Typ = EJSONType.BOOL);
-  Assert(json.Items[4].Typ = EJSONType.ARR);
-  Assert(json.Items[5].Typ = EJSONType.OBJ);
+  Assert(json.Item[0].Typ = EJSONType.STR);
+  Assert(json.Item[1].Typ = EJSONType.INT);
+  Assert(json.Item[2].Typ = EJSONType.FLOAT);
+  Assert(json.Item[3].Typ = EJSONType.BOOL);
+  Assert(json.Item[4].Typ = EJSONType.ARR);
+  Assert(json.Item[5].Typ = EJSONType.OBJ);
   json.Free();
 end;
 
@@ -81,12 +90,23 @@ begin
   json.AddObject('', NewJSONObject());
   Assert(json.Count = 6);
   Assert(json.Typ = EJSONType.ARR);
-  Assert(json.Items[0].Typ = EJSONType.STR);
-  Assert(json.Items[1].Typ = EJSONType.INT);
-  Assert(json.Items[2].Typ = EJSONType.FLOAT);
-  Assert(json.Items[3].Typ = EJSONType.BOOL);
-  Assert(json.Items[4].Typ = EJSONType.ARR);
-  Assert(json.Items[5].Typ = EJSONType.OBJ);
+  Assert(json.Item[0].Typ = EJSONType.STR);
+  Assert(json.Item[1].Typ = EJSONType.INT);
+  Assert(json.Item[2].Typ = EJSONType.FLOAT);
+  Assert(json.Item[3].Typ = EJSONType.BOOL);
+  Assert(json.Item[4].Typ = EJSONType.ARR);
+  Assert(json.Item[5].Typ = EJSONType.OBJ);
+  Assert(json.ToJSON =
+    '['                           + LINE_SEP +
+    '  "abc",'                    + LINE_SEP +
+    '  123,'                      + LINE_SEP +
+    '  1.2300000000000000E+000,'  + LINE_SEP +
+    '  true,'                     + LINE_SEP +
+    '  ['                         + LINE_SEP +
+    '  ],'                        + LINE_SEP +
+    '  {}'                        + LINE_SEP +
+    ']'
+  );
   json.Free();
 end;
 
@@ -157,11 +177,11 @@ begin
   json := ParseJSON("{a: 1, b: 2, c: 3, d: 4}");
   Assert(json.Count = 4);
   for i:=0 to json.Count-1 do
-    Assert(json.Items[i].AsInt = i+1);
-  Assert(json.Items['a'].AsInt = 1);
-  Assert(json.Items['b'].AsInt = 2);
-  Assert(json.Items['c'].AsInt = 3);
-  Assert(json.Items['d'].AsInt = 4);
+    Assert(json.Item[i].AsInt = i+1);
+  Assert(json.Item['a'].AsInt = 1);
+  Assert(json.Item['b'].AsInt = 2);
+  Assert(json.Item['c'].AsInt = 3);
+  Assert(json.Item['d'].AsInt = 4);
   json.Free();
 end;
 
@@ -173,7 +193,7 @@ begin
   json := ParseJSON("[1,2,3,4,5,6]");
   Assert(json.Count = 6);
   for i:=0 to json.Count-1 do
-    Assert(json.Items[i].AsInt = i+1);
+    Assert(json.Item[i].AsInt = i+1);
   json.Free();
 end;
 

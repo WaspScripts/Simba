@@ -37,7 +37,7 @@ type
     function GetItemByIndex(Index: Integer): TSimbaJSONItem;
     function GetItemByKey(Key: String): TSimbaJSONItem;
     function GetItemType: EJSONItemType;
-    function GetKeys: TStringArray;
+    function GetKey(Index: Integer): String;
 
     procedure SetAsBool(AValue: Boolean);
     procedure SetAsFloat(AValue: Double);
@@ -53,30 +53,30 @@ type
     property AsBool: Boolean read GetAsBool write SetAsBool;
     property AsFloat: Double read GetAsFloat write SetAsFloat;
 
-    property Keys: TStringArray read GetKeys;
     property Count: Integer read GetCount;
     property ItemsByIndex[Index: Integer]: TSimbaJSONItem read GetItemByIndex;
-    property ItemsByKey[Key: String]: TSimbaJSONItem read GetItemByKey;
+    property ItemsByKey[AKey: String]: TSimbaJSONItem read GetItemByKey;
+    property Key[Index: Integer]: String read GetKey;
 
-    procedure Add(Key: String; Value: TSimbaJSONItem);
-    procedure AddInt(Key: String; Value: Int64);
-    procedure AddString(Key: String; Value: String);
-    procedure AddUnicodeSring(Key: String; Value: UnicodeString);
-    procedure AddBool(Key: String; Value: Boolean);
-    procedure AddFloat(Key: String; Value: Double);
-    procedure AddArray(Key: String; Value: TSimbaJSONItem);
-    procedure AddObject(Key: String; Value: TSimbaJSONItem);
+    procedure Add(AKey: String; Value: TSimbaJSONItem);
+    procedure AddInt(AKey: String; Value: Int64);
+    procedure AddString(AKey: String; Value: String);
+    procedure AddUnicodeString(AKey: String; Value: UnicodeString);
+    procedure AddBool(AKey: String; Value: Boolean);
+    procedure AddFloat(AKey: String; Value: Double);
+    procedure AddArray(AKey: String; Value: TSimbaJSONItem);
+    procedure AddObject(AKey: String; Value: TSimbaJSONItem);
 
-    function Has(Key: String): Boolean; overload;
-    function Has(Key: String; ItemType: EJSONItemType): Boolean; overload;
+    function Has(AKey: String): Boolean; overload;
+    function Has(AKey: String; ItemType: EJSONItemType): Boolean; overload;
 
-    function GetInt(Key: String; out Value: Int64): Boolean;
-    function GetFloat(Key: String; out Value: Double): Boolean;
-    function GetString(Key: String; out Value: String): Boolean;
-    function GetUnicodeString(Key: String; out Value: UnicodeString): Boolean;
-    function GetBool(Key: String; out Value: Boolean): Boolean;
-    function GetArray(Key: String; out Value: TSimbaJSONItem): Boolean;
-    function GetObject(Key: String; out Value: TSimbaJSONItem): Boolean;
+    function GetInt(AKey: String; out Value: Int64): Boolean;
+    function GetFloat(AKey: String; out Value: Double): Boolean;
+    function GetString(AKey: String; out Value: String): Boolean;
+    function GetUnicodeString(AKey: String; out Value: UnicodeString): Boolean;
+    function GetBool(AKey: String; out Value: Boolean): Boolean;
+    function GetArray(AKey: String; out Value: TSimbaJSONItem): Boolean;
+    function GetObject(AKey: String; out Value: TSimbaJSONItem): Boolean;
 
     function FindPath(Path: String): TSimbaJSONItem;
     function Clone: TSimbaJSONItem;
@@ -102,13 +102,13 @@ uses
 procedure TSimbaJSONItemHelper.CheckIsObject;
 begin
   if (TJSONData(Self).JSONType <> jtObject) then
-    raise Exception.CreateFmt('Expected a JSON object. This item is a %s', [JSONTypeName(TJSONData(Self).JSONType)]);
+    SimbaException('Expected a JSON object. This item is a %s', [JSONTypeName(TJSONData(Self).JSONType)]);
 end;
 
 procedure TSimbaJSONItemHelper.CheckIsObjectOrArray;
 begin
   if (not (TJSONData(Self).JSONType in [jtObject, jtArray])) then
-    raise Exception.CreateFmt('Expected a JSON object/array. This item is a %s', [JSONTypeName(TJSONData(Self).JSONType)]);
+    SimbaException('Expected a JSON object/array. This item is a %s', [JSONTypeName(TJSONData(Self).JSONType)]);
 end;
 
 function TSimbaJSONItemHelper.GetAsBool: Boolean;
@@ -165,15 +165,11 @@ begin
   end;
 end;
 
-function TSimbaJSONItemHelper.GetKeys: TStringArray;
-var
-  I: Integer;
+function TSimbaJSONItemHelper.GetKey(Index: Integer): String;
 begin
   CheckIsObject();
 
-  SetLength(Result, TJSONObject(Self).Count);
-  for I := 0 to TJSONObject(Self).Count - 1 do
-    Result[I] := TJSONObject(Self).Names[I];
+  Result := TJSONObject(Self).Names[Index];
 end;
 
 function TSimbaJSONItemHelper.GetAsUnicodeString: UnicodeString;
@@ -211,152 +207,152 @@ begin
   TJSONData(Self).AsUnicodeString := AValue;
 end;
 
-procedure TSimbaJSONItemHelper.Add(Key: String; Value: TSimbaJSONItem);
+procedure TSimbaJSONItemHelper.Add(AKey: String; Value: TSimbaJSONItem);
 begin
   CheckIsObjectOrArray();
 
   case TJSONData(Self).JSONType of
-    jtObject: TJSONObject(Self).Add(Key, TJSONData(Value));
+    jtObject: TJSONObject(Self).Add(AKey, TJSONData(Value));
     jtArray:  TJSONArray(Self).Add(TJSONData(Value));
   end;
 end;
 
-procedure TSimbaJSONItemHelper.AddInt(Key: String; Value: Int64);
+procedure TSimbaJSONItemHelper.AddInt(AKey: String; Value: Int64);
 begin
   CheckIsObjectOrArray();
 
   case TJSONData(Self).JSONType of
-    jtObject: TJSONObject(Self).Add(Key, Value);
+    jtObject: TJSONObject(Self).Add(AKey, Value);
     jtArray:  TJSONArray(Self).Add(Value);
   end;
 end;
 
-procedure TSimbaJSONItemHelper.AddString(Key: String; Value: String);
+procedure TSimbaJSONItemHelper.AddString(AKey: String; Value: String);
 begin
   CheckIsObjectOrArray();
 
   case TJSONData(Self).JSONType of
-    jtObject: TJSONObject(Self).Add(Key, Value);
+    jtObject: TJSONObject(Self).Add(AKey, Value);
     jtArray:  TJSONArray(Self).Add(Value);
   end;
 end;
 
-procedure TSimbaJSONItemHelper.AddUnicodeSring(Key: String; Value: UnicodeString);
+procedure TSimbaJSONItemHelper.AddUnicodeString(AKey: String; Value: UnicodeString);
 begin
   CheckIsObjectOrArray();
 
   case TJSONData(Self).JSONType of
-    jtObject: TJSONObject(Self).Add(Key, Value);
+    jtObject: TJSONObject(Self).Add(AKey, Value);
     jtArray:  TJSONArray(Self).Add(Value);
   end;
 end;
 
-procedure TSimbaJSONItemHelper.AddBool(Key: String; Value: Boolean);
+procedure TSimbaJSONItemHelper.AddBool(AKey: String; Value: Boolean);
 begin
   CheckIsObjectOrArray();
 
   case TJSONData(Self).JSONType of
-    jtObject: TJSONObject(Self).Add(Key, Value);
+    jtObject: TJSONObject(Self).Add(AKey, Value);
     jtArray:  TJSONArray(Self).Add(Value);
   end;
 end;
 
-procedure TSimbaJSONItemHelper.AddFloat(Key: String; Value: Double);
+procedure TSimbaJSONItemHelper.AddFloat(AKey: String; Value: Double);
 begin
   CheckIsObjectOrArray();
 
   case TJSONData(Self).JSONType of
-    jtObject: TJSONObject(Self).Add(Key, Value);
+    jtObject: TJSONObject(Self).Add(AKey, Value);
     jtArray:  TJSONArray(Self).Add(Value);
   end;
 end;
 
-procedure TSimbaJSONItemHelper.AddArray(Key: String; Value: TSimbaJSONItem);
+procedure TSimbaJSONItemHelper.AddArray(AKey: String; Value: TSimbaJSONItem);
 begin
   CheckIsObjectOrArray();
   if (TJSONData(Value).JSONType <> jtArray) then
-    raise Exception.Create('Value is not a JSON array');
+    SimbaException('Value is not a JSON array');
 
   case TJSONData(Self).JSONType of
-    jtObject: TJSONObject(Self).Add(Key, TJSONArray(Value));
+    jtObject: TJSONObject(Self).Add(AKey, TJSONArray(Value));
     jtArray:  TJSONArray(Self).Add(TJSONArray(Value));
   end;
 end;
 
-procedure TSimbaJSONItemHelper.AddObject(Key: String; Value: TSimbaJSONItem);
+procedure TSimbaJSONItemHelper.AddObject(AKey: String; Value: TSimbaJSONItem);
 begin
   CheckIsObjectOrArray();
   if (TJSONData(Value).JSONType <> jtObject) then
-    raise Exception.Create('Value is not a JSON object');
+    SimbaException('Value is not a JSON object');
 
   case TJSONData(Self).JSONType of
-    jtObject: TJSONObject(Self).Add(Key, TJSONObject(Value));
+    jtObject: TJSONObject(Self).Add(AKey, TJSONObject(Value));
     jtArray:  TJSONArray(Self).Add(TJSONObject(Value));
   end;
 end;
 
-function TSimbaJSONItemHelper.Has(Key: String): Boolean;
+function TSimbaJSONItemHelper.Has(AKey: String): Boolean;
 begin
   CheckIsObject();
-  Result := TJSONObject(Self).Find(Key) <> nil;
+  Result := TJSONObject(Self).Find(AKey) <> nil;
 end;
 
-function TSimbaJSONItemHelper.Has(Key: String; ItemType: EJSONItemType): Boolean;
+function TSimbaJSONItemHelper.Has(AKey: String; ItemType: EJSONItemType): Boolean;
 var
   Item: TSimbaJSONItem;
 begin
   CheckIsObject();
-  Item := ItemsByKey[Key];
+  Item := ItemsByKey[AKey];
   Result := (Item <> nil) and (Item.Typ = ItemType);
 end;
 
-function TSimbaJSONItemHelper.GetInt(Key: String; out Value: Int64): Boolean;
+function TSimbaJSONItemHelper.GetInt(AKey: String; out Value: Int64): Boolean;
 begin
-  Result := Has(Key, EJSONItemType.INT);
+  Result := Has(AKey, EJSONItemType.INT);
   if Result then
-    Value := ItemsByKey[Key].AsInt;
+    Value := ItemsByKey[AKey].AsInt;
 end;
 
-function TSimbaJSONItemHelper.GetFloat(Key: String; out Value: Double): Boolean;
+function TSimbaJSONItemHelper.GetFloat(AKey: String; out Value: Double): Boolean;
 begin
-  Result := Has(Key, EJSONItemType.FLOAT);
+  Result := Has(AKey, EJSONItemType.FLOAT);
   if Result then
-    Value := ItemsByKey[Key].AsFloat;
+    Value := ItemsByKey[AKey].AsFloat;
 end;
 
-function TSimbaJSONItemHelper.GetString(Key: String; out Value: String): Boolean;
+function TSimbaJSONItemHelper.GetString(AKey: String; out Value: String): Boolean;
 begin
-  Result := Has(Key, EJSONItemType.STR);
+  Result := Has(AKey, EJSONItemType.STR);
   if Result then
-    Value := ItemsByKey[Key].AsString;
+    Value := ItemsByKey[AKey].AsString;
 end;
 
-function TSimbaJSONItemHelper.GetUnicodeString(Key: String; out Value: UnicodeString): Boolean;
+function TSimbaJSONItemHelper.GetUnicodeString(AKey: String; out Value: UnicodeString): Boolean;
 begin
-  Result := Has(Key, EJSONItemType.STR);
+  Result := Has(AKey, EJSONItemType.STR);
   if Result then
-    Value := ItemsByKey[Key].AsUnicodeString;
+    Value := ItemsByKey[AKey].AsUnicodeString;
 end;
 
-function TSimbaJSONItemHelper.GetBool(Key: String; out Value: Boolean): Boolean;
+function TSimbaJSONItemHelper.GetBool(AKey: String; out Value: Boolean): Boolean;
 begin
-  Result := Has(Key, EJSONItemType.BOOL);
+  Result := Has(AKey, EJSONItemType.BOOL);
   if Result then
-    Value := ItemsByKey[Key].AsBool;
+    Value := ItemsByKey[AKey].AsBool;
 end;
 
-function TSimbaJSONItemHelper.GetArray(Key: String; out Value: TSimbaJSONItem): Boolean;
+function TSimbaJSONItemHelper.GetArray(AKey: String; out Value: TSimbaJSONItem): Boolean;
 begin
-  Result := Has(Key, EJSONItemType.ARR);
+  Result := Has(AKey, EJSONItemType.ARR);
   if Result then
-    Value := TJSONArray(ItemsByKey[Key]);
+    Value := TJSONArray(ItemsByKey[AKey]);
 end;
 
-function TSimbaJSONItemHelper.GetObject(Key: String; out Value: TSimbaJSONItem): Boolean;
+function TSimbaJSONItemHelper.GetObject(AKey: String; out Value: TSimbaJSONItem): Boolean;
 begin
-  Result := Has(Key, EJSONItemType.OBJ);
+  Result := Has(AKey, EJSONItemType.OBJ);
   if Result then
-    Value := TJSONObject(ItemsByKey[Key]);
+    Value := TJSONObject(ItemsByKey[AKey]);
 end;
 
 function TSimbaJSONItemHelper.FindPath(Path: String): TSimbaJSONItem;
@@ -377,7 +373,7 @@ begin
     jtObject: TJSONObject(Self).Delete(TJSONObject(Self).IndexOf(TJSONData(Item)));
     jtArray:  TJSONArray(Self).Delete(TJSONArray(Self).IndexOf(TJSONData(Item)));
     else
-      raise Exception.Create('Cannot delete to a non json object/array');
+      SimbaException('Cannot delete to a non json object/array');
   end;
 end;
 
