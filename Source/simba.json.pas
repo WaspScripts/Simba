@@ -417,15 +417,11 @@ var
   Stream: TFileStream;
 begin
   Stream := TFileStream.Create(FileName, fmOpenRead);
+  with TSimbaJSONParser.Create(Stream, True) do
   try
-    with TSimbaJSONParser.Create(Stream, True) do
-    try
-      Result := Parse();
-    finally
-      Free();
-    end;
+    Result := Parse();
   finally
-    Stream.Free();
+    Free();
   end;
 end;
 
