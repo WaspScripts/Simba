@@ -66,6 +66,7 @@ begin
       '  Points: TPointArray;',
       '  Shadow: TPointArray;',
       '  Background: TPointArray;',
+      '  BackgroundBounds: TBox;',
       '  PointsShadowWidth: Int16;',
       '',
       '  BestMatch: Int16;',
