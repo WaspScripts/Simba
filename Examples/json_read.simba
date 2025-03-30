@@ -21,6 +21,9 @@ begin
   if json.GetInt('postalCode', postal) then
     WriteLn(postal);
 
+  WriteLn(json.Item['streetAddress'].AsString);
+  WriteLn(json.Item['postalCode'].AsInt);
+
   // or loop over the items
   for I := 0 to json.Count - 1 do
   begin

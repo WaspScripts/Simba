@@ -25,6 +25,7 @@ type
   TSimbaJSONItem = type Pointer;
   TSimbaJSONItemHelper = type helper for TSimbaJSONItem
   private
+    procedure CheckIsTyp(ATyp: EJSONItemType);
     procedure CheckIsObject;
     procedure CheckIsObjectOrArray;
 
@@ -97,7 +98,14 @@ type
 implementation
 
 uses
+  TypInfo,
   simba.jsonparser;
+
+procedure TSimbaJSONItemHelper.CheckIsTyp(ATyp: EJSONItemType);
+begin
+  if (Self.Typ <> ATyp) then
+    SimbaException('Expected EJSONItemType.%s. This item is a EJSONItemType.%s', [GetEnumName(TypeInfo(EJSONItemType), Ord(ATyp)), GetEnumName(TypeInfo(EJSONItemType), Ord(Self.Typ))]);
+end;
 
 procedure TSimbaJSONItemHelper.CheckIsObject;
 begin
@@ -113,22 +121,37 @@ end;
 
 function TSimbaJSONItemHelper.GetAsBool: Boolean;
 begin
+  CheckIsTyp(EJSONItemType.BOOL);
+
   Result := TJSONData(Self).AsBoolean;
 end;
 
 function TSimbaJSONItemHelper.GetAsFloat: Double;
 begin
+  CheckIsTyp(EJSONItemType.FLOAT);
+
   Result := TJSONData(Self).AsFloat;
 end;
 
 function TSimbaJSONItemHelper.GetAsInt: Int64;
 begin
+  CheckIsTyp(EJSONItemType.INT);
+
   Result := TJSONData(Self).AsInt64;
 end;
 
 function TSimbaJSONItemHelper.GetAsString: String;
 begin
+  CheckIsTyp(EJSONItemType.STR);
+
   Result := TJSONData(Self).AsString;
+end;
+
+function TSimbaJSONItemHelper.GetAsUnicodeString: UnicodeString;
+begin
+  CheckIsTyp(EJSONItemType.STR);
+
+  Result := TJSONData(Self).AsUnicodeString;
 end;
 
 function TSimbaJSONItemHelper.GetCount: Integer;
@@ -170,11 +193,6 @@ begin
   CheckIsObject();
 
   Result := TJSONObject(Self).Names[Index];
-end;
-
-function TSimbaJSONItemHelper.GetAsUnicodeString: UnicodeString;
-begin
-  Result := TJSONData(Self).AsUnicodeString;
 end;
 
 function TSimbaJSONItemHelper.ToJSON: String;
