@@ -75,7 +75,7 @@ type
     procedure DblClick; override;
 
     procedure Paint; override;
-    procedure Resize; override;
+    procedure DoResize(Sender: TObject);
 
     procedure DoScrollChange(Sender: TObject);
 
@@ -305,7 +305,7 @@ begin
     FZoomLevel := Level;
     FZoomPixels := Pixels;
 
-    Invalidate();
+    Repaint();
   end;
 
   FImageBox.StatusBar.PanelText[2] := Format('%d%s', [FZoomLevel, '%']);
@@ -495,7 +495,7 @@ end;
 
 procedure TSimbaImageScrollBox.DoScrollChange(Sender: TObject);
 begin
-  Invalidate();
+  Repaint();
 end;
 
 procedure TSimbaImageScrollBox.Paint;
@@ -597,7 +597,7 @@ begin
   FPaintTime := HighResolutionTime() - FPaintTime;
 end;
 
-procedure TSimbaImageScrollBox.Resize;
+procedure TSimbaImageScrollBox.DoResize(Sender: TObject);
 begin
   inherited Resize();
 
@@ -617,8 +617,6 @@ begin
     FVertScroll.LargeChange := FZoomPixels;
     FVertScroll.PageSize := ClientHeight - FHorzScroll.Height;
     FVertScroll.Max := Max(0, ((H - ClientHeight) + FHorzScroll.Height) + FVertScroll.PageSize);
-    if FVertScroll.Visible then
-      FVertScroll.Invalidate;
   end;
 
   if Assigned(FHorzScroll) then
@@ -627,8 +625,6 @@ begin
     FHorzScroll.LargeChange := FZoomPixels;
     FHorzScroll.PageSize := ClientWidth - FVertScroll.Width;
     FHorzScroll.Max := Max(0, ((W - ClientWidth) + FVertScroll.Width) + FHorzScroll.PageSize);
-    if FHorzScroll.Visible then
-      FHorzScroll.Invalidate;
   end;
 end;
 
@@ -713,7 +709,6 @@ begin
     FVertScroll.Position := 0;
 
     UpdateScrollBars();
-    Invalidate();
 
     FImageBox.StatusBar.PanelText[1] := Format('%d x %d', [FImageWidth, FImageHeight]);
   end;
@@ -748,6 +743,8 @@ begin
 
   FCanvas := TSimbaImageBoxCanvas.Create();
   FResizeBuffer := TBitmap.Create();
+
+  OnResize := @DoResize;
 end;
 
 destructor TSimbaImageScrollBox.Destroy;
@@ -901,7 +898,7 @@ end;
 
 procedure TSimbaImageBox.Paint;
 begin
-  FImageScrollBox.Invalidate();
+  FImageScrollBox.Repaint();
 
   inherited Paint();
 end;
