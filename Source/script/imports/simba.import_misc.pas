@@ -257,30 +257,18 @@ ShowACA
 -------
 ```
 function ShowACA(Target: TTarget; Title: String): TColorTolerance;
-```
-```
 function ShowACA(Title: String): TColorTolerance;
 ```
 *)
 procedure _LapeShowACA(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 
   procedure Execute;
-  var
-    Window: TWindowHandle;
   begin
-    with PSimbaTarget(Params^[0])^ do
-      Window := TargetWindow;
-
-    with TSimbaACAForm.Create(Window) do
-    try
-      FreeOnClose := False;
-      Caption := PString(Params^[1])^;
-      ShowModal();
-
-      PColorTolerance(Result)^ := BestColor;
-    finally
-      Free();
-    end;
+    ShowACA(
+      PSimbaTarget(Params^[0])^.TargetWindow,
+      PString(Params^[1])^,
+      PColorTolerance(Result)^
+    );
   end;
 
 begin

@@ -428,6 +428,7 @@ begin
     ShowHint := True;
     BorderSpacing.Around := 5;
     OnClick := @FindButtonClick;
+    ImageList := SimbaMainForm.Images;
   end;
 
   FFindButtonUp := TSimbaButton.Create(Self);
@@ -440,6 +441,7 @@ begin
     ShowHint := True;
     BorderSpacing.Around := 5;
     OnClick := @FindButtonClick;
+    ImageList := SimbaMainForm.Images;
   end;
 
   FFindButtonClose := TSimbaTransparentButton.Create(Self);

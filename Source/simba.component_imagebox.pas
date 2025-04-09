@@ -696,8 +696,7 @@ end;
 
 procedure TSimbaImageScrollBox.BackgroundResized;
 begin
-  if (FImageBox.FBackground.Width <> FImageWidth) or
-     (FImageBox.FBackground.Height <> FImageHeight) then
+  if (FImageBox.FBackground.Width <> FImageWidth) or (FImageBox.FBackground.Height <> FImageHeight) then
   begin
     FImageWidth := FImageBox.FBackground.Width;
     FImageHeight := FImageBox.FBackground.Height;
@@ -858,6 +857,7 @@ begin
     Img.Free();
 
   FImageScrollBox.BackgroundResized();
+  FImageScrollBox.Repaint();
 end;
 
 procedure TSimbaImageBox.SetStatus(Value: String);
@@ -894,6 +894,7 @@ procedure TSimbaImageBox.SetBackground(AValue: TBitmap);
 begin
   FBackground := AValue;
   FImageScrollBox.BackgroundResized();
+  FImageScrollBox.Repaint();
 end;
 
 procedure TSimbaImageBox.Paint;

@@ -119,13 +119,18 @@ type
   TSimbaLabeledEdit = class(TCustomControl)
   protected
     FLabel: TLabel;
+    FLabelMeasure: String;
     FEdit: TSimbaEdit;
 
     procedure TextChanged; override;
+    procedure FontChanged(Sender: TObject); override;
+
+    procedure SetLabelMeasure(Value: String);
   public
     constructor Create(AOwner: TComponent); override;
 
     property Edit: TSimbaEdit read FEdit;
+    property LabelMeasure: String read FLabelMeasure write SetLabelMeasure;
   end;
 
 implementation
@@ -192,6 +197,7 @@ begin
   inherited;
 
   FCaretTimer.Enabled := False;
+  ClearSelection();
   Invalidate();
 end;
 
@@ -748,6 +754,43 @@ begin
     FLabel.Caption := Text;
 end;
 
+procedure TSimbaLabeledEdit.FontChanged(Sender: TObject);
+begin
+  inherited FontChanged(Sender);
+
+  if (FLabelMeasure <> '') then
+  begin
+    with TBitmap.Create() do
+    try
+      Canvas.Font := FLabel.Font;
+      FEdit.Left := Canvas.TextWidth(FLabelMeasure);
+    finally
+      Free();
+    end
+  end;
+end;
+
+procedure TSimbaLabeledEdit.SetLabelMeasure(Value: String);
+begin
+  if (FLabelMeasure = Value) then
+    Exit;
+  FLabelMeasure := Value;
+
+  if (FLabelMeasure <> '') then
+  begin
+    FEdit.AnchorSide[akLeft].Control := nil;
+
+    with TBitmap.Create() do
+    try
+      Canvas.Font := FLabel.Font;
+      FEdit.Left := FLabel.Left + Canvas.TextWidth(FLabelMeasure) + (FLabel.BorderSpacing.Right * 2);
+    finally
+      Free();
+    end;
+  end else
+    FEdit.AnchorSide[akLeft].Control := Self;
+end;
+
 constructor TSimbaLabeledEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -764,11 +807,22 @@ begin
   FLabel.AutoSize := True;
   FLabel.Layout := tlCenter;
   FLabel.ParentFont := True;
+  FLabel.BorderSpacing.Left := 5;
+  FLabel.BorderSpacing.Right := 5;
 
   FEdit := TSimbaEdit.Create(Self);
   FEdit.Parent := Self;
-  FEdit.Align := alClient;
-  FEdit.BorderSpacing.Around := 5;
+  FEdit.Anchors := [akLeft, akTop, akRight, akBottom];
+  FEdit.AnchorSide[akLeft].Control := Self;
+  FEdit.AnchorSide[akLeft].Side := asrLeft;
+  FEdit.AnchorSide[akTop].Control := Self;
+  FEdit.AnchorSide[akTop].Side := asrTop;
+  FEdit.AnchorSide[akRight].Control := Self;
+  FEdit.AnchorSide[akRight].Side := asrRight;
+  FEdit.AnchorSide[akBottom].Control := Self;
+  FEdit.AnchorSide[akBottom].Side := asrBottom;
+  FEdit.BorderSpacing.Around := 0;
+  FEdit.BorderSpacing.Right := 5;
 end;
 
 end.

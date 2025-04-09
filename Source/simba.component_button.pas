@@ -10,7 +10,7 @@ unit simba.component_button;
 interface
 
 uses
-  Classes, SysUtils, Controls, StdCtrls, Buttons, Graphics, LMessages, ImgList,
+  Classes, SysUtils, Controls, StdCtrls, ExtCtrls, Buttons, Graphics, LMessages, ImgList,
   simba.base;
 
 type
@@ -29,23 +29,10 @@ type
   );
   {$pop}
 
-const
-  IMG_TO_LAZ_GLYPH: array[ESimbaButtonImage] of String = (
-    '',
-    'btn_ok',
-    'btn_cancel',
-    'btnfiltercancel',
-    'btnseldir',
-    'btnselfile',
-    'btntime',
-    'btncalculator',
-    'btncalendar'
-  );
-
 type
   TSimbaButton = class(TCustomControl)
   protected
-    FImageList: TImageList;
+    FImageList: TCustomImageList;
     FImageIndex: Integer;
     FImage: ESimbaButtonImage;
 
@@ -53,6 +40,8 @@ type
     FXPadding: Integer;
     FYPadding: Integer;
     FImageSpacing: Integer;
+
+    function GetCustomImage: TCustomBitmap; virtual;
 
     function HasImage: Boolean;
     function ImageSize: TSize;
@@ -75,12 +64,12 @@ type
     procedure SetImage(Img: ESimbaButtonImage);
     procedure SetImageIndex(Index: Integer);
   public
+    constructor Create(AOwner: TComponent); override;
+
     procedure Paint; override;
     procedure Click; override; // make click public
 
-    constructor Create(AOwner: TComponent); override;
-
-    property ImageList: TImageList read FImageList write FImageList;
+    property ImageList: TCustomImageList read FImageList write FImageList;
     property ImageIndex: Integer read FImageIndex write SetImageIndex;
     property Image: ESimbaButtonImage read FImage write SetImage;
 
@@ -102,8 +91,8 @@ type
   end;
 
   TSimbaCheckButton = class(TSimbaToggleButton)
-  public
-    constructor Create(AOwner: TComponent); override;
+  protected
+    function GetCustomImage: TCustomBitmap; override;
   end;
 
   TSimbaLabeledButton = class(TCustomControl)
@@ -147,11 +136,45 @@ type
     property Checked[Index: Integer]: Boolean read GetSelected write SetSelected;
   end;
 
+  TSimbaToggleButtonGroup = class(TFlowPanel)
+  private
+    function GetSelectedText: String;
+  protected
+    FOnChange: TNotifyEvent;
+
+    procedure DoButtonClick(Sender: TObject);
+  public
+    procedure Add(AText: String);
+    property SelectedText: String read GetSelectedText;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+  TSimbaLabeledToggleButtonGroup = class(TCustomControl)
+  private
+    FLabelMeasure: String;
+
+    procedure SetLabelMeasure(Value: String);
+  protected
+    FLabel: TLabel;
+    FToggleButtons: TSimbaToggleButtonGroup;
+
+    procedure TextChanged; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    property ToggleButtons: TSimbaToggleButtonGroup read FToggleButtons;
+    property LabelMeasure: String read FLabelMeasure write SetLabelMeasure;
+  end;
+
 implementation
 
 uses
-  simba.ide_theme, simba.form_main, simba.misc,
+  simba.ide_theme, simba.form_main, simba.misc, LCLType,
   ATCanvasPrimitives;
+
+var
+  ImgTick: TPortableNetworkGraphic;
 
 procedure TSimbaTransparentButton.Paint;
 begin
@@ -233,6 +256,109 @@ begin
   Result := GetControlIndex(CheckButton);
 end;
 
+function TSimbaToggleButtonGroup.GetSelectedText: String;
+var i: Integer;
+begin
+  for i := 0 to ControlCount-1 do
+    if (Controls[i] is TSimbaToggleButton) and TSimbaToggleButton(Controls[i]).Down then
+      Exit(TSimbaToggleButton(Controls[i]).Caption);
+  Result := '';
+end;
+
+procedure TSimbaToggleButtonGroup.DoButtonClick(Sender: TObject);
+var i: Integer;
+begin
+  for i := 0 to ControlCount-1 do
+    if (Controls[i] is TSimbaToggleButton)  and (Controls[i] <> Sender) then
+      TSimbaToggleButton(Controls[i]).Down := False;
+
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+procedure TSimbaToggleButtonGroup.Add(AText: String);
+begin
+  with TSimbaToggleButton.Create(Self) do
+  begin
+    Parent := Self;
+    Caption := AText;
+    BorderSpacing.Around := 3;
+    OnClick := @DoButtonClick;
+    Down := (Self.ControlCount = 1);
+  end;
+end;
+
+constructor TSimbaToggleButtonGroup.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  AutoSize := True;
+  Color := SimbaTheme.ColorBackground;
+  BevelOuter := bvNone;
+end;
+
+procedure TSimbaLabeledToggleButtonGroup.SetLabelMeasure(Value: String);
+begin
+  if (FLabelMeasure = Value) then
+    Exit;
+  FLabelMeasure := Value;
+
+  if (FLabelMeasure <> '') then
+  begin
+    FToggleButtons.AnchorSide[akLeft].Control := nil;
+
+    with TBitmap.Create() do
+    try
+      Canvas.Font := FLabel.Font;
+      FToggleButtons.Left := FLabel.Left + Canvas.TextWidth(FLabelMeasure) + (FLabel.BorderSpacing.Right * 2);
+    finally
+      Free();
+    end;
+  end else
+    FToggleButtons.AnchorSide[akLeft].Control := FLabel;
+end;
+
+procedure TSimbaLabeledToggleButtonGroup.TextChanged;
+begin
+  inherited TextChanged;
+
+  if Assigned(FLabel) then
+    FLabel.Caption := Text;
+end;
+
+constructor TSimbaLabeledToggleButtonGroup.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  ControlStyle := ControlStyle + [csOpaque];
+  Color := SimbaTheme.ColorFrame;
+  Font.Color := SimbaTheme.ColorFont;
+  AutoSize := True;
+  ParentFont := True;
+
+  FLabel := TLabel.Create(Self);
+  FLabel.Parent := Self;
+  FLabel.Align := alLeft;
+  FLabel.AutoSize := True;
+  FLabel.Layout := tlCenter;
+  FLabel.ParentFont := True;
+  FLabel.BorderSpacing.Left := 5;
+  FLabel.BorderSpacing.Right := 5;
+
+  FToggleButtons := TSimbaToggleButtonGroup.Create(Self);
+  FToggleButtons.Parent := Self;
+  FToggleButtons.ParentColor := True;
+  FToggleButtons.Anchors := [akLeft, akTop, akRight, akBottom];
+  FToggleButtons.AnchorSide[akLeft].Control := FLabel;
+  FToggleButtons.AnchorSide[akLeft].Side := asrRight;
+  FToggleButtons.AnchorSide[akTop].Control := Self;
+  FToggleButtons.AnchorSide[akTop].Side := asrTop;
+  FToggleButtons.AnchorSide[akRight].Control := Self;
+  FToggleButtons.AnchorSide[akRight].Side := asrRight;
+  FToggleButtons.AnchorSide[akBottom].Control := Self;
+  FToggleButtons.AnchorSide[akBottom].Side := asrBottom;
+end;
+
 procedure TSimbaButton.CMParentFontChanged(var Message: TLMessage);
 var
   OldStyle: TFontStyles;
@@ -254,7 +380,7 @@ end;
 procedure TSimbaButton.SetDown(AValue: Boolean);
 begin
   if FDown = AValue then Exit;
-  FDown:=AValue;
+  FDown := AValue;
   Invalidate;
 end;
 
@@ -285,16 +411,22 @@ begin
   AdjustSize();
 end;
 
+function TSimbaButton.GetCustomImage: TCustomBitmap;
+begin
+  Result := nil;
+end;
+
 function TSimbaButton.HasImage: Boolean;
 begin
-  Result := (FImage <> ESimbaButtonImage.NONE) or (FImageIndex > -1);
+  Result := (FImageIndex > -1) or (GetCustomImage() <> nil);
 end;
 
 function TSimbaButton.ImageSize: TSize;
 begin
-  if (FImage <> ESimbaButtonImage.NONE) then
-    Result := LCLGlyphs.SizeForPPI[LCLGlyphs.Width, Font.PixelsPerInch]
-  else if (FImageIndex > -1) then
+  if (GetCustomImage <> nil) then
+    Result := TSize.Create(GetCustomImage.Width, GetCustomImage.Height)
+  else
+  if (FImageIndex > -1) then
     Result := FImageList.SizeForPPI[FImageList.Width, Font.PixelsPerInch]
   else
     Result := TSize.Create(0, 0);
@@ -384,16 +516,16 @@ begin
   begin
     if (Caption = '') then
     begin
-      ImgPoint.X := R.Left + (R.Width div 2) - (ImageSize.Width div 2);
-      ImgPoint.Y := R.Top + (R.Height div 2) - (ImageSize.Height div 2);
+      ImgPoint.X := R.Left + (R.Width div 2)  - (ImageSize.Width div 2);
+      ImgPoint.Y := R.Top  + (R.Height div 2) - (ImageSize.Height div 2);
     end else
     begin
       ImgPoint.X := R.Left;
       ImgPoint.Y := R.CenterPoint.Y - (ImageSize.Height div 2);
     end;
 
-    if (FImage <> ESimbaButtonImage.NONE) then
-      LCLGlyphs.DrawForControl(Canvas, ImgPoint.X, ImgPoint.Y, LCLGlyphs.GetImageIndex(IMG_TO_LAZ_GLYPH[FImage]), LCLGlyphs.Width, Self, Enabled)
+    if (GetCustomImage <> nil) then
+      Canvas.Draw(ImgPoint.X, ImgPoint.Y, GetCustomImage())
     else
       FImageList.DrawForControl(Canvas, ImgPoint.X, ImgPoint.Y, FImageIndex, FImageList.Width, Self, Enabled);
   end;
@@ -413,12 +545,12 @@ begin
     Canvas.TextRect(R, 0,0, Caption, Style);
   end;
 
-  inherited Paint;
+  inherited Paint();
 end;
 
 procedure TSimbaButton.Click;
 begin
-  inherited Click;
+  inherited Click();
 end;
 
 constructor TSimbaButton.Create(AOwner: TComponent);
@@ -428,7 +560,7 @@ begin
   Color := SimbaTheme.ColorScrollBarActive;
   AutoSize := True;
 
-  FImageList := SimbaMainForm.Images;
+  FImageList := LCLGlyphs;
   FImageIndex := -1;
 
   ImageSpacing := 5;
@@ -438,7 +570,17 @@ end;
 
 procedure TSimbaButton.SetImage(Img: ESimbaButtonImage);
 begin
-  FImage := Img;
+  FImageList := LCLGlyphs;
+  case Img of
+    ESimbaButtonImage.OK:           ImageIndex := LCLGlyphs.GetImageIndex('btn_ok');
+    ESimbaButtonImage.CLOSE:        ImageIndex := LCLGlyphs.GetImageIndex('btn_cancel');
+    ESimbaButtonImage.CLEAR_FILTER: ImageIndex := LCLGlyphs.GetImageIndex('btnfiltercancel');
+    ESimbaButtonImage.SELECT_DIR:   ImageIndex := LCLGlyphs.GetImageIndex('btnseldir');
+    ESimbaButtonImage.SELECT_FILE:  ImageIndex := LCLGlyphs.GetImageIndex('btnselfile');
+    ESimbaButtonImage.TIME:         ImageIndex := LCLGlyphs.GetImageIndex('btntime');
+    ESimbaButtonImage.CALC:         ImageIndex := LCLGlyphs.GetImageIndex('btncalculator');
+    ESimbaButtonImage.CALENDER:     ImageIndex := LCLGlyphs.GetImageIndex('btncalendar');
+  end;
 
   AdjustSize();
 end;
@@ -453,16 +595,14 @@ end;
 
 procedure TSimbaToggleButton.Click;
 begin
-  inherited Click();
-
   Down := not Down;
+
+  inherited Click();
 end;
 
-constructor TSimbaCheckButton.Create(AOwner: TComponent);
+function TSimbaCheckButton.GetCustomImage: TCustomBitmap;
 begin
-  inherited Create(AOwner);
-
-  SetImageIndex(IMG_TICK);
+  Result := ImgTick;
 end;
 
 procedure TSimbaLabeledButton.TextChanged;
@@ -492,6 +632,13 @@ begin
   FLabel.Align := alClient;
   FLabel.Layout := tlCenter;
 end;
+
+initialization
+  ImgTick := TPortableNetworkGraphic.Create();
+  ImgTick.LoadFromStream(TResourceStream.Create(HINSTANCE, 'TICK', RT_RCDATA));
+
+finalization
+  FreeAndNil(ImgTick);
 
 end.
 

@@ -169,6 +169,7 @@ begin
   TreeView := TSimbaTreeView.Create(Self, TExampleNode);
   TreeView.Parent := LeftPanel;
   TreeView.Align := alClient;
+  TreeView.Images := SimbaMainForm.Images;
   TreeView.OnSelectionChange := @DoTreeViewSelectionChanged;
   TreeView.OnDoubleClick := @DoButtonOkClick;
 

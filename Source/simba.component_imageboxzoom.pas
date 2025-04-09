@@ -20,6 +20,7 @@ type
     FPixelCount: Integer;
     FPixelSize: Integer;
     FTempColor: Integer;
+    FFrameColor: TColor;
 
     procedure CalculatePreferredSize(var PreferredWidth, PreferredHeight: Integer; WithThemeSpace: Boolean); override;
     procedure Paint; override;
@@ -30,9 +31,14 @@ type
     procedure SetTempColor(AColor: Integer);
     procedure SetZoom(PixelCount, PixelSize: Integer);
     procedure Move(ACanvas: TCanvas; X, Y: Integer);
+
+    property FrameColor: TColor read FFrameColor write FFrameColor;
   end;
 
   TSimbaImageBoxZoomPanel = class(TCustomControl)
+  private
+    function GetFrameColor: TColor;
+    procedure SetFrameColor(AValue: TColor);
   protected
     FZoom: TSimbaImageBoxZoom;
     FLabel: TLabel;
@@ -40,10 +46,14 @@ type
     FImageCanvas: TCanvas;
     FImageX, FImageY: Integer;
 
+    procedure CalculatePreferredSize(var PreferredWidth, PreferredHeight: Integer; WithThemeSpace: Boolean); override;
+
     procedure DoUpdate(Data: PtrInt);
     procedure DoFill(Data: PtrInt);
   public
     constructor Create(AOwner: TComponent); override;
+
+    property FrameColor: TColor read GetFrameColor write SetFrameColor;
 
     procedure Move(ImgCanvas: TCanvas; ImgX, ImgY: Integer);
     procedure Fill(AColor: TColor);
@@ -53,7 +63,7 @@ implementation
 
 uses
   Forms,
-  simba.nativeinterface, simba.colormath;
+  simba.nativeinterface, simba.colormath, simba.misc;
 
 constructor TSimbaImageBoxZoom.Create(AOwner: TComponent);
 begin
@@ -62,6 +72,7 @@ begin
   FTempColor := -1;
   FBitmap := TBitmap.Create();
   FBitmap.Canvas.AntialiasingMode := amOff;
+  FFrameColor := clBlack;
 
   SetZoom(5, 5);
   Color := clWindow;
@@ -123,7 +134,7 @@ begin
   Canvas.AntialiasingMode := amOff;
   Canvas.StretchDraw(TRect.Create(1, 1, ClientWidth - 1, ClientHeight - 1), FBitmap);
 
-  Canvas.Pen.Color := clBlack;
+  Canvas.Pen.Color := FFrameColor;
   Canvas.Frame(ClientRect);
 
   Canvas.Pen.Color := clLime;
@@ -158,6 +169,30 @@ begin
   FBitmap.EndUpdate();
 
   Invalidate();
+end;
+
+function TSimbaImageBoxZoomPanel.GetFrameColor: TColor;
+begin
+  Result := FZoom.FrameColor;
+end;
+
+procedure TSimbaImageBoxZoomPanel.SetFrameColor(AValue: TColor);
+begin
+  FZoom.FrameColor := AValue;
+end;
+
+procedure TSimbaImageBoxZoomPanel.CalculatePreferredSize(var PreferredWidth, PreferredHeight: Integer; WithThemeSpace: Boolean);
+var
+  bmp: TBitmap;
+begin
+  inherited CalculatePreferredSize(PreferredWidth, PreferredHeight, WithThemeSpace);
+
+  bmp := TBitmap.Create();
+  bmp.Canvas.Font := Self.Font;
+  bmp.Canvas.Font.Size := GetFontSize(Self, 2);
+  PreferredWidth := (FZoom.BorderSpacing.Around * 2) + FZoom.Width + bmp.Canvas.TextWidth('HSL: 360.00, 100.00, 100.00') + FLabel.BorderSpacing.Right;
+
+  bmp.Free();
 end;
 
 procedure TSimbaImageBoxZoomPanel.DoUpdate(Data: PtrInt);
@@ -196,12 +231,15 @@ begin
   FZoom := TSimbaImageBoxZoom.Create(Self);
   FZoom.Parent := Self;
   FZoom.SetZoom(4, 5);
-  FZoom.BorderSpacing.Around := 10;
+  FZoom.BorderSpacing.Around := 5;
+  FZoom.Align := alLeft;
 
   FLabel := TLabel.Create(Self);
   FLabel.Parent := Self;
-  FLabel.BorderSpacing.Right := 10;
-  FLabel.AnchorToNeighbour(akLeft, 10, FZoom);
+  FLabel.BorderSpacing.Top := 5;
+  FLabel.BorderSpacing.Bottom := 5;
+  FLabel.BorderSpacing.Right := 5;
+  FLabel.Align := alClient;
 end;
 
 procedure TSimbaImageBoxZoomPanel.Move(ImgCanvas: TCanvas; ImgX, ImgY: Integer);

@@ -729,7 +729,7 @@ end;
 
 procedure TSimbaMainForm.MenuItemACAClick(Sender: TObject);
 begin
-  TSimbaACAForm.Create(SimbaMainToolBar.WindowSelection).ShowOnTop();
+  ShowACA(SimbaMainToolBar.WindowSelection);
 end;
 
 procedure TSimbaMainForm.DoMenuItemRunClick(Sender: TObject);

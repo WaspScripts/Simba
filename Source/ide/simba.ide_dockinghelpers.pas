@@ -60,6 +60,8 @@ type
   TSimbaAnchorDockSplitter = class(TAnchorDockSplitter)
   protected
     procedure Paint; override;
+  public
+    constructor Create(TheOwner: TComponent); override;
   end;
 
   TAnchorDockMasterHelper = class helper for TAnchorDockMaster
@@ -263,6 +265,13 @@ begin
     Canvas.Brush.Color := SimbaTheme.ColorActive;
     Canvas.FillRect(3, 3, Width-3, Height-3);
   end;
+end;
+
+constructor TSimbaAnchorDockSplitter.Create(TheOwner: TComponent);
+begin
+  inherited Create(TheOwner);
+
+  PopupMenu := nil;
 end;
 
 procedure TAnchorDockMasterHelper.MakeDockable(Form: TCustomForm; MenuItem: TMenuItem);

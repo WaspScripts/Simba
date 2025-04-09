@@ -137,6 +137,5 @@ begin
 
     SimbaIDEInitialization_CallBeforeShow();
   end;
-
   Application.Run();
 end.

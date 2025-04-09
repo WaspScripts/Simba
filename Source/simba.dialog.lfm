@@ -1,32 +1,31 @@
 object SimbaDialogForm: TSimbaDialogForm
-  Left = 149
-  Height = 150
-  Top = 991
-  Width = 350
+  Left = 85
+  Height = 120
+  Top = 915
+  Width = 280
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'SimbaDialogForm'
-  ClientHeight = 150
-  ClientWidth = 350
-  Constraints.MinHeight = 150
-  Constraints.MinWidth = 250
-  DesignTimePPI = 120
+  ClientHeight = 120
+  ClientWidth = 280
+  Constraints.MinHeight = 120
+  Constraints.MinWidth = 200
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '3.0.0.3'
+  LCLVersion = '3.8.0.0'
   object MessagePanel: TPanel
     Left = 0
-    Height = 99
+    Height = 73
     Top = 0
-    Width = 350
+    Width = 280
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 99
-    ClientWidth = 350
+    ClientHeight = 73
+    ClientWidth = 280
     Color = clWhite
     ParentBackground = False
     ParentColor = False
@@ -36,12 +35,12 @@ object SimbaDialogForm: TSimbaDialogForm
       AnchorSideTop.Control = QuestionLabel
       AnchorSideTop.Side = asrCenter
       AnchorSideBottom.Side = asrBottom
-      Left = 15
+      Left = 12
       Height = 58
-      Top = 20
+      Top = 7
       Width = 57
       AutoSize = True
-      BorderSpacing.Around = 15
+      BorderSpacing.Around = 12
     end
     object QuestionLabel: TLabel
       AnchorSideLeft.Control = Image
@@ -51,14 +50,14 @@ object SimbaDialogForm: TSimbaDialogForm
       AnchorSideRight.Control = MessagePanel
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Side = asrBottom
-      Left = 87
+      Left = 81
       Height = 1
-      Top = 49
-      Width = 248
+      Top = 36
+      Width = 187
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Top = 15
-      BorderSpacing.Right = 15
-      BorderSpacing.Bottom = 15
+      BorderSpacing.Top = 12
+      BorderSpacing.Right = 12
+      BorderSpacing.Bottom = 12
       Layout = tlCenter
       ParentColor = False
       WordWrap = True
@@ -66,51 +65,51 @@ object SimbaDialogForm: TSimbaDialogForm
   end
   object ButtonPanel: TPanel
     Left = 0
-    Height = 51
-    Top = 99
-    Width = 350
+    Height = 47
+    Top = 73
+    Width = 280
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 51
-    ClientWidth = 350
+    ClientHeight = 47
+    ClientWidth = 280
     TabOrder = 1
     object ButtonNo: TButton
-      Left = 164
+      Left = 123
       Height = 35
-      Top = 8
-      Width = 85
+      Top = 6
+      Width = 68
       Align = alRight
       AutoSize = True
-      BorderSpacing.Around = 8
+      BorderSpacing.Around = 6
       Caption = 'No'
-      Constraints.MinWidth = 85
+      Constraints.MinWidth = 68
       TabOrder = 1
       OnClick = ButtonNoClick
     end
     object ButtonYes: TButton
-      Left = 71
+      Left = 49
       Height = 35
-      Top = 8
-      Width = 85
+      Top = 6
+      Width = 68
       Align = alRight
       AutoSize = True
-      BorderSpacing.Around = 8
+      BorderSpacing.Around = 6
       Caption = 'Yes'
-      Constraints.MinWidth = 85
+      Constraints.MinWidth = 68
       TabOrder = 0
       OnClick = ButtonYesClick
     end
     object ButtonCancel: TButton
-      Left = 257
+      Left = 197
       Height = 35
-      Top = 8
-      Width = 85
+      Top = 6
+      Width = 77
       Align = alRight
       AutoSize = True
-      BorderSpacing.Around = 8
+      BorderSpacing.Around = 6
       Caption = 'Cancel'
-      Constraints.MinWidth = 85
+      Constraints.MinWidth = 68
       TabOrder = 2
       OnClick = ButtonCancelClick
     end

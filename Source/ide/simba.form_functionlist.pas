@@ -911,13 +911,17 @@ end;
 
 destructor TSimbaFunctionListForm.Destroy;
 begin
-  FUpdateThread.Terminate();
-  FUpdateThread.WaitFor();
-  FUpdateThread.Free();
+  if (FUpdateThread <> nil) then
+  begin
+    FUpdateThread.Terminate();
+    FUpdateThread.WaitFor();
 
-  FCodeinsight.Free();
-
-  FSavedStates.Free();
+    FreeAndNil(FUpdateThread);
+  end;
+  if (FCodeinsight <> nil) then
+    FreeAndNil(FCodeinsight);
+  if (FSavedStates <> nil) then
+    FreeAndNil(FSavedStates);
 
   inherited Destroy();
 end;

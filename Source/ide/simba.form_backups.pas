@@ -236,6 +236,7 @@ begin
   TreeView.OnDoubleClick := @DoButtonOkClick;
   TreeView.FilterOnlyTopLevel := True;
   TreeView.FilterCollapseOnClear := True;
+  TreeView.Images := SimbaMainForm.Images;
 
   RightPanel.Color := SimbaTheme.ColorBackground;
   RightPanel.Font.Color := SimbaTheme.ColorFont;
