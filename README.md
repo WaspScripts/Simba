@@ -15,6 +15,7 @@ Simba is available for:
  - MacOS (64 bit & M1/M2) - *Untested, but runs*
 
 ![Simba on Windows 11](Images/readme/simba_ide.png)
+![AutoColorAid](Images/readme/aca.gif)
 
 Some dependencies are required for both building and running on Linux/MacOS.
 

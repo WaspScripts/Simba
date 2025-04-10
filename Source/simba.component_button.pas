@@ -268,8 +268,8 @@ end;
 procedure TSimbaToggleButtonGroup.DoButtonClick(Sender: TObject);
 var i: Integer;
 begin
-  for i := 0 to ControlCount-1 do
-    if (Controls[i] is TSimbaToggleButton)  and (Controls[i] <> Sender) then
+  for i := 0 to ControlCount - 1 do
+    if (Controls[i] is TSimbaToggleButton) and (Controls[i] <> Sender) then
       TSimbaToggleButton(Controls[i]).Down := False;
 
   if Assigned(FOnChange) then
@@ -595,7 +595,10 @@ end;
 
 procedure TSimbaToggleButton.Click;
 begin
-  Down := not Down;
+  if Parent is TSimbaToggleButtonGroup then
+    Down := True
+  else
+    Down := not Down;
 
   inherited Click();
 end;

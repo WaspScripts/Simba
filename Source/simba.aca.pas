@@ -167,6 +167,8 @@ begin
     'LAB':    Result := EcolorSpace.LAB;
     'LCH':    Result := EColorSpace.LCH;
     'DeltaE': Result := EColorSpace.DELTAE;
+    else
+      Result := EColorSpace.RGB;
   end;
 end;
 
@@ -324,9 +326,12 @@ end;
 
 procedure TSimbaACA.DoClearImageClick(Sender: TObject);
 begin
-  FDebugTPA := [];
-  FDebugMat := [];
-  FImageBox.Repaint();
+  if (Length(FDebugTPA) > 0) or (FDebugMat.Area > 0) then
+  begin
+    FDebugTPA := [];
+    FDebugMat := [];
+    FImageBox.Repaint();
+  end;
 end;
 
 procedure TSimbaACA.DoMatchColorClick(Sender: TObject);
@@ -431,6 +436,7 @@ procedure TSimbaACA.DoLoadColorsClick(Sender: TObject);
 var
   Str: String;
 begin
+  FColorList.BeginUpdate();
   FColorList.Clear();
 
   with GetColorsINI() do
@@ -441,6 +447,8 @@ begin
   finally
     Free();
   end;
+
+  FColorList.EndUpdate();
 end;
 
 procedure TSimbaACA.DoDeleteColorsClick(Sender: TObject);
@@ -749,6 +757,8 @@ begin
       Exit;
 
   TColorNode(FColorList.AddNode(ColorToStr(Color))).Color := Color;
+
+  FButtonClearImg.Click();
 end;
 
 function TSimbaACA.GetBest: TColorTolerance;
