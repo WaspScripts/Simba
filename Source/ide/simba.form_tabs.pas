@@ -115,7 +115,7 @@ implementation
 
 uses
   LCLType,
-  simba.base, simba.env, simba.ide_editor_docgenerator,
+  simba.base, simba.env,
   simba.form_main, simba.form_output,
   simba.ide_dockinghelpers, simba.nativeinterface,
   simba.ide_events, simba.ide_utils, simba.ide_theme, simba.settings;

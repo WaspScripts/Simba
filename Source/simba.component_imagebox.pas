@@ -824,7 +824,7 @@ begin
   try
     Target.SetImage(GetSelf() as TSimbaImage);
 
-    Result := Target.MatchColor(Color, ColorSpace, Multipliers, Target.Bounds);
+    Result := Target.MatchColor(AColor, ColorSpace, Multipliers, Target.Bounds);
   finally
     Free();
   end;
