@@ -7,7 +7,6 @@
 }
 unit simba.image_lazbridge;
 
-{$DEFINE SIMBA_MAX_OPTIMIZATION}
 {$i simba.inc}
 
 interface
@@ -134,91 +133,75 @@ begin
 end;
 
 function LazImage_ToSimbaImage(LazImage: TBitmap): TSimbaImage;
+
+  procedure BGR(SourcePtr, DestPtr: PByte; const DestUpper: PtrUInt; const SourceRowSize, DestRowSize: Integer);
+  var
+    Ptr: PByte;
+    RowUpper: PtrUInt;
+  begin
+    while (PtrUInt(DestPtr) < DestUpper) do
+    begin
+      RowUpper := PtrUInt(DestPtr) + DestRowSize;
+      Ptr := SourcePtr;
+      while (PtrUInt(DestPtr) < RowUpper) do
+      begin
+        PColorRGB(DestPtr)^ := PColorRGB(Ptr)^; // can just use first three bytes
+
+        Inc(Ptr, SizeOf(TColorRGB));
+        Inc(DestPtr, SizeOf(TColorBGRA));
+      end;
+      Inc(SourcePtr, SourceRowSize);
+    end;
+  end;
+
+  procedure BGRA(SourcePtr, DestPtr: PByte; const DestUpper: PtrUInt; const SourceRowSize, DestRowSize: Integer);
+  begin
+    while (PtrUInt(DestPtr) < DestUpper) do
+    begin
+      Move(SourcePtr^, DestPtr^, DestRowSize); // same formats, can copy entire row
+      Inc(SourcePtr, SourceRowSize);
+      Inc(DestPtr, DestRowSize);
+    end;
+  end;
+
+  procedure ARGB(SourcePtr, DestPtr: PByte; const DestUpper: PtrUInt; const SourceRowSize, DestRowSize: Integer);
+  var
+    Ptr: PByte;
+    RowUpper: PtrUInt;
+  begin
+    while (PtrUInt(DestPtr) < DestUpper) do
+    begin
+      RowUpper := PtrUInt(DestPtr) + DestRowSize;
+      Ptr := SourcePtr;
+      while (PtrUInt(DestPtr) < RowUpper) do
+      begin
+        PUInt32(DestPtr)^ := SwapEndian(PUInt32(Ptr)^); // reverse the bytes
+
+        Inc(Ptr, SizeOf(TColorRGB));
+        Inc(DestPtr, SizeOf(TColorBGRA));
+      end;
+      Inc(SourcePtr, SourceRowSize);
+    end;
+  end;
+
 var
   Source, Dest: PByte;
-  SourceBytesPerLine, DestBytesPerLine: Integer;
-  Upper: PtrUInt;
-
-  procedure BGR;
-  var
-    RowUpper: PtrUInt;
-    RowSource, RowDest: PByte;
-  begin
-    while (PtrUInt(Source) < Upper) do
-    begin
-      RowSource := Source;
-      RowDest := Dest;
-      RowUpper := PtrUInt(Source + SourceBytesPerLine);
-
-      while PtrUInt(RowSource) < RowUpper do
-      begin
-        PColorRGB(RowDest)^ := PColorRGB(RowSource)^; // Can just use first three bytes
-
-        Inc(RowSource, SizeOf(TColorRGB));
-        Inc(RowDest, SizeOf(TColorBGRA));
-      end;
-
-      Inc(Source, SourceBytesPerLine);
-      Inc(Dest, DestBytesPerLine);
-    end;
-  end;
-
-  procedure BGRA;
-  var
-    RowSource, RowDest: PByte;
-  begin
-    while (PtrUInt(Source) < Upper) do
-    begin
-      RowSource := Source;
-      RowDest := Dest;
-
-      Move(RowSource^, RowDest^, DestBytesPerLine);
-
-      Inc(Source, SourceBytesPerLine);
-      Inc(Dest, DestBytesPerLine);
-    end;
-  end;
-
-  procedure ARGB;
-  var
-    RowUpper: PtrUInt;
-    RowSource, RowDest: PByte;
-  begin
-    while (PtrUInt(Source) < Upper) do
-    begin
-      RowSource := Source;
-      RowDest := Dest;
-      RowUpper := PtrUInt(Source + SourceBytesPerLine);
-
-      while PtrUInt(RowSource) < RowUpper do
-      begin
-        PUInt32(RowDest)^ := SwapEndian(PUInt32(RowSource)^);
-
-        Inc(RowSource, SizeOf(TColorARGB));
-        Inc(RowDest, SizeOf(TColorBGRA));
-      end;
-
-      Inc(Source, SourceBytesPerLine);
-      Inc(Dest, DestBytesPerLine);
-    end;
-  end;
-
+  SourceRowSize, DestRowSize, DestUpper: PtrUInt;
 begin
   Result := TSimbaImage.Create();
   Result.SetSize(LazImage.Width, LazImage.Height);
 
   Dest := PByte(Result.Data);
-  DestBytesPerLine := LazImage.Width * SizeOf(TColorBGRA);
+  DestUpper := PtrUInt(@Result.Data[Result.Width * Result.Height]);
+  DestRowSize := LazImage.Width * SizeOf(TColorBGRA);
 
   Source := LazImage.RawImage.Data;
-  SourceBytesPerLine := LazImage.RawImage.Description.BytesPerLine;
-
-  Upper := PtrUInt(Source + (SourceBytesPerLine * LazImage.Height));
+  SourceRowSize := LazImage.RawImage.Description.BytesPerLine;
 
   case LazImage_PixelFormat(LazImage) of
-    ELazPixelFormat.BGR:  BGR();
-    ELazPixelFormat.BGRA: BGRA();
-    ELazPixelFormat.ARGB: ARGB();
+    ELazPixelFormat.BGR: BGR(Source, Dest, DestUpper, SourceRowSize, DestRowSize);
+    ELazPixelFormat.BGRA: BGRA(Source, Dest, DestUpper, SourceRowSize, DestRowSize);
+    ELazPixelFormat.ARGB: ARGB(Source, Dest, DestUpper, SourceRowSize, DestRowSize);
     else
       SimbaException('Not supported');
   end;

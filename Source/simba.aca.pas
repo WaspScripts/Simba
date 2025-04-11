@@ -243,8 +243,11 @@ end;
 procedure TSimbaACA.DoImgMouseDown(Sender: TSimbaImageBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   if (Button = mbLeft) then
+  begin
     Add(FImageBox.Background.Canvas.Pixels[X, Y]);
-  CalcBestColor();
+
+    CalcBestColor();
+  end;
 end;
 
 // stolen from colorpickerhistory
