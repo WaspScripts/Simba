@@ -9,6 +9,9 @@ program Simba;
 {$R Simba.res}
 
 uses
+  {$IFDEF SIMBA_CUSTOM_MM}
+  mormot_mm,
+  {$ENDIF}
   simba.init,
   Classes, SysUtils, Interfaces, Forms,
   simba.base,

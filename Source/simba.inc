@@ -41,6 +41,10 @@
 {$DEFINE SIMBA_COMMIT     := {$INCLUDE %GITHUB_SHORT_SHA%}}
 {$DEFINE SIMBA_COMMIT_URL := {$INCLUDE %GITHUB_SERVER_URL%} + '/' + {$INCLUDE %GITHUB_REPOSITORY%} + '/commit/' + {$INCLUDE %GITHUB_SHORT_SHA%}}
 
+// use mORMot memory manager. This should be better than default FPC for our uses.
+// This will only be used on x86_64 Windows & Linux.
+{$DEFINE SIMBA_CUSTOM_MM}
+
 {$IFDEF Lape_CDECL}
   {$DEFINE LAPE_WRAPPER_CALLING_CONV := cdecl;}
 {$ENDIF}
