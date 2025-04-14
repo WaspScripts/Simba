@@ -612,6 +612,23 @@ FormatMilliseconds
 ```
 function FormatMilliseconds(Time: Double; Format: String): String;
 ```
+
+```
+Y = years
+M = months
+W = weeks
+D = days
+
+h = hours
+m = minutes
+s = seconds
+u = milliseconds
+```
+
+```{note}
+Doubling an argument will add padding. Example `hh` will produce `01`
+\ will escape the next character
+```
 *)
 procedure _LapeFormatMilliseconds1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -741,6 +758,58 @@ begin
       '  Result := FormatMilliseconds(Self.Elapsed, Format);',
       'end;'],
       DumpSection);
+
+      addDelayedCode([
+        'type',
+        '  TCountDown = record',
+        '    Milliseconds: Double;', // milliseconds for countdown at start()
+        '    Timeout: Double;',      // time when completed
+        '    Paused: Double;',       // time when paused
+        '  end;',
+        '',
+        'procedure TCountDown.Start(Milliseconds: Double);',
+        'begin',
+        '  Self.Milliseconds := Milliseconds;',
+        '  Self.Timeout := PerformanceTimer() + Milliseconds;',
+        '  Self.Paused := 0;',
+        'end;',
+        '',
+        'procedure TCountDown.Extend(Milliseconds: Double);',
+        'begin',
+        '  Self.Timeout += Milliseconds;',
+        'end;',
+        '',
+        'property TCountDown.Remaining: Double;',
+        'begin',
+        '  if (Self.Paused > 0) then',
+        '    Result := Max(Self.Timeout - Self.Paused, 0)',
+        '  else',
+        '    Result := Max(Self.Timeout - PerformanceTimer(), 0);',
+        'end;',
+        '',
+        'property TCountDown.IsFinished: Boolean;',
+        'begin',
+        '  Result := (Self.Timeout > 0) and (Self.Paused = 0) and (Self.Remaining = 0);',
+        'end;',
+        '',
+        'property TCountDown.IsPaused: Boolean;',
+        'begin',
+        '  Result := Self.Paused > 0;',
+        'end;',
+        '',
+        'procedure TCountDown.Pause;',
+        'begin',
+        '  if not Self.IsPaused then',
+        '    Self.Paused := PerformanceTimer();',
+        'end;',
+        '',
+        'procedure TCountDown.Resume;',
+        'begin',
+        '  if not Self.IsPaused then Exit;',
+        '  Self.Timeout := Self.Timeout + (PerformanceTimer() - Self.Paused);',
+        '  Self.Paused := 0;',
+        'end;'],
+        DumpSection);
 
     DumpSection := '';
   end;
