@@ -131,31 +131,31 @@ Convert to a human like string.
 If fmt is unspecified `c` is used which will produce `YYYY-MM-DD hh:mm:ss`
 
 ```
-  y 	   = Year last 2 digits
-  yy 	   = Year last 2 digits
-  yyyy 	 = Year as 4 digits
-  m 	   = Month number no-leading 0
-  mm 	   = Month number as 2 digits
-  mmm 	 = Month using ShortDayNames (Jan)
-  mmmm 	 = Month using LongDayNames (January)
-  d 	   = Day number no-leading 0
-  dd 	   = Day number as 2 digits
+  y      = Year last 2 digits
+  yy     = Year last 2 digits
+  yyyy   = Year as 4 digits
+  m      = Month number no-leading 0
+  mm     = Month number as 2 digits
+  mmm    = Month using ShortDayNames (Jan)
+  mmmm   = Month using LongDayNames (January)
+  d      = Day number no-leading 0
+  dd     = Day number as 2 digits
   ddd    = Day using ShortDayNames (Sun)
-  dddd 	 = Day using LongDayNames  (Sunday)
+  dddd   = Day using LongDayNames  (Sunday)
   ddddd  = Day in ShortDateFormat
   dddddd = Day in LongDateFormat
 
-  c 	= Use ShortDateFormat + LongTimeFormat
-  h 	= Hour number no-leading 0
-  hh 	= Hour number as 2 digits
-  n	  = Minute number no-leading 0
-  nn 	= Minute number as 2 digits
-  s 	= Second number no-leading 0
-  ss 	= Second number as 2 digits
-  z	  = Milli-sec number no-leading 0s
-  zzz = Milli-sec number as 3 digits
-  t 	= Use ShortTimeFormat
-  tt 	= Use LongTimeFormat
+  c     = Use ShortDateFormat + LongTimeFormat
+  h     = Hour number no-leading 0
+  hh    = Hour number as 2 digits
+  n     = Minute number no-leading 0
+  nn    = Minute number as 2 digits
+  s     = Second number no-leading 0
+  ss    = Second number as 2 digits
+  z     = Milli-sec number no-leading 0s
+  zzz   = Milli-sec number as 3 digits
+  t     = Use ShortTimeFormat
+  tt    = Use LongTimeFormat
 ```
 *)
 procedure _LapeDateTime_ToString(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -647,6 +647,135 @@ begin
   PString(Result)^ := FormatMilliseconds(PDouble(Params^[0])^, PBoolean(Params^[1])^);
 end;
 
+
+(*
+TStopWatch.IsPaused
+-------------------
+```
+property TStopWatch.IsPaused: Boolean;
+```
+*)
+
+(*
+TStopWatch.Start
+----------------
+```
+procedure TStopWatch.Start;
+```
+*)
+
+(*
+TStopWatch.Resume
+-----------------
+```
+procedure TStopWatch.Resume;
+```
+*)
+
+(*
+TStopWatch.Pause
+----------------
+```
+procedure TStopWatch.Pause;
+```
+*)
+
+(*
+TStopWatch
+----------
+```
+procedure TStopWatch.Reset;
+```
+*)
+
+(*
+TStopWatch.Elapsed
+------------------
+```
+property TStopwatch.Elapsed: Double
+```
+*)
+
+(*
+TStopWatch.ElapsedFmt
+---------------------
+```
+function TStopwatch.ElapsedFmt(Format: String = 'u'): String;
+```
+*)
+
+(*
+TCountDown.Start
+----------------
+```
+procedure TCountDown.Start(Milliseconds: Double);
+```
+*)
+
+(*
+TCountDown.Extend
+-----------------
+```
+procedure TCountDown.Extend(Milliseconds: Double);
+```
+*)
+
+(*
+TCountDown.Remaining
+--------------------
+```
+property TCountDown.Remaining: Double;
+```
+*)
+
+(*
+TCountDown.RemainingFmt
+-----------------------
+```
+function TCountDown.RemainingFmt(Format: String = 'u'): String;
+```
+*)
+
+(*
+TCountDown.IsFinished
+---------------------
+```
+property TCountDown.IsFinished: Boolean;
+```
+*)
+
+(*
+TCountDown.IsPaused
+-------------------
+```
+property TCountDown.IsPaused: Boolean;
+```
+*)
+
+(*
+TCountDown.Pause
+----------------
+```
+procedure TCountDown.Pause;
+```
+*)
+
+(*
+TCountDown.Resume
+-----------------
+```
+procedure TCountDown.Resume;
+```
+*)
+
+(*
+TCountDown.Restart
+-----------------
+```
+procedure TCountDown.Restart(Randomness: Integer = 0);
+```
+*)
+
 procedure ImportDateTime(Script: TSimbaScript);
 begin
   with Script.Compiler do
@@ -759,57 +888,70 @@ begin
       'end;'],
       DumpSection);
 
-      addDelayedCode([
-        'type',
-        '  TCountDown = record',
-        '    Milliseconds: Double;', // milliseconds for countdown at start()
-        '    Timeout: Double;',      // time when completed
-        '    Paused: Double;',       // time when paused
-        '  end;',
-        '',
-        'procedure TCountDown.Start(Milliseconds: Double);',
-        'begin',
-        '  Self.Milliseconds := Milliseconds;',
-        '  Self.Timeout := PerformanceTimer() + Milliseconds;',
-        '  Self.Paused := 0;',
-        'end;',
-        '',
-        'procedure TCountDown.Extend(Milliseconds: Double);',
-        'begin',
-        '  Self.Timeout += Milliseconds;',
-        'end;',
-        '',
-        'property TCountDown.Remaining: Double;',
-        'begin',
-        '  if (Self.Paused > 0) then',
-        '    Result := Max(Self.Timeout - Self.Paused, 0)',
-        '  else',
-        '    Result := Max(Self.Timeout - PerformanceTimer(), 0);',
-        'end;',
-        '',
-        'property TCountDown.IsFinished: Boolean;',
-        'begin',
-        '  Result := (Self.Timeout > 0) and (Self.Paused = 0) and (Self.Remaining = 0);',
-        'end;',
-        '',
-        'property TCountDown.IsPaused: Boolean;',
-        'begin',
-        '  Result := Self.Paused > 0;',
-        'end;',
-        '',
-        'procedure TCountDown.Pause;',
-        'begin',
-        '  if not Self.IsPaused then',
-        '    Self.Paused := PerformanceTimer();',
-        'end;',
-        '',
-        'procedure TCountDown.Resume;',
-        'begin',
-        '  if not Self.IsPaused then Exit;',
-        '  Self.Timeout := Self.Timeout + (PerformanceTimer() - Self.Paused);',
-        '  Self.Paused := 0;',
-        'end;'],
-        DumpSection);
+    addDelayedCode([
+      'type',
+      '  TCountDown = record',
+      '    {%CODETOOLS OFF}',
+      '    Milliseconds: Double;', // milliseconds for countdown at start()
+      '    FinishTime: Double;',   // time when completed
+      '    PauseTime: Double;',    // time when paused
+      '    {%CODETOOLS ON}',
+      '  end;',
+      '',
+      'procedure TCountDown.Start(Milliseconds: Double);',
+      'begin',
+      '  Self.Milliseconds := Milliseconds;',
+      '  Self.FinishTime := PerformanceTimer() + Milliseconds;',
+      '  Self.PauseTime := 0;',
+      'end;',
+      '',
+      'procedure TCountDown.Extend(Milliseconds: Double);',
+      'begin',
+      '  Self.FinishTime += Milliseconds;',
+      'end;',
+      '',
+      'property TCountDown.Remaining: Double;',
+      'begin',
+      '  if (Self.PauseTime > 0) then',
+      '    Result := Max(Self.FinishTime - Self.PauseTime, 0)',
+      '  else',
+      '    Result := Max(Self.FinishTime - PerformanceTimer(), 0);',
+      'end;',
+      '',
+      'function TCountDown.RemainingFmt(Format: String = "u"): String;',
+      'begin',
+      '  Result := FormatMilliseconds(Self.Remaining, Format);',
+      'end;',
+      '',
+      'property TCountDown.IsFinished: Boolean;',
+      'begin',
+      '  Result := (Self.FinishTime > 0) and (Self.PauseTime = 0) and (Self.Remaining = 0);',
+      'end;',
+      '',
+      'property TCountDown.IsPaused: Boolean;',
+      'begin',
+      '  Result := Self.PauseTime > 0;',
+      'end;',
+      '',
+      'procedure TCountDown.Pause;',
+      'begin',
+      '  if not Self.IsPaused then',
+      '    Self.PauseTime := PerformanceTimer();',
+      'end;',
+      '',
+      'procedure TCountDown.Resume;',
+      'begin',
+      '  if not Self.IsPaused then Exit;',
+      '  Self.FinishTime := Self.FinishTime + (PerformanceTimer() - Self.PauseTime);',
+      '  Self.PauseTime := 0;',
+      'end;',
+      '',
+      'procedure TCountDown.Restart(Randomness: Integer = 0);',
+      'begin',
+      '  Self.FinishTime := PerformanceTimer() + (Self.Milliseconds + Random(-Randomness, Randomness));',
+      '  Self.PauseTime := 0;',
+      'end;'],
+      DumpSection);
 
     DumpSection := '';
   end;

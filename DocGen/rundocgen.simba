@@ -10,6 +10,9 @@ begin
       WriteLn(s);
     Sleep(100);
   end;
+  s := p.ReadString;
+  if (s <> '') then
+    WriteLn(s);
   p.Free();
 
   WriteLn('Link: "' + PathNormalize('DocGen/build/index.html') + '"');
