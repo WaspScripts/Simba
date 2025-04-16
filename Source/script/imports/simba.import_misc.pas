@@ -222,8 +222,6 @@ ShowDTMEditor
 -------------
 ```
 function ShowDTMEditor(Target: TTarget; Title: String): String;
-```
-```
 function ShowDTMEditor(Title: String): String;
 ```
 *)
@@ -503,6 +501,24 @@ begin
   TSimbaScript(Params^[0]).State := ESimbaScriptState.STATE_PAUSED;
 end;
 
+(*
+GetTimeRunning
+--------------
+```
+function GetTimeRunning: UInt64;
+```
+Returns milliseconds since the script was started.
+*)
+
+(*
+GetTimeStamp
+------------
+```
+function GetTimeStamp(Format: String = "[hh:mm:ss:uu]"): String;
+```
+Formats GetTimeRunning using `FormatMilliseconds`
+*)
+
 procedure ImportMisc(Script: TSimbaScript);
 begin
   with Script.Compiler do
@@ -533,6 +549,13 @@ begin
       'function GetTimeRunning: UInt64;', [
       'begin',
       '  Result := GetTickCount() - SCRIPT_START_TIME;',
+      'end;'
+    ]);
+
+    addGlobalFunc(
+      'function GetTimeStamp(Format: String = "[hh:mm:ss:uu]"): String;', [
+      'begin',
+      '  Result := FormatMilliseconds(GetTickCount() - SCRIPT_START_TIME, Format);',
       'end;'
     ]);
 

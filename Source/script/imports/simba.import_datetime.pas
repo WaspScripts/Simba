@@ -770,7 +770,7 @@ procedure TCountDown.Resume;
 
 (*
 TCountDown.Restart
------------------
+------------------
 ```
 procedure TCountDown.Restart(Randomness: Integer = 0);
 ```
