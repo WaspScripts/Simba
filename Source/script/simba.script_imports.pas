@@ -35,7 +35,7 @@ uses
   simba.import_encoding, simba.import_file, simba.import_process,
   simba.import_target, simba.import_math, simba.import_misc, simba.import_slacktree, simba.import_kdtree, simba.import_string,
   simba.import_random, simba.import_debugimage, simba.import_web, simba.import_threading,
-  simba.import_async, simba.import_pixelocr,
+  simba.import_async, simba.import_pixelocr, simba.import_vector,
   
   // Simba shapes
   simba.import_quad, simba.import_triangle, simba.import_box, simba.import_point, simba.import_circle, simba.import_polygon,
@@ -106,6 +106,7 @@ begin
   ImportMisc(Script);
   ImportThreading(Script);
   ImportASync(Script);
+  ImportVector(Script);
 
   ImportSimbaImageBox(Script);
   ImportSimbaShapeBox(Script);

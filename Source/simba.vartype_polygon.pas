@@ -52,7 +52,8 @@ uses
   simba.geometry,
   simba.containers,
   simba.vartype_point,
-  simba.vartype_pointarray;
+  simba.vartype_pointarray,
+  simba.vector;
 
 function TPolygonHelper.Bounds: TBox;
 begin
@@ -158,8 +159,8 @@ var
   i,k,Len: Integer;
   theta,det: Double;
   c1,c2: array[0..2] of Double;
-  p1,q1,p2,q2: TPointF;
-  tmp: TPointFArray;
+  p1,q1,p2,q2: TVector2;
+  tmp: TVector2Array;
   CosValue, SinValue: Double;
 begin
   if (Length(Self) > 1) then

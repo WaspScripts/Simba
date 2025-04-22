@@ -9,6 +9,10 @@
   (ACoordIsX = false) line with border of the polygon specified by APoints.
   Returns the coordinates of the intersection points.
 *)
+
+type
+  TPointFArray = array of record X,Y: Double; end;
+
 procedure GetLinePolygonIntersectionPoints(const ACoord: Double; const APoints: TPointFArray; const ACoordIsX: Boolean; out lpoints: TPointFArray);
 var
   I, Count: Integer;

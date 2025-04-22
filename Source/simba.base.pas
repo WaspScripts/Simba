@@ -224,9 +224,6 @@ type
   TSize = Types.TSize;
   PSize = Types.PSize;
 
-  TPointF = record X, Y: Double; end;
-  TPointFArray = array of TPointF;
-
   PPoint = Types.PPoint;
   PPointArray = ^TPointArray;
   TPointArray = array of TPoint;
