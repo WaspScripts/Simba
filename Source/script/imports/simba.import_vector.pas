@@ -13,7 +13,7 @@ procedure ImportVector(Script: TSimbaScript);
 implementation
 
 uses
-  lptypes,
+  lptypes, lpvartypes_record,
   simba.vector;
 
 type
@@ -263,24 +263,82 @@ begin
   PVector3(Result)^ := PVector3Array(Params^[0])^.Mean;
 end;
 
+procedure _LapeMatrix4_RotationX(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMatrix4(Result)^ := TMatrix4.RotationX(PSingle(Params^[0])^);
+end;
+
+procedure _LapeMatrix4_RotationY(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMatrix4(Result)^ := TMatrix4.RotationY(PSingle(Params^[0])^);
+end;
+
+procedure _LapeMatrix4_RotationZ(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMatrix4(Result)^ := TMatrix4.RotationZ(PSingle(Params^[0])^);
+end;
+
+procedure _LapeMatrix4_Translation(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMatrix4(Result)^ := TMatrix4.Translation(PVector3(Params^[0])^);
+end;
+
+procedure _LapeMatrix4_LookAtLH(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMatrix4(Result)^ := TMatrix4.LookAtLH(PVector3(Params^[0])^, PVector3(Params^[1])^, PVector3(Params^[2])^);
+end;
+
+procedure _LapeMatrix4_LookAtRH(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMatrix4(Result)^ := TMatrix4.LookAtRH(PVector3(Params^[0])^, PVector3(Params^[1])^, PVector3(Params^[2])^);
+end;
+
+procedure _LapeMatrix4_PerspectiveFovLH(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMatrix4(Result)^ := TMatrix4.PerspectiveFovLH(PSingle(Params^[0])^, PSingle(Params^[1])^, PSingle(Params^[2])^, PSingle(Params^[3])^);
+end;
+
+procedure _LapeMatrix4_PerspectiveFovRH(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMatrix4(Result)^ := TMatrix4.PerspectiveFovRH(PSingle(Params^[0])^, PSingle(Params^[1])^, PSingle(Params^[2])^, PSingle(Params^[3])^);
+end;
+
+procedure _LapeMatrix4_RotationQuaternion(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMatrix4(Result)^ := TMatrix4.RotationQuaternion(PSingle(Params^[0])^, PSingle(Params^[1])^, PSingle(Params^[2])^, PSingle(Params^[3])^);
+end;
+
+procedure _LapeMatrix4_RotationYawPitchRoll(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMatrix4(Result)^ := TMatrix4.RotationYawPitchRoll(PSingle(Params^[0])^, PSingle(Params^[1])^, PSingle(Params^[2])^);
+end;
+
+procedure _LapeMatrix4_MUL_Matrix4(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMatrix4(Result)^ := PMatrix4(Params^[0])^ * PMatrix4(Params^[1])^;
+end;
+
+procedure _LapeMatrix4_MUL_Single(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PMatrix4(Result)^ := PMatrix4(Params^[0])^ * PSingle(Params^[1])^;
+end;
+
 procedure ImportVector(Script: TSimbaScript);
 begin
   with Script.Compiler do
   begin
     DumpSection := 'Vector';
 
-    addGlobalType([
-      'record',
-      '  M11, M12, M13, M14,',
-      '  M21, M22, M23, M24,',
-      '  M31, M32, M33, M34,',
-      '  M41, M42, M43, M44: Single;',
-      'end;'],
-      'TMatrix4'
-    );
+    with addGlobalType('record M11, M12, M13, M14, M21, M22, M23, M24, M31, M32, M33, M34, M41, M42, M43, M44: Single; end;', 'TMatrix4') as TLapeType_Record do
+      addSubDeclaration(NewGlobalVarP(@TMatrix4.IDENTITY, 'IDENTITY'));
 
     addGlobalType('record X,Y: Single; end;', 'TVector2');
-    addGlobalType('record X,Y,Z: Single; end;', 'TVector3');
+    with addGlobalType('record X,Y,Z: Single; end;', 'TVector3') as TLapeType_Record do
+    begin
+      addSubDeclaration(NewGlobalVarP(@TVector3.UNIT_X, 'UNIT_X'));
+      addSubDeclaration(NewGlobalVarP(@TVector3.UNIT_Y, 'UNIT_Y'));
+      addSubDeclaration(NewGlobalVarP(@TVector3.UNIT_Z, 'UNIT_Z'));
+    end;
 
     addGlobalType('array of TVector2;', 'TVector2Array');
     addGlobalType('array of TVector3;', 'TVector3Array');
@@ -337,6 +395,20 @@ begin
     addGlobalFunc('function TVector3Array.ToPoints: TPointArray;', @_LapeVector3Array_ToPoints);
     addGlobalFunc('function TVector3Array.Offset(Vec: TVector3): TVector3Array;', @_LapeVector3Array_Offset);
     addGlobalFunc('function TVector3Array.Mean: TVector3;', @_LapeVector3Array_Mean);
+
+    addGlobalFunc('function TMatrix4.RotationX(Angle: Single): TMatrix4; static;', @_LapeMatrix4_RotationX);
+    addGlobalFunc('function TMatrix4.RotationY(Angle: Single): TMatrix4; static;', @_LapeMatrix4_RotationY);
+    addGlobalFunc('function TMatrix4.RotationZ(Angle: Single): TMatrix4; static;', @_LapeMatrix4_RotationZ);
+    addGlobalFunc('function TMatrix4.Translation(value: TVector3): TMatrix4; static;', @_LapeMatrix4_Translation);
+    addGlobalFunc('function TMatrix4.LookAtLH(eye, target, up: TVector3): TMatrix4; static;', @_LapeMatrix4_LookAtLH);
+    addGlobalFunc('function TMatrix4.LookAtRH(eye, target, up: TVector3): TMatrix4; static;', @_LapeMatrix4_LookAtRH);
+    addGlobalFunc('function TMatrix4.PerspectiveFovLH(fov, aspect, znear, zfar: Single): TMatrix4; static;', @_LapeMatrix4_PerspectiveFovLH);
+    addGlobalFunc('function TMatrix4.PerspectiveFovRH(fov, aspect, znear, zfar: Single): TMatrix4; static;', @_LapeMatrix4_PerspectiveFovRH);
+    addGlobalFunc('function TMatrix4.RotationQuaternion(x,y,z,w: Single): TMatrix4; static;', @_LapeMatrix4_RotationQuaternion);
+    addGlobalFunc('function TMatrix4.RotationYawPitchRoll(yaw, pitch, roll: Single): TMatrix4; static;', @_LapeMatrix4_RotationYawPitchRoll);
+
+    addGlobalFunc('operator * (Left, Right: TMatrix4): TMatrix4;', @_LapeMatrix4_MUL_Matrix4);
+    addGlobalFunc('operator * (Left: TMatrix4; Right: Single): TMatrix4;', @_LapeMatrix4_MUL_Single);
 
     DumpSection := '';
   end;
