@@ -21,6 +21,10 @@ uses
   lptypes,
   simba.vartype_quad;
 
+type
+  PQuad = ^TQuad;
+  PQuadArray = ^TQuadArray;
+
 (*
 TQuad
 =====
@@ -243,6 +247,114 @@ begin
 end;
 
 (*
+TQuadArray.Merge
+----------------
+```
+function TQuadArray.Merge: TQuadArray;
+```
+*)
+procedure _LapeQuadArray_Merge(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PQuad(Result)^ := PQuadArray(Params^[0])^.Merge;
+end;
+
+(*
+TQuadArray.Means
+----------------
+```
+function TQuadArray.Means: TPointArray;
+```
+*)
+procedure _LapeQuadArray_Means(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PPointArray(Result)^ := PQuadArray(Params^[0])^.Means;
+end;
+
+(*
+TQuadArray.Offset
+-----------------
+```
+function TQuadArray.Offset(P: TPoint): TQuadArray;
+```
+*)
+procedure _LapeQuadArray_Offset(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PQuadArray(Result)^ := PQuadArray(Params^[0])^.Offset(PPoint(Params^[1])^);
+end;
+
+(*
+TQuadArray.Expand
+-----------------
+```
+function TQuadArray.Expand(Amount: Integer): TQuadArray;
+```
+*)
+procedure _LapeQuadArray_Expand(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PQuadArray(Result)^ := PQuadArray(Params^[0])^.Expand(PInteger(Params^[1])^);
+end;
+
+(*
+TQuadArray.ContainsPoint
+------------------------
+```
+function TQuadArray.ContainsPoint(P: TPoint): Integer;
+```
+*)
+procedure _LapeQuadArray_ContainsPoint(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PInteger(Result)^ := PQuadArray(Params^[0])^.ContainsPoint(PPoint(Params^[1])^);
+end;
+
+(*
+TQuadArray.SortFrom
+-------------------
+```
+function TQuadArray.SortFrom(P: TPoint): TQuadArray;
+```
+*)
+procedure _LapeQuadArray_SortFrom(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PQuadArray(Result)^ := PQuadArray(Params^[0])^.SortFrom(PPoint(Params^[1])^);
+end;
+
+(*
+TQuadArray.SortByShortSide
+--------------------------
+```
+function TQuadArray.SortByShortSide(LowToHigh: Boolean = True): TQuadArray;
+```
+*)
+procedure _LapeQuadArray_SortByShortSide(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PQuadArray(Result)^ := PQuadArray(Params^[0])^.SortByShortSide(PBoolean(Params^[1])^);
+end;
+
+(*
+TQuadArray.SortByLongSide
+-------------------------
+```
+function TQuadArray.SortByLongSide(LowToHigh: Boolean = True): TQuadArray;
+```
+*)
+procedure _LapeQuadArray_SortByLongSide(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PQuadArray(Result)^ := PQuadArray(Params^[0])^.SortByLongSide(PBoolean(Params^[1])^);
+end;
+
+(*
+TQuadArray.SortByArea
+---------------------
+```
+function TQuadArray.SortByArea(LowToHigh: Boolean = True): TQuadArray;
+```
+*)
+procedure _LapeQuadArray_SortByArea(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PQuadArray(Result)^ := PQuadArray(Params^[0])^.SortByArea(PBoolean(Params^[1])^);
+end;
+
+(*
 in
 --
 ```
@@ -279,6 +391,16 @@ begin
     addProperty('TQuad', 'ShortSideLen', 'Integer', @_LapeQuad_ShortSideLen_Read);
     addProperty('TQuad', 'LongSideLen', 'Integer', @_LapeQuad_LongSideLen_Read);
     addProperty('TQuad', 'Mean', 'TPoint', @_LapeQuad_Mean_Read);
+
+    addGlobalFunc('function TQuadArray.Merge: TQuad;', @_LapeQuadArray_Merge);
+    addGlobalFunc('function TQuadArray.Means: TPointArray;', @_LapeQuadArray_Means);
+    addGlobalFunc('function TQuadArray.Offset(P: TPoint): TQuadArray;', @_LapeQuadArray_Offset);
+    addGlobalFunc('function TQuadArray.Expand(SizeMod: Integer): TQuadArray;', @_LapeQuadArray_Expand);
+    addGlobalFunc('function TQuadArray.ContainsPoint(P: TPoint): Integer;', @_LapeQuadArray_ContainsPoint);
+    addGlobalFunc('function TQuadArray.SortFrom(From: TPoint): TQuadArray', @_LapeQuadArray_SortFrom);
+    addGlobalFunc('function TQuadArray.SortByShortSide(LowToHigh: Boolean = True): TQuadArray', @_LapeQuadArray_SortByShortSide);
+    addGlobalFunc('function TQuadArray.SortByLongSide(LowToHigh: Boolean = True): TQuadArray', @_LapeQuadArray_SortByLongSide);
+    addGlobalFunc('function TQuadArray.SortByArea(LowToHigh: Boolean = True): TQuadArray;', @_LapeQuadArray_SortByArea);
 
     addGlobalFunc('operator in(Left: TPoint; Right: TQuad): Boolean;', @_LapePoint_IN_Quad);
 

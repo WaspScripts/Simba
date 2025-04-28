@@ -289,7 +289,7 @@ begin
       'procedure Show(Boxes: TBoxArray; Filled: Boolean = False); overload;', [
       'begin',
       '  with Boxes.Merge() do',
-      '    with TImage.Create(X1+X2+1, Y1+Y2+1) do',
+      '    with TImage.Create(X1+Width, Y1+Height) do',
       '    try',
       '      DrawBoxArray(Boxes, Filled);',
       '      Show();',
@@ -310,7 +310,7 @@ begin
       'procedure Show(TPA: TPointArray); overload;', [
       'begin',
       '  with TPA.Bounds() do',
-      '    with TImage.Create(X1+X2+1, Y1+Y2+1) do',
+      '    with TImage.Create(X1+Width, Y1+Height) do',
       '    try',
       '      DrawTPA(TPA);',
       '      Show();',
@@ -324,7 +324,7 @@ begin
       'procedure Show(ATPA: T2DPointArray); overload;', [
       'begin',
       '  with ATPA.Bounds() do',
-      '    with TImage.Create(X1+X2+1, Y1+Y2+1) do',
+      '    with TImage.Create(X1+Width, Y1+Height) do',
       '    try',
       '      DrawATPA(ATPA);',
       '      Show();',
@@ -344,7 +344,7 @@ begin
       '    Boxes += Quad.Bounds;',
       '',
       '  with Boxes.Merge() do',
-      '    with TImage.Create(X1+X2+1, Y1+Y2+1) do',
+      '    with TImage.Create(X1+Width, Y1+Height) do',
       '    try',
       '      DrawQuadArray(Quads, Filled);',
       '      Show();',

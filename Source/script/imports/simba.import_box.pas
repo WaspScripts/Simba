@@ -539,24 +539,12 @@ end;
 TBoxArray.ContainsPoint
 -----------------------
 ```
-function TBoxArray.ContainsPoint(P: TPoint; out Index: Integer): Boolean;
+function TBoxArray.ContainsPoint(P: TPoint): Integer;
 ```
 *)
-procedure _LapeBoxArray_ContainsPoint1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeBoxArray_ContainsPoint(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PBoxArray(Params^[0])^.ContainsPoint(PPoint(Params^[1])^, PInteger(Params^[2])^);
-end;
-
-(*
-TBoxArray.ContainsPoint
------------------------
-```
-function TBoxArray.ContainsPoint(P: TPoint): Boolean; overload;
-```
-*)
-procedure _LapeBoxArray_ContainsPoint2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PBoolean(Result)^ := PBoxArray(Params^[0])^.ContainsPoint(PPoint(Params^[1])^);
+  PInteger(Result)^ := PBoxArray(Params^[0])^.ContainsPoint(PPoint(Params^[1])^);
 end;
 
 (*
@@ -658,8 +646,7 @@ begin
     addGlobalFunc('function TBoxArray.Expand(SizeMod: Integer): TBoxArray; overload;', @_LapeBoxArray_Expand1);
     addGlobalFunc('function TBoxArray.Expand(WidMod, HeiMod: Integer): TBoxArray; overload;', @_LapeBoxArray_Expand2);
 
-    addGlobalFunc('function TBoxArray.ContainsPoint(P: TPoint; out Index: Integer): Boolean; overload;', @_LapeBoxArray_ContainsPoint1);
-    addGlobalFunc('function TBoxArray.ContainsPoint(P: TPoint): Boolean; overload;', @_LapeBoxArray_ContainsPoint2);
+    addGlobalFunc('function TBoxArray.ContainsPoint(P: TPoint): Integer;', @_LapeBoxArray_ContainsPoint);
 
     addGlobalFunc('operator in(Left: TPoint; Right: TBox): Boolean;', @_LapePoint_IN_Box);
 

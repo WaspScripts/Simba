@@ -23,6 +23,7 @@ type
   PMouseButton = ^EMouseButton;
   PKeyCode = ^EKeyCode;
   PTargetEvent = ^ETargetEvent;
+  PQuad = ^TQuad;
 
 (*
 Target

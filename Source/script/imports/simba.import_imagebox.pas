@@ -24,6 +24,7 @@ type
   PComponent = ^TComponent;
   PBitmap = ^TBitmap;
   PSimbaImageBox = ^TSimbaImageBox;
+  PQuad = ^TQuad;
 
 procedure _LapeSimbaImageBox_FindDTM(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin

@@ -82,9 +82,7 @@ type
     function SortByHeight(LowToHigh: Boolean): TBoxArray;
     function SortByArea(LowToHigh: Boolean): TBoxArray;
 
-    function ContainsPoint(P: TPoint; out Index: Integer): Boolean; overload;
-    function ContainsPoint(P: TPoint): Boolean; overload;
-
+    function ContainsPoint(P: TPoint): Integer;
     function Merge: TBox;
     function Centers: TPointArray;
     function Offset(P: TPoint): TBoxArray;
@@ -453,26 +451,15 @@ begin
   Result := Self.Sort(Weights, LowToHigh);
 end;
 
-function TBoxArrayHelper.ContainsPoint(P: TPoint; out Index: Integer): Boolean;
+function TBoxArrayHelper.ContainsPoint(P: TPoint): Integer;
 var
   I: Integer;
 begin
   for I := 0 to High(Self) do
     if Self[I].Contains(P) then
-    begin
-      Index := I;
+      Exit(I);
 
-      Exit(True);
-    end;
-
-  Result := False;
-end;
-
-function TBoxArrayHelper.ContainsPoint(P: TPoint): Boolean;
-var
-  Index: Integer;
-begin
-  Result := ContainsPoint(P, Index);
+  Result := -1;
 end;
 
 function TBoxArrayHelper.Merge: TBox;

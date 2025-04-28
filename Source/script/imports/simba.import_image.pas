@@ -20,6 +20,8 @@ uses
 
 type
   PBitmap = ^TBitmap;
+  PQuad = ^TQuad;
+  PQuadArray = ^TQuadArray;
 
 (*
 Image

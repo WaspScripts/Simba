@@ -55,8 +55,20 @@ type
     property LongSideLen: Integer read GetLongSideLen;
   end;
 
-  PQuad = ^TQuad;
-  PQuadArray = ^TQuadArray;
+  TQuadArrayHelper = type helper for TQuadArray
+  public
+    function Merge: TQuad;
+    function Means: TPointArray;
+    function Offset(P: TPoint): TQuadArray;
+    function Expand(SizeMod: Integer): TQuadArray;
+    function ContainsPoint(P: TPoint): Integer;
+    function Sort(Weights: TIntegerArray; LowToHigh: Boolean = True): TQuadArray; overload;
+    function Sort(Weights: TDoubleArray; LowToHigh: Boolean = True): TQuadArray; overload;
+    function SortFrom(From: TPoint): TQuadArray;
+    function SortByShortSide(LowToHigh: Boolean = True): TQuadArray;
+    function SortByLongSide(LowToHigh: Boolean = True): TQuadArray;
+    function SortByArea(LowToHigh: Boolean = True): TQuadArray;
+  end;
 
   operator in(const P: TPoint; const Quad: TQuad): Boolean;
 
@@ -66,7 +78,8 @@ uses
   Math,
   simba.math, simba.vartype_pointarray, simba.random, simba.geometry,
   simba.vartype_point,
-  simba.vartype_polygon;
+  simba.vartype_polygon,
+  simba.array_algorithm;
 
 class function TQuadHelper.Create(ATop, ARight, ABottom, ALeft: TPoint): TQuad;
 begin
@@ -238,6 +251,127 @@ begin
   Result.Right  := Points[(T + 1) mod 4];
   Result.Bottom := Points[(T + 2) mod 4];
   Result.Left   := Points[(T + 3) mod 4];
+end;
+
+function TQuadArrayHelper.Merge: TQuad;
+var
+  TPA: TPointArray;
+  I,C: Integer;
+begin
+  C := 0;
+  SetLength(TPA, Length(Self) * 4);
+  for I := 0 to High(Self) do
+  begin
+    TPA[C]   := Self[I].Top;
+    TPA[C+1] := Self[I].Right;
+    TPA[C+2] := Self[I].Bottom;
+    TPA[C+3] := Self[I].Left;
+    Inc(C, 4);
+  end;
+
+  Result := TQuad.CreateFromPoints(TPA);
+end;
+
+function TQuadArrayHelper.Means: TPointArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, Length(Self));
+  for I := 0 to High(Self) do
+    Result[I] := Self[I].Mean;
+end;
+
+function TQuadArrayHelper.Offset(P: TPoint): TQuadArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, Length(Self));
+  for I := 0 to High(Result) do
+    Result[I] := Self[I].Offset(P);
+end;
+
+function TQuadArrayHelper.Expand(SizeMod: Integer): TQuadArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, Length(Self));
+  for I := 0 to High(Result) do
+    Result[I] := Self[I].Expand(SizeMod);
+end;
+
+function TQuadArrayHelper.ContainsPoint(P: TPoint): Integer;
+var
+  I: Integer;
+begin
+  for I := 0 to High(Self) do
+    if Self[I].Contains(P) then
+      Exit(I);
+
+  Result := -1;
+end;
+
+function TQuadArrayHelper.Sort(Weights: TIntegerArray; LowToHigh: Boolean): TQuadArray;
+begin
+  Result := Copy(Self);
+  Weights := Copy(Weights);
+
+  specialize TArraySortWeighted<TQuad, Integer>.QuickSort(Result, Weights, Low(Result), High(Result), LowToHigh);
+end;
+
+function TQuadArrayHelper.Sort(Weights: TDoubleArray; LowToHigh: Boolean): TQuadArray;
+begin
+  Result := Copy(Self);
+  Weights := Copy(Weights);
+
+  specialize TArraySortWeighted<TQuad, Double>.QuickSort(Result, Weights, Low(Result), High(Result), LowToHigh);
+end;
+
+function TQuadArrayHelper.SortFrom(From: TPoint): TQuadArray;
+var
+  Weights: TDoubleArray;
+  I: Integer;
+begin
+  SetLength(Weights, Length(Self));
+  for I := 0 to High(Weights) do
+    Weights[I] := Distance(From, Self[I].Mean);
+
+  Result := Self.Sort(Weights);
+end;
+
+function TQuadArrayHelper.SortByShortSide(LowToHigh: Boolean): TQuadArray;
+var
+  Weights: TIntegerArray;
+  I: Integer;
+begin
+  SetLength(Weights, Length(Self));
+  for I := 0 to High(Weights) do
+    Weights[I] := Self[I].ShortSideLen;
+
+  Result := Self.Sort(Weights, LowToHigh);
+end;
+
+function TQuadArrayHelper.SortByLongSide(LowToHigh: Boolean): TQuadArray;
+var
+  Weights: TIntegerArray;
+  I: Integer;
+begin
+  SetLength(Weights, Length(Self));
+  for I := 0 to High(Weights) do
+    Weights[I] := Self[I].LongSideLen;
+
+  Result := Self.Sort(Weights, LowToHigh);
+end;
+
+function TQuadArrayHelper.SortByArea(LowToHigh: Boolean): TQuadArray;
+var
+  Weights: TIntegerArray;
+  I: Integer;
+begin
+  SetLength(Weights, Length(Self));
+  for I := 0 to High(Weights) do
+    Weights[I] := Self[I].Area;
+
+  Result := Self.Sort(Weights, LowToHigh);
 end;
 
 operator in(const P: TPoint; const Quad: TQuad): Boolean;

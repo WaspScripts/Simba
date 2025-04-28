@@ -20,6 +20,9 @@ uses
   lptypes;
 
 
+type
+  PQuad = ^TQuad;
+
 (*
 TPoint
 ======

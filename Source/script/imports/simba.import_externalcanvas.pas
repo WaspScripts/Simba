@@ -19,6 +19,8 @@ uses
 
 type
   PSimbaExternalCanvas = ^TSimbaExternalCanvas;
+  PQuad = ^TQuad;
+  PQuadArray = ^TQuadArray;
 
 procedure _LapeExternalCanvas_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
