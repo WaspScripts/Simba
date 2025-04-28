@@ -243,6 +243,11 @@ begin
   PVector2(Result)^ := PVector2Array(Params^[0])^.Mean;
 end;
 
+procedure _LapeVector2Array_Rotate(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PVector2Array(Result)^ := PVector2Array(Params^[0])^.Rotate(PSingle(Params^[1])^, PSingle(Params^[2])^, PSingle(Params^[3])^);
+end;
+
 procedure _LapeVector3Array_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PVector3Array(Result)^ := TVector3Array.Create(PPointArray(Params^[0])^, PSingle(Params^[1])^);
@@ -261,6 +266,11 @@ end;
 procedure _LapeVector3Array_Mean(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PVector3(Result)^ := PVector3Array(Params^[0])^.Mean;
+end;
+
+procedure _LapeVector3Array_Rotate(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PVector3Array(Result)^ := PVector3Array(Params^[0])^.Rotate(PSingle(Params^[1])^, PSingle(Params^[2])^, PSingle(Params^[3])^);
 end;
 
 procedure _LapeMatrix4_RotationX(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -390,11 +400,13 @@ begin
     addGlobalFunc('function TVector2Array.ToPoints: TPointArray;', @_LapeVector2Array_ToPoints);
     addGlobalFunc('function TVector2Array.Offset(Vec: TVector2): TVector2Array;', @_LapeVector2Array_Offset);
     addGlobalFunc('function TVector2Array.Mean: TVector2;', @_LapeVector2Array_Mean);
+    addGlobalFunc('function TVector2Array.Rotate(Angle: Single; X,Y: Single): TVector2Array;', @_LapeVector2Array_Rotate);
 
     addGlobalFunc('function TVector3Array.Create(Points: TPointArray; Z: Single = 0): TVector3Array; static;', @_LapeVector3Array_Create);
     addGlobalFunc('function TVector3Array.ToPoints: TPointArray;', @_LapeVector3Array_ToPoints);
     addGlobalFunc('function TVector3Array.Offset(Vec: TVector3): TVector3Array;', @_LapeVector3Array_Offset);
     addGlobalFunc('function TVector3Array.Mean: TVector3;', @_LapeVector3Array_Mean);
+    addGlobalFunc('function TVector3Array.Rotate(Angle: Single; X,Y: Single): TVector3Array;', @_LapeVector3Array_Rotate);
 
     addGlobalFunc('function TMatrix4.RotationX(Angle: Single): TMatrix4; static;', @_LapeMatrix4_RotationX);
     addGlobalFunc('function TMatrix4.RotationY(Angle: Single): TMatrix4; static;', @_LapeMatrix4_RotationY);

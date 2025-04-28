@@ -95,6 +95,7 @@ type
     function ToPoints: TPointArray;
     function Offset(Vec: TVector2): TVector2Array;
     function Mean: TVector2;
+    function Rotate(Angle: Single; X, Y: Single): TVector2Array;
   end;
 
   TVector3ArrayHelper = type helper for TVector3Array
@@ -102,6 +103,7 @@ type
     function ToPoints: TPointArray;
     function Offset(Vec: TVector3): TVector3Array;
     function Mean: TVector3;
+    function Rotate(Angle: Single; X, Y: Single): TVector3Array;
   end;
 
   TMatrix4Helper = type helper for TMatrix4
@@ -455,6 +457,15 @@ begin
   Result.Y /= Len;
 end;
 
+function TVector2ArrayHelper.Rotate(Angle: Single; X, Y: Single): TVector2Array;
+var
+  I: Integer;
+begin
+  SetLength(Result, Length(Self));
+  for I := 0 to High(Self) do
+    Result[I] := Self[I].Rotate(Angle, X, Y);
+end;
+
 class function TVector3ArrayHelper.Create(Points: TPointArray; Z: Single): TVector3Array;
 var
   I: Integer;
@@ -508,6 +519,15 @@ begin
   Result.X /= Len;
   Result.Y /= Len;
   Result.Z /= Len;
+end;
+
+function TVector3ArrayHelper.Rotate(Angle: Single; X, Y: Single): TVector3Array;
+var
+  I: Integer;
+begin
+  SetLength(Result, Length(Self));
+  for I := 0 to High(Self) do
+    Result[I] := Self[I].Rotate(Angle, X, Y);
 end;
 
 class function TMatrix4Helper.RotationX(Angle: Single): TMatrix4;
