@@ -233,13 +233,13 @@ begin
 
   Result := [
     TBox.Create(Space.X1, Space.Y1, MinX,     LowY),
-    TBox.Create(Space.X1, LowY,     MinX,     MaxY),
-    TBox.Create(Space.X1, LowY,     MinX,     Space.Y2),
-    TBox.Create(MinX,     Space.Y1, MaxX,     LowY),
-    TBox.Create(MinX,     MaxY,     MaxX,     Space.Y2),
+    TBox.Create(Space.X1, LowY+1,   MinX,     MaxY-1),
+    TBox.Create(Space.X1, MaxY,     MinX,     Space.Y2),
+    TBox.Create(MinX+1,   Space.Y1, MaxX-1,   LowY),
+    TBox.Create(MinX+1,   MaxY,     MaxX-1,   Space.Y2),
     TBox.Create(MaxX,     Space.Y1, Space.X2, LowY),
-    TBox.Create(MaxX,     LowY,     Space.X2, MaxY),
-    TBox.Create(MaxX,     LowY,     Space.X2, Space.Y2)
+    TBox.Create(MaxX,     LowY+1,   Space.X2, MaxY-1),
+    TBox.Create(MaxX,     MaxY,     Space.X2, Space.Y2)
   ];
 
   for I := High(Result) downto 0 do
