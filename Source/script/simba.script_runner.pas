@@ -121,7 +121,7 @@ begin
       if (FScript.RunningTime < 10000) then
         DoDebugLn([EDebugLn.GREEN], 'Succesfully executed in %.2f milliseconds.'.Format([FScript.RunningTime]))
       else
-        DoDebugLn([EDebugLn.GREEN], 'Succesfully executed in %s.'.Format([FormatMilliseconds(FScript.RunningTime, '\[hh:mm:ss\]')]));
+        DoDebugLn([EDebugLn.GREEN], 'Succesfully executed in %s.'.Format([FormatMilliseconds(Round(FScript.RunningTime), '\[hh:mm:ss\]')]));
     except
       on E: Exception do
         DoError(E);

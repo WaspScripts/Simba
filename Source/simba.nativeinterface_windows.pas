@@ -16,8 +16,6 @@ uses
 type
   TSimbaNativeInterface_Windows = class(TSimbaNativeInterface)
   protected
-    FDPILoaded: Boolean;
-    FDWMLoaded: Boolean;
     FHasWaitableTimer: Boolean;
     FWaitableTimer: THandle;
 
@@ -75,6 +73,7 @@ type
     function ActivateWindow(Window: TWindowHandle): Boolean; override;
 
     function HighResolutionTime: Double; override;
+    function UnixTime: Int64; override;
     procedure PreciseSleep(Milliseconds: UInt32); override;
 
     procedure OpenDirectory(Path: String); override;
@@ -96,45 +95,27 @@ type
     MDT_RAW_DPI       = 2
   );
 
-  DPI_AWARENESS_CONTEXT = type TWindowHandle;
+  DPI_AWARENESS_CONTEXT = HANDLE;
 
 const
-  {%H-}DPI_AWARENESS_CONTEXT_UNAWARE              = DPI_AWARENESS_CONTEXT(-1);
-  {%H-}DPI_AWARENESS_CONTEXT_SYSTEM_AWARE         = DPI_AWARENESS_CONTEXT(-2);
-  {%H-}DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE    = DPI_AWARENESS_CONTEXT(-3);
-  {%H-}DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = DPI_AWARENESS_CONTEXT(-4);
-  {%H-}DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED    = DPI_AWARENESS_CONTEXT(-5);
-
-  {%H-}MONITOR_DEFAULTTONULL    = $00000000;
-  {%H-}MONITOR_DEFAULTTOPRIMARY = $00000001;
-  {%H-}MONITOR_DEFAULTTONEAREST = $00000002;
+  DPI_AWARENESS_CONTEXT_UNAWARE = DPI_AWARENESS_CONTEXT(-1);
 
 var
   GetWindowDpiAwarenessContext: function(Window: TWindowHandle): DPI_AWARENESS_CONTEXT; stdcall;
   AreDpiAwarenessContextsEqual: function(A: DPI_AWARENESS_CONTEXT; B: DPI_AWARENESS_CONTEXT): LongBool; stdcall; // ^___-
   GetDpiForMonitor: function(Monitor: HMONITOR; dpiType: MONITOR_DPI_TYPE; out dpiX: UINT; out dpiY: UINT): HRESULT; stdcall;
+  GetSystemTimePreciseAsFileTime: procedure(var ft: TFILETIME); stdcall;
+  CreateWaitableTimerExW: function(lpTimerAttributes: LPSECURITY_ATTRIBUTES; lpTimerName: LPCWSTR; dwFlags: DWORD; dwDesiredAccess: DWORD): THANDLE; stdcall;
 
 const
   CREATE_WAITABLE_TIMER_HIGH_RESOLUTION = $00000002;
 
   TIMER_QUERY_STATE  = $0001;
   TIMER_MODIFY_STATE = $0002;
-  TIMER_ALL_ACCESS = STANDARD_RIGHTS_REQUIRED or SYNCHRONIZE or TIMER_QUERY_STATE or TIMER_MODIFY_STATE;
-
-var
-  CreateWaitableTimerExW: function(lpTimerAttributes: LPSECURITY_ATTRIBUTES; lpTimerName: LPCWSTR; dwFlags: DWORD; dwDesiredAccess: DWORD): THANDLE; stdcall;
+  TIMER_ALL_ACCESS   = STANDARD_RIGHTS_REQUIRED or SYNCHRONIZE or TIMER_QUERY_STATE or TIMER_MODIFY_STATE;
 
 constructor TSimbaNativeInterface_Windows.Create;
 begin
-  Pointer(GetWindowDpiAwarenessContext) := GetProcAddress(LoadLibrary('user32'), 'GetWindowDpiAwarenessContext');
-  Pointer(AreDpiAwarenessContextsEqual) := GetProcAddress(LoadLibrary('user32'), 'AreDpiAwarenessContextsEqual');
-  Pointer(GetDpiForMonitor) := GetProcAddress(LoadLibrary('shcore'), 'GetDpiForMonitor');
-
-  FDPILoaded := Assigned(GetWindowDpiAwarenessContext) and Assigned(AreDpiAwarenessContextsEqual) and Assigned(MonitorFromWindow) and Assigned(GetDpiForMonitor);
-  FDWMLoaded := InitDwmLibrary();
-
-  Pointer(CreateWaitableTimerExW) := GetProcAddress(LoadLibrary('kernel32'), 'CreateWaitableTimerExW');
-
   FHasWaitableTimer := Assigned(CreateWaitableTimerExW);
   if FHasWaitableTimer then
   begin
@@ -158,7 +139,8 @@ procedure TSimbaNativeInterface_Windows.ApplyDPI(Window: TWindowHandle; var X1, 
 var
   DPI: record X, Y: UINT; end;
 begin
-  if FDPILoaded and AreDpiAwarenessContextsEqual(GetWindowDpiAwarenessContext(Window), DPI_AWARENESS_CONTEXT_UNAWARE) then
+  if Assigned(GetWindowDpiAwarenessContext) and Assigned(AreDpiAwarenessContextsEqual) and Assigned(MonitorFromWindow) and Assigned(GetDpiForMonitor) and
+     AreDpiAwarenessContextsEqual(GetWindowDpiAwarenessContext(Window), DPI_AWARENESS_CONTEXT_UNAWARE) then
   begin
     GetDpiForMonitor(MonitorFromWindow(Window, MONITOR_DEFAULTTONEAREST), MDT_EFFECTIVE_DPI, DPI.X, DPI.Y);
 
@@ -173,7 +155,8 @@ procedure TSimbaNativeInterface_Windows.RemoveDPI(Window: TWindowHandle; var X1,
 var
   DPI: record X, Y: UINT; end;
 begin
-  if FDPILoaded and AreDpiAwarenessContextsEqual(GetWindowDpiAwarenessContext(Window), DPI_AWARENESS_CONTEXT_UNAWARE) then
+  if Assigned(GetWindowDpiAwarenessContext) and Assigned(AreDpiAwarenessContextsEqual) and Assigned(MonitorFromWindow) and Assigned(GetDpiForMonitor) and
+     AreDpiAwarenessContextsEqual(GetWindowDpiAwarenessContext(Window), DPI_AWARENESS_CONTEXT_UNAWARE) then
   begin
     GetDpiForMonitor(MonitorFromWindow(Window, MONITOR_DEFAULTTONEAREST), MDT_EFFECTIVE_DPI, DPI.X, DPI.Y);
 
@@ -338,9 +321,9 @@ begin
   Input._Type := INPUT_MOUSE;
 
   case Button of
-    EMouseButton.LEFT: Input.mi.dwFlags := MOUSEEVENTF_LEFTUP;
+    EMouseButton.LEFT:   Input.mi.dwFlags := MOUSEEVENTF_LEFTUP;
     EMouseButton.MIDDLE: Input.mi.dwFlags := MOUSEEVENTF_MIDDLEUP;
-    EMouseButton.RIGHT: Input.mi.dwFlags := MOUSEEVENTF_RIGHTUP;
+    EMouseButton.RIGHT:  Input.mi.dwFlags := MOUSEEVENTF_RIGHTUP;
     EMouseButton.SCROLL_UP:
       begin
         Input.mi.mouseData := XBUTTON1;
@@ -364,9 +347,9 @@ begin
   Input._Type := INPUT_MOUSE;
 
   case Button of
-    EMouseButton.LEFT: Input.mi.dwFlags := MOUSEEVENTF_LEFTDOWN;
+    EMouseButton.LEFT:   Input.mi.dwFlags := MOUSEEVENTF_LEFTDOWN;
     EMouseButton.MIDDLE: Input.mi.dwFlags := MOUSEEVENTF_MIDDLEDOWN;
-    EMouseButton.RIGHT: Input.mi.dwFlags := MOUSEEVENTF_RIGHTDOWN;
+    EMouseButton.RIGHT:  Input.mi.dwFlags := MOUSEEVENTF_RIGHTDOWN;
     EMouseButton.SCROLL_UP:
       begin
         Input.mi.mouseData := XBUTTON1;
@@ -563,7 +546,7 @@ end;
 function TSimbaNativeInterface_Windows.GetProcessMemUsage(PID: SizeUInt): Int64;
 var
   Handle: THandle;
-  pmcEx: PROCESS_MEMORY_COUNTERS_Ex;
+  pmcEx: PROCESS_MEMORY_COUNTERS_EX;
   pmc: PROCESS_MEMORY_COUNTERS absolute pmcEx;
 begin
   Result := 0;
@@ -572,8 +555,8 @@ begin
   if (Handle = 0) then
     Exit;
 
-  pmcEx := Default(PROCESS_MEMORY_COUNTERS_Ex);
-  pmcEx.cb := SizeOf(PROCESS_MEMORY_COUNTERS_Ex);
+  pmcEx := Default(PROCESS_MEMORY_COUNTERS_EX);
+  pmcEx.cb := SizeOf(PROCESS_MEMORY_COUNTERS_EX);
 
   if GetProcessMemoryInfo(Handle, pmc, SizeOf(pmcEx)) then
     Result := pmcEx.PrivateUsage;
@@ -862,13 +845,34 @@ begin
   Result := Count / Frequency * 1000;
 end;
 
+function TSimbaNativeInterface_Windows.UnixTime: Int64;
+const
+  UnixFileTimeDelta = 116444736000000000; // number of Windows TFileTime ticks (100ns) from year 1601 to 1970
+  MilliSecsPerFileTime = 10000;
+var
+  FileTime: TFileTime;
+begin
+  if Assigned(GetSystemTimePreciseAsFileTime) then
+    GetSystemTimePreciseAsFileTime(FileTime)
+  else
+    GetSystemTimeAsFileTime(FileTime);
+
+  Result := (PInt64(@FileTime)^ - UnixFileTimeDelta) div MilliSecsPerFileTime;
+end;
+
 procedure TSimbaNativeInterface_Windows.PreciseSleep(Milliseconds: UInt32);
 var
   Time: Int64;
 begin
+  if (Milliseconds = 0) then
+  begin
+    ThreadSwitch();
+    Exit;
+  end;
+
   if FHasWaitableTimer then
   begin
-    Time := -Round((Milliseconds - 0.25) * 1000) * 10;
+    Time := -Round((Milliseconds - 0.25) * 1000) * 10; // in 100 nanosecond intervals
 
     if SetWaitableTimer(FWaitableTimer, Time, 0, nil, nil, False) then
     begin
@@ -894,6 +898,15 @@ procedure TSimbaNativeInterface_Windows.StopSound;
 begin
   sndPlaySound(nil, 0);
 end;
+
+initialization
+  InitDwmLibrary();
+
+  Pointer(GetWindowDpiAwarenessContext)   := GetProcAddress(GetModuleHandle('user32'), 'GetWindowDpiAwarenessContext');
+  Pointer(AreDpiAwarenessContextsEqual)   := GetProcAddress(GetModuleHandle('user32'), 'AreDpiAwarenessContextsEqual');
+  Pointer(CreateWaitableTimerExW)         := GetProcAddress(GetModuleHandle('kernel32'), 'CreateWaitableTimerExW');
+  Pointer(GetSystemTimePreciseAsFileTime) := GetProcAddress(GetModuleHandle('kernel32'), 'GetSystemTimePreciseAsFileTime');
+  Pointer(GetDpiForMonitor)               := GetProcAddress(LoadLibrary('shcore'), 'GetDpiForMonitor');
 
 end.
 

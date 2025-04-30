@@ -328,7 +328,9 @@ begin
     )).NewGlobalVar(@_LapeDateTimeToStr)
   );
 
-  addGlobalFunc('function GetTickCount: UInt64;', @_LapeGetTickCount);
+  DumpSection := 'Timing';
+
+  //addGlobalFunc('function GetTickCount: UInt64;', @_LapeGetTickCount);
   addGlobalFunc('procedure Sleep(MilliSeconds: UInt32);', @_LapeSleep);
 
   DumpSection := '';

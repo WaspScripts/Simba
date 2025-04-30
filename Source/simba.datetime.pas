@@ -36,14 +36,10 @@ type
     procedure SetSecond(AValue: Integer);
     procedure SetYear(AValue: Integer);
   public
-    class function Create(AYear, AMonth, ADay, AHour, AMinute, ASecond, AMillisecond: Integer): TDateTime; static; overload;
-    class function Create(AYear, AMonth, ADay: Integer): TDateTime; static; overload;
-    class function Create(AHour, AMin, ASecond, AMillisecond: Integer): TDateTime; static; overload;
-    class function CreateFromUnix(UnixTime: Int64): TDateTime; static;
+    class function Create(Year,Month,Week,Day: Integer; Hour,Min,Sec,MSec: Integer): TDateTime; static;
+    class function CreateFromSystem: TDateTime; static;
+    class function CreateFromUnix: TDateTime; static;
     class function CreateFromISO(Value: String): TDateTime; static; overload;
-
-    class function Now: TDateTime; static;
-    class function NowUTC: TDateTime; static;
 
     function ToUnix(IsUTC: Boolean = True): Int64;
     function ToISO(IsUTC: Boolean = True): String;
@@ -78,11 +74,11 @@ type
     property Millisecond: Integer read GetMillisecond write SetMillisecond;
   end;
 
-function MillisecondsToTime(Time: UInt64; out Days, Hours, Mins, Secs: Integer): Integer; overload;
-function MillisecondsToTime(Time: UInt64; out Years, Months, Weeks, Days, Hours, Mins, Secs: Integer): Integer; overload;
+function MillisecondsToTime(Time: Int64; out Days, Hours, Mins, Secs: Integer): Integer; overload;
+function MillisecondsToTime(Time: Int64; out Years, Months, Weeks, Days, Hours, Mins, Secs: Integer): Integer; overload;
 
-function FormatMilliseconds(Time: Double; Fmt: String): String; overload;
-function FormatMilliseconds(Time: Double; TimeSymbols: Boolean = False): String; overload;
+function FormatMilliseconds(Time: Int64; Fmt: String): String; overload;
+function FormatMilliseconds(Time: Int64; TimeSymbols: Boolean = False): String; overload;
 
 function HighResolutionTime: Double;
 
@@ -182,39 +178,24 @@ begin
   Self := RecodeYear(Self, AValue);
 end;
 
-class function TDateTimeHelper.Create(AYear, AMonth, ADay, AHour, AMinute, ASecond, AMillisecond: Integer): TDateTime;
+class function TDateTimeHelper.Create(Year, Month, Week, Day: Integer; Hour, Min, Sec, MSec: Integer): TDateTime;
 begin
-  Result := EncodeDateTime(AYear, AMonth, ADay, Ahour, AMinute, ASecond, AMillisecond);
+  Result := EncodeDateTime(Year, Month, Day, Hour, Min, Sec, MSec);
 end;
 
-class function TDateTimeHelper.Create(AYear, AMonth, ADay: Integer): TDateTime;
+class function TDateTimeHelper.CreateFromSystem: TDateTime;
 begin
-  Result := EncodeDate(AYear, AMonth, ADay);
+  Result := Now();
 end;
 
-class function TDateTimeHelper.Create(AHour, AMin, ASecond, AMillisecond: Integer): TDateTime;
+class function TDateTimeHelper.CreateFromUnix: TDateTime;
 begin
-  Result := EncodeTime(AHour, AMin, ASecond, AMillisecond);
-end;
-
-class function TDateTimeHelper.CreateFromUnix(UnixTime: Int64): TDateTime;
-begin
-  Result := UnixToDateTime(UnixTime);
+  Result := IncMinute(Now(), GetLocalTimeOffset());
 end;
 
 class function TDateTimeHelper.CreateFromISO(Value: String): TDateTime;
 begin
   Result := ISO8601ToDate(Value);
-end;
-
-class function TDateTimeHelper.Now: TDateTime;
-begin
-  Result := SysUtils.Now();
-end;
-
-class function TDateTimeHelper.NowUTC: TDateTime;
-begin
-  Result := IncMinute(SysUtils.Now(), GetLocalTimeOffset());
 end;
 
 function TDateTimeHelper.ToUnix(IsUTC: Boolean): Int64;
@@ -234,37 +215,37 @@ end;
 
 function TDateTimeHelper.AddYears(Amount: Integer): TDateTime;
 begin
-  Result := IncYear(Amount);
+  Result := IncYear(Self, Amount);
 end;
 
 function TDateTimeHelper.AddMonths(Amount: Integer): TDateTime;
 begin
-  Result := IncMonth(Amount);
+  Result := IncMonth(Self, Amount);
 end;
 
 function TDateTimeHelper.AddDays(Amount: Integer): TDateTime;
 begin
-  Result := IncDay(Amount);
+  Result := IncDay(Self, Amount);
 end;
 
 function TDateTimeHelper.AddHours(Amount: Int64): TDateTime;
 begin
-  Result := IncHour(Amount);
+  Result := IncHour(Self, Amount);
 end;
 
 function TDateTimeHelper.AddMinutes(Amount: Int64): TDateTime;
 begin
-  Result := IncMinute(Amount);
+  Result := IncMinute(Self, Amount);
 end;
 
 function TDateTimeHelper.AddSeconds(Amount: Int64): TDateTime;
 begin
-  Result := IncSecond(Amount);
+  Result := IncSecond(Self, Amount);
 end;
 
 function TDateTimeHelper.AddMilliseconds(Amount: Int64): TDateTime;
 begin
-  Result := IncMilliSecond(Amount);
+  Result := IncMilliSecond(Self, Amount);
 end;
 
 function TDateTimeHelper.YearsBetween(Other: TDateTime): Integer;
@@ -307,7 +288,7 @@ begin
   Result := DateUtils.MilliSecondsBetween(Self, Other);
 end;
 
-function MillisecondsToTime(Time: UInt64; out Days, Hours, Mins, Secs: Integer): Integer;
+function MillisecondsToTime(Time: Int64; out Days, Hours, Mins, Secs: Integer): Integer;
 begin
   Days := Time div 86400000; // 1000 * 60 * 60 * 24 (1 day or 24 hours)
   Time := Time mod 86400000;
@@ -321,7 +302,7 @@ begin
   Result := Time;
 end;
 
-function MillisecondsToTime(Time: UInt64; out Years, Months, Weeks, Days, Hours, Mins, Secs: Integer): Integer;
+function MillisecondsToTime(Time: Int64; out Years, Months, Weeks, Days, Hours, Mins, Secs: Integer): Integer;
 begin
   Years  := Time div 31536000000; // 1000 * 60 * 60 * 24 * 365 (1 year or 365 days)
   Time   := Time mod 31536000000;
@@ -343,7 +324,7 @@ end;
 
 // Author: slacky
 // https://pastebin.com/zwue0VCt
-function FormatMilliseconds(Time: Double; Fmt: string): String;
+function FormatMilliseconds(Time: Int64; Fmt: string): String;
 type
   TFormatEnum = (
     fmtYearsNoPad,   fmtYears,
@@ -592,7 +573,7 @@ begin
   end;
 end;
 
-function FormatMilliseconds(Time: Double; TimeSymbols: Boolean = False): String; overload;
+function FormatMilliseconds(Time: Int64; TimeSymbols: Boolean = False): String; overload;
 var
   timeLeft: Double;
   years, months, weeks, days, hours, minutes, sec, ms: Double;

@@ -1,5 +1,6 @@
 # pip3 install sphinx furo myst-parser
 # Theme is https://pradyunsg.me/furo/quickstart/ 
+# https://myst-parser.readthedocs.io/en/v0.13.3/using/syntax.html
 
 import os
 import glob

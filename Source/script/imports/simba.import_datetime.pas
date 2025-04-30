@@ -18,61 +18,76 @@ uses
   simba.datetime, simba.nativeinterface;
 
 (*
-Date & Time
-===========
+DateTime
+========
 TDateTime type and timing methods.
+
+The TDateTime is stored as a double with the integer part representing days and the fractional part being fraction of a day.
+
+```
+var
+  d: TDateTime;
+
+begin
+  d := TDateTime.CreateFromSystem();
+  WriteLn('The system date & time is: ', d.ToString());
+
+  d := d.AddDays(1);
+  WriteLn('Tomorrow at this moment it will be: ', d.ToString);
+
+  // Create the date of 3rd of jan 2000 with time 8am
+  d := TDateTime.Create(2000,1,2,3, 8,0,0,0);
+  WriteLn('Year=', d.Year);
+  WriteLn('Month=', d.Month);
+  WriteLn('Day=', d.Day);
+  WriteLn('Hour=', d.hour);
+
+  // Change the year to 2020
+  d.Year := 2020;
+
+  WriteLn('Date: ', d.ToString('dd mm yyyy'));
+  WriteLn('Time: ', d.ToString('hh ss'));
+end;
+```
 *)
 
 (*
 TDateTime.Create
 ----------------
 ```
-function TDateTime.Create(AYear, AMonth, ADay, AHour, AMinute, ASecond, AMillisecond: Integer): TDateTime; static;
+function TDateTime.Create(Year,Month,Week,Day: Integer; Hour,Min,Sec,MSec: Integer): TDateTime; static;
 ```
+Create a TDateTime from scratch.
 *)
-procedure _LapeDateTime_Create1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeDateTime_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PDateTime(Result)^ := TDateTime.Create(PInteger(Params^[0])^, PInteger(Params^[1])^, PInteger(Params^[2])^, PInteger(Params^[3])^, PInteger(Params^[4])^, PInteger(Params^[5])^, PInteger(Params^[6])^);
+  PDateTime(Result)^ := TDateTime.Create(PInteger(Params^[0])^, PInteger(Params^[1])^, PInteger(Params^[2])^, PInteger(Params^[3])^, PInteger(Params^[4])^, PInteger(Params^[5])^,PInteger(Params^[6])^, PInteger(Params^[7])^);
 end;
 
 (*
 TDateTime.Create
 ----------------
 ```
-function TDateTime.Create(AYear, AMonth, ADay: Integer): TDateTime; static;
+function TDateTime.CreateFromSystem(): TDateTime; static;
 ```
-
-Creates just the date part.
+Creates from the current system time.
 *)
-procedure _LapeDateTime_Create2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeDateTime_CreateFromSystem(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PDateTime(Result)^ := TDateTime.Create(PInteger(Params^[0])^, PInteger(Params^[1])^, PInteger(Params^[2])^);
-end;
-
-(*
-TDateTime.Create
-----------------
-```
-function TDateTime.Create(AHour, AMin, ASecond, AMillisecond: Integer): TDateTime; static;
-```
-
-Creates just the time part.
-*)
-procedure _LapeDateTime_Create3(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PDateTime(Result)^ := TDateTime.Create(PInteger(Params^[0])^, PInteger(Params^[1])^, PInteger(Params^[2])^, PInteger(Params^[3])^);
+  PDateTime(Result)^ := TDateTime.CreateFromSystem();
 end;
 
 (*
 TDateTime.CreateFromUnix
 ------------------------
 ```
-function TDateTime.CreateFromUnix(UnixTime: Int64): TDateTime; static;
+function TDateTime.CreateFromUnix(): TDateTime; static;
 ```
+Create from current unix timestamp.
 *)
 procedure _LapeDateTime_CreateFromUnix(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PDateTime(Result)^ := TDateTime.CreateFromUnix(PInteger(Params^[0])^);
+  PDateTime(Result)^ := TDateTime.CreateFromUnix();
 end;
 
 (*
@@ -130,7 +145,7 @@ function TDateTime.ToString(Fmt: String = 'c'): String;
 Convert to a human like string.
 If fmt is unspecified `c` is used which will produce `YYYY-MM-DD hh:mm:ss`
 
-```
+```{code-block} text
   y      = Year last 2 digits
   yy     = Year last 2 digits
   yyyy   = Year as 4 digits
@@ -156,6 +171,20 @@ If fmt is unspecified `c` is used which will produce `YYYY-MM-DD hh:mm:ss`
   zzz   = Milli-sec number as 3 digits
   t     = Use ShortTimeFormat
   tt    = Use LongTimeFormat
+
+  am/pm = use 12 hour clock and display am and pm accordingly
+  a/p   = use 12 hour clock and display a and p accordingly
+
+  /     = insert date separator
+  :     = insert time separator
+  "xx"  = literal text
+  'xx'  = literal text
+  [h]   = hours including the hours of the full days (i.e. can be > 24).
+  [hh]  = hours with leading zero, including the hours of the full days (i.e. can be > 24)
+  [n]   = minutes including the minutes of the full hours and days
+  [nn]  = minutes with leading zero, including the minutes of the full hours and days
+  [s]   = seconds including the seconds of the full minutes, hours and days.
+  [ss]  = seconds with leading zero, including the seconds of the full minutes, hours and days.
 ```
 *)
 procedure _LapeDateTime_ToString(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -370,6 +399,8 @@ TDateTime.Time
 property TDateTime.Time: TDateTime
 property TDateTime.Time(NewValue: TDateTime)
 ```
+
+Read or write just the time part.
 *)
 procedure _LapeDateTime_Time_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -508,285 +539,30 @@ begin
 end;
 
 (*
-Now
----
+TDateTime.SystemTimeOffset
+--------------------------
 ```
-function Now: TDateTime;
+function TDateTime.SystemTimeOffset: Integer; static;
 ```
+Returns the systems timezone offset in minutes. This is the difference between UTC time and local time.
 *)
-procedure _LapeNow(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PDateTime(Result)^ := TDateTime.Now();
-end;
-
-(*
-NowUTC
-------
-```
-function NowUTC: TDateTime;
-```
-*)
-procedure _LapeNowUTC(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PDateTime(Result)^ := TDateTime.NowUTC();
-end;
-
-(*
-UnixTime
---------
-```
-function UnixTime: Int64;
-```
-*)
-procedure _LapeUnixTime(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PInt64(Result)^ := DateTimeToUnix(Now(), False);
-end;
-
-(*
-LocalTimeOffset
----------------
-```
-function LocalTimeOffset: Integer;
-```
-
-Returns the local timezone offset in minutes. This is the difference between UTC time and local time.
-*)
-procedure _LapeLocalTimeOffset(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeDateTime_SystemTimeOffset(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PInteger(Result)^ := GetLocalTimeOffset();
 end;
-
-
-(*
-PreciseSleep
-------------
-```
-procedure PreciseSleep(Milliseconds: UInt32);
-```
-*)
-procedure _LapePreciseSleep(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  SimbaNativeInterface.PreciseSleep(PUInt32(Params^[0])^);
-end;
-
-(*
-MillisecondsToTime
-------------------
-```
-function MillisecondsToTime(Time: UInt64; out Days, Hours, Mins, Secs: Integer): Integer;
-```
-*)
-procedure _LapeMillisecondsToTime1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PInteger(Result)^ := MillisecondsToTime(PUInt64(Params^[0])^, PInteger(Params^[1])^, PInteger(Params^[2])^, PInteger(Params^[3])^, PInteger(Params^[4])^);
-end;
-
-(*
-MillisecondsToTime
-------------------
-```
-function MillisecondsToTime(Time: UInt64; out Years, Months, Weeks, Days, Hours, Mins, Secs: Integer): Integer;
-```
-*)
-procedure _LapeMillisecondsToTime2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PInteger(Result)^ := MillisecondsToTime(PUInt64(Params^[0])^, PInteger(Params^[1])^, PInteger(Params^[2])^, PInteger(Params^[3])^, PInteger(Params^[4])^, PInteger(Params^[5])^, PInteger(Params^[6])^, PInteger(Params^[7])^);
-end;
-
-(*
-PerformanceTimer
-----------------
-```
-function PerformanceTimer: Double;
-```
-*)
-procedure _LapePerformanceTimer(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PDouble(Result)^ := SimbaNativeInterface.HighResolutionTime();
-end;
-
-(*
-FormatMilliseconds
-------------------
-```
-function FormatMilliseconds(Time: Double; Format: String): String;
-```
-
-```
-Y = years
-M = months
-W = weeks
-D = days
-
-h = hours
-m = minutes
-s = seconds
-u = milliseconds
-```
-
-```{note}
-Doubling an argument will add padding. Example `hh` will produce `01`
-\ will escape the next character
-```
-*)
-procedure _LapeFormatMilliseconds1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PString(Result)^ := FormatMilliseconds(PDouble(Params^[0])^, PString(Params^[1])^);
-end;
-
-(*
-FormatMilliseconds
-------------------
-```
-function FormatMilliseconds(Time: Double; TimeSymbols: Boolean = False): String;
-```
-*)
-procedure _LapeFormatMilliseconds2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PString(Result)^ := FormatMilliseconds(PDouble(Params^[0])^, PBoolean(Params^[1])^);
-end;
-
-
-(*
-TStopWatch.IsPaused
--------------------
-```
-property TStopWatch.IsPaused: Boolean;
-```
-*)
-
-(*
-TStopWatch.Start
-----------------
-```
-procedure TStopWatch.Start;
-```
-*)
-
-(*
-TStopWatch.Resume
------------------
-```
-procedure TStopWatch.Resume;
-```
-*)
-
-(*
-TStopWatch.Pause
-----------------
-```
-procedure TStopWatch.Pause;
-```
-*)
-
-(*
-TStopWatch
-----------
-```
-procedure TStopWatch.Reset;
-```
-*)
-
-(*
-TStopWatch.Elapsed
-------------------
-```
-property TStopwatch.Elapsed: Double
-```
-*)
-
-(*
-TStopWatch.ElapsedFmt
----------------------
-```
-function TStopwatch.ElapsedFmt(Format: String = 'u'): String;
-```
-*)
-
-(*
-TCountDown.Start
-----------------
-```
-procedure TCountDown.Start(Milliseconds: Double);
-```
-*)
-
-(*
-TCountDown.Extend
------------------
-```
-procedure TCountDown.Extend(Milliseconds: Double);
-```
-*)
-
-(*
-TCountDown.Remaining
---------------------
-```
-property TCountDown.Remaining: Double;
-```
-*)
-
-(*
-TCountDown.RemainingFmt
------------------------
-```
-function TCountDown.RemainingFmt(Format: String = 'u'): String;
-```
-*)
-
-(*
-TCountDown.IsFinished
----------------------
-```
-property TCountDown.IsFinished: Boolean;
-```
-*)
-
-(*
-TCountDown.IsPaused
--------------------
-```
-property TCountDown.IsPaused: Boolean;
-```
-*)
-
-(*
-TCountDown.Pause
-----------------
-```
-procedure TCountDown.Pause;
-```
-*)
-
-(*
-TCountDown.Resume
------------------
-```
-procedure TCountDown.Resume;
-```
-*)
-
-(*
-TCountDown.Restart
-------------------
-```
-procedure TCountDown.Restart(Randomness: Integer = 0);
-```
-*)
 
 procedure ImportDateTime(Script: TSimbaScript);
 begin
   with Script.Compiler do
   begin
-    DumpSection := 'Date & Time';
+    DumpSection := 'DateTime';
 
-    addGlobalFunc('function TDateTime.Create(AYear, AMonth, ADay, AHour, AMinute, ASecond, AMillisecond: Integer): TDateTime; static; overload', @_LapeDateTime_Create1);
-    addGlobalFunc('function TDateTime.Create(AYear, AMonth, ADay: Integer): TDateTime; static; overload', @_LapeDateTime_Create2);
-    addGlobalFunc('function TDateTime.Create(AHour, AMin, ASecond, AMillisecond: Integer): TDateTime; static; overload', @_LapeDateTime_Create3);
-    addGlobalFunc('function TDateTime.CreateFromUnix(UnixTime: Int64): TDateTime; static;', @_LapeDateTime_CreateFromUnix);
+    addGlobalFunc('function TDateTime.Create(Year,Month,Week,Day: Integer; Hour,Min,Sec,MSec: Integer): TDateTime; static;', @_LapeDateTime_Create);
+    addGlobalFunc('function TDateTime.CreateFromSystem: TDateTime; static;', @_LapeDateTime_CreateFromSystem);
+    addGlobalFunc('function TDateTime.CreateFromUnix: TDateTime; static;', @_LapeDateTime_CreateFromUnix);
     addGlobalFunc('function TDateTime.CreateFromISO(Value: String): TDateTime; static; overload;', @_LapeDateTime_CreateFromISO);
+
+    addGlobalFunc('function TDateTime.SystemTimeOffset: Integer; static', @_LapeDateTime_SystemTimeOffset);
 
     addGlobalFunc('function TDateTime.ToUnix(IsUTC: Boolean = True): Int64', @_LapeDateTime_ToUnix);
     addGlobalFunc('function TDateTime.ToISO(IsUTC: Boolean = True): String', @_LapeDateTime_ToISO);
@@ -818,140 +594,6 @@ begin
     addProperty('TDateTime', 'Minute', 'Integer', @_LapeDateTime_Minute_Read, @_LapeDateTime_Minute_Write);
     addProperty('TDateTime', 'Second', 'Integer', @_LapeDateTime_Second_Read, @_LapeDateTime_Second_Write);
     addProperty('TDateTime', 'Millisecond', 'Integer', @_LapeDateTime_Millisecond_Read, @_LapeDateTime_Millisecond_Write);
-
-    addGlobalFunc('function Now: TDateTime;', @_LapeNow);
-    addGlobalFunc('function NowUTC: TDateTime;', @_LapeNowUTC);
-
-    addGlobalFunc('function UnixTime: Int64;', @_LapeUnixTime);
-    addGlobalFunc('function LocalTimeOffset: Integer', @_LapeLocalTimeOffset);
-
-    addGlobalFunc('procedure PreciseSleep(Milliseconds: UInt32);', @_LapePreciseSleep);
-    addGlobalFunc('function PerformanceTimer: Double;', @_LapePerformanceTimer);
-    addGlobalFunc('function MillisecondsToTime(Time: UInt64; out Days, Hours, Mins, Secs: Integer): Integer; overload', @_LapeMillisecondsToTime1);
-    addGlobalFunc('function MillisecondsToTime(Time: UInt64; out Years, Months, Weeks, Days, Hours, Mins, Secs: Integer): Integer; overload', @_LapeMillisecondsToTime2);
-    addGlobalFunc('function FormatMilliseconds(Time: Double; Format: String): String; overload;', @_LapeFormatMilliseconds1);
-    addGlobalFunc('function FormatMilliseconds(Time: Double; TimeSymbols: Boolean = False): String; overload;', @_LapeFormatMilliseconds2);
-
-    addDelayedCode([
-      'type',
-      '  TStopwatch = record',
-      '    {%CODETOOLS OFF}',
-      '    StartTime: Double;',      // time at last Start()
-      '    PauseTime: Double;',      // time at last Pause()
-      '    TotalPauseTime: Double;', // total time spent paused, increased in Start()
-      '    {%CODETOOLS ON}',
-      '  end;',
-      '',
-      'property TStopWatch.IsPaused: Boolean;',
-      'begin',
-      '  Result := Self.PauseTime > 0;',
-      'end;',
-      '',
-      'procedure TStopWatch.Start;',
-      'begin',
-      '  if Self.PauseTime > 0 then',
-      '  begin',
-      '    Self.TotalPauseTime += PerformanceTimer() - Self.PauseTime;',
-      '    Self.PauseTime := 0;',
-      '  end else',
-      '    Self.StartTime := PerformanceTimer();',
-      'end;',
-      '',
-      'procedure TStopWatch.Resume;',
-      'begin',
-      '  Self.Start();',
-      'end;',
-      '',
-      'procedure TStopWatch.Pause;',
-      'begin',
-      '  Self.PauseTime := PerformanceTimer();',
-      'end;',
-      '',
-      'procedure TStopWatch.Reset;',
-      'begin',
-      '  Self.StartTime := PerformanceTimer();',
-      '  Self.PauseTime := 0;',
-      '  Self.TotalPauseTime := 0;',
-      'end;',
-      '',
-      'property TStopwatch.Elapsed: Double;',
-      'begin',
-      '  if (Self.PauseTime > 0) then',
-      '    Result := (Self.PauseTime - Self.StartTime) - Self.TotalPauseTime',
-      '  else',
-      '    Result := (PerformanceTimer() - Self.StartTime) - Self.TotalPauseTime;',
-      'end;',
-      '',
-      'function TStopwatch.ElapsedFmt(Format: String = "u"): String;',
-      'begin',
-      '  Result := FormatMilliseconds(Self.Elapsed, Format);',
-      'end;'],
-      DumpSection);
-
-    addDelayedCode([
-      'type',
-      '  TCountDown = record',
-      '    {%CODETOOLS OFF}',
-      '    Milliseconds: Double;', // milliseconds for countdown at start()
-      '    FinishTime: Double;',   // time when completed
-      '    PauseTime: Double;',    // time when paused
-      '    {%CODETOOLS ON}',
-      '  end;',
-      '',
-      'procedure TCountDown.Start(Milliseconds: Double);',
-      'begin',
-      '  Self.Milliseconds := Milliseconds;',
-      '  Self.FinishTime := PerformanceTimer() + Milliseconds;',
-      '  Self.PauseTime := 0;',
-      'end;',
-      '',
-      'procedure TCountDown.Extend(Milliseconds: Double);',
-      'begin',
-      '  Self.FinishTime += Milliseconds;',
-      'end;',
-      '',
-      'property TCountDown.Remaining: Double;',
-      'begin',
-      '  if (Self.PauseTime > 0) then',
-      '    Result := Max(Self.FinishTime - Self.PauseTime, 0)',
-      '  else',
-      '    Result := Max(Self.FinishTime - PerformanceTimer(), 0);',
-      'end;',
-      '',
-      'function TCountDown.RemainingFmt(Format: String = "u"): String;',
-      'begin',
-      '  Result := FormatMilliseconds(Self.Remaining, Format);',
-      'end;',
-      '',
-      'property TCountDown.IsFinished: Boolean;',
-      'begin',
-      '  Result := (Self.FinishTime > 0) and (Self.PauseTime = 0) and (Self.Remaining = 0);',
-      'end;',
-      '',
-      'property TCountDown.IsPaused: Boolean;',
-      'begin',
-      '  Result := Self.PauseTime > 0;',
-      'end;',
-      '',
-      'procedure TCountDown.Pause;',
-      'begin',
-      '  if not Self.IsPaused then',
-      '    Self.PauseTime := PerformanceTimer();',
-      'end;',
-      '',
-      'procedure TCountDown.Resume;',
-      'begin',
-      '  if not Self.IsPaused then Exit;',
-      '  Self.FinishTime := Self.FinishTime + (PerformanceTimer() - Self.PauseTime);',
-      '  Self.PauseTime := 0;',
-      'end;',
-      '',
-      'procedure TCountDown.Restart(Randomness: Integer = 0);',
-      'begin',
-      '  Self.FinishTime := PerformanceTimer() + (Self.Milliseconds + Random(-Randomness, Randomness));',
-      '  Self.PauseTime := 0;',
-      'end;'],
-      DumpSection);
 
     DumpSection := '';
   end;

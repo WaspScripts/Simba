@@ -81,6 +81,8 @@ type
     function ActivateWindow(Window: TWindowHandle): Boolean; override;
 
     function HighResolutionTime: Double; override;
+    function UnixTime: Int64; override;
+    procedure PreciseSleep(Milliseconds: UInt32); override;
 
     procedure OpenDirectory(Path: String); override;
   end;
@@ -614,6 +616,37 @@ end;
 function TSimbaNativeInterface_Darwin.HighResolutionTime: Double;
 begin
   Result := Double((mach_absolute_time * timeInfo.numer) / ((1000 * 1000) * timeInfo.denom));
+end;
+
+function TSimbaNativeInterface_Darwin.UnixTime: Int64;
+var
+  tz: timeval;
+begin
+  fpgettimeofday(@tz, nil);
+  result := (Int64(tz.tv_sec) * 1000) + tz.tv_usec div 1000;
+end;
+
+procedure TSimbaNativeInterface_Darwin.PreciseSleep(Milliseconds: UInt32);
+const
+  MilliSecsPerSec = 1000;
+  NanoSecsPerMilliSec = 1000000;
+var
+  timeout: TTimespec;
+  s: cardinal;
+begin
+  timeout.tv_sec := 0;
+  if Milliseconds = 0 then
+    timeout.tv_nsec := 10000 // 10us is around timer resolution on modern HW
+  else if Milliseconds < 1000 then
+    timeout.tv_nsec := Milliseconds * NanoSecsPerMilliSec
+  else
+  begin
+    s := Milliseconds div MilliSecsPerSec;
+    timeout.tv_sec := s;
+    timeout.tv_nsec := (Milliseconds - s * MilliSecsPerSec) * NanoSecsPerMilliSec;
+  end;
+
+  fpnanosleep(@timeout, nil)
 end;
 
 function TSimbaNativeInterface_Darwin.GetWindows: TWindowHandleArray;

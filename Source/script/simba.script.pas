@@ -177,8 +177,8 @@ end;
 
 procedure TSimbaScript.SetTargetWindow(Value: String);
 begin
-  if (Value <> '') then
-    FTargetWindow.FromString(Value);
+  if (Value.IsInteger) then
+    FTargetWindow := Value.ToInt;
 end;
 
 function TSimbaScript.Compile: Boolean;

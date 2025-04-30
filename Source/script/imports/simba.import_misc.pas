@@ -18,7 +18,7 @@ uses
   simba.process,
   simba.nativeinterface, simba.settings, simba.compress, simba.env,
   simba.aca, simba.dtmeditor, simba.dialog, simba.threading, simba.target, simba.colormath,
-  simba.finder_color, simba.finder_image, simba.matchtemplate;
+  simba.finder_color, simba.finder_image, simba.matchtemplate, simba.datetime;
 
 type
   PSimbaTarget = ^TSimbaTarget;
@@ -543,19 +543,19 @@ begin
 
 
     addGlobalVar(Script.ScriptFileName, 'SCRIPT_FILE').isConstant := True;
-    addGlobalVar(GetTickCount64(), 'SCRIPT_START_TIME').isConstant := True;
+    addGlobalVar(SimbaNativeInterface.UnixTime(), 'SCRIPT_START_TIME').isConstant := True;
 
     addGlobalFunc(
       'function GetTimeRunning: UInt64;', [
       'begin',
-      '  Result := GetTickCount() - SCRIPT_START_TIME;',
+      '  Result := Time() - SCRIPT_START_TIME;',
       'end;'
     ]);
 
     addGlobalFunc(
       'function GetTimeStamp(Format: String = "[hh:mm:ss:uu]"): String;', [
       'begin',
-      '  Result := FormatMilliseconds(GetTickCount() - SCRIPT_START_TIME, Format);',
+      '  Result := FormatMilliseconds(Time() - SCRIPT_START_TIME, Format);',
       'end;'
     ]);
 
@@ -616,19 +616,19 @@ begin
       'function SaveScreenshot: String; overload;', [
       'var',
       '  FileName: String;',
-      '  T: UInt64;',
+      '  T: Int64;',
       'begin',
       '  with TImage.CreateFromTarget() do',
       '  try',
-      '    FileName := SimbaEnv.ScreenshotsPath + PathExtractNameWithoutExt(SCRIPT_FILE) + #32 + Now().ToString("dd-mm hh-mm-ss") + ".png";',
+      '    FileName := SimbaEnv.ScreenshotsPath + PathExtractNameWithoutExt(SCRIPT_FILE) + #32 + TDateTime.CreateFromSystem().ToString("dd-mm hh-mm-ss") + ".png";',
       '    if Save(FileName) then',
       '      Exit(FileName);',
       '',
       '    // File not available! Try for a little with milliseconds (zzz)',
-      '    T := GetTickCount() + 1000;',
-      '    while (GetTickCount() < T) do',
+      '    T := Time() + 1000;',
+      '    while (Time() < T) do',
       '    begin',
-      '      FileName := SimbaEnv.ScreenshotsPath + PathExtractNameWithoutExt(SCRIPT_FILE) + #32 + Now().ToString("dd-mm hh-mm-ss-zzz") + ".png";',
+      '      FileName := SimbaEnv.ScreenshotsPath + PathExtractNameWithoutExt(SCRIPT_FILE) + #32 + TDateTime.CreateFromSystem().ToString("dd-mm hh-mm-ss-zzz") + ".png";',
       '      if Save(FileName) then',
       '        Exit(FileName);',
       '',

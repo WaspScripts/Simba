@@ -61,12 +61,11 @@ type
     function ActivateWindow(Window: TWindowHandle): Boolean; virtual; abstract;
 
     function HighResolutionTime: Double; virtual; abstract;
+    function UnixTime: Int64; virtual; abstract;
 
     procedure OpenDirectory(Path: String); virtual; abstract;
 
     // Not abstract
-    function WindowHandleToStr(WindowHandle: TWindowHandle): String; virtual;
-    function WindowHandleFromStr(Str: String): TWindowHandle; virtual;
     procedure PreciseSleep(Milliseconds: UInt32); virtual;
 
     procedure PlaySound(Path: String); virtual;
@@ -89,7 +88,6 @@ implementation
 
 uses
   LCLType, LCLIntf,
-  simba.vartype_string,
   {$IF DEFINED(WINDOWS)}
   simba.nativeinterface_windows;
   {$ELSEIF DEFINED(LINUX)}
@@ -97,16 +95,6 @@ uses
   {$ELSEIF DEFINED(DARWIN)}
   simba.nativeinterface_darwin;
   {$ENDIF}
-
-function TSimbaNativeInterface.WindowHandleToStr(WindowHandle: TWindowHandle): String;
-begin
-  Result := IntToStr(WindowHandle);
-end;
-
-function TSimbaNativeInterface.WindowHandleFromStr(Str: String): TWindowHandle;
-begin
-  Result := Str.ToInt(0);
-end;
 
 procedure TSimbaNativeInterface.PreciseSleep(Milliseconds: UInt32);
 begin
