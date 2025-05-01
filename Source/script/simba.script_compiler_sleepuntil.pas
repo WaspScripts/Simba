@@ -75,8 +75,8 @@ begin
   Condition.Left := FParams[0];
   Condition.Right := TLapeTree_GlobalVar.Create('True', ltEvalBool, Self);
 
-  // Limit := GetTickCount();
-  with TLapeTree_Invoke.Create('GetTickCount', Self) do
+  // Limit := Time();
+  with TLapeTree_Invoke.Create('Time', Self) do
   try
     Limit := Compile(Offset);
     Limit.Writeable := True;
@@ -97,11 +97,11 @@ begin
   Loop := TLapeTree_While.Create(Self);
 
   try
-    // while GetTickCount() < Limit do
+    // while Time() < Limit do
     Loop.Condition := TLapeTree_Operator.Create(op_cmp_LessThan, Self);
     with TLapeTree_Operator(Loop.Condition) do
     begin
-      Left := TLapeTree_Invoke.Create('GetTickCount', Self);
+      Left := TLapeTree_Invoke.Create('Time', Self);
       Right := TLapeTree_ResVar.Create(Limit.IncLock(), Self);
     end;
 
