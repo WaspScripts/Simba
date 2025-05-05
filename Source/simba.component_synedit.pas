@@ -35,8 +35,6 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    procedure ReplaceKeyStrokeModifiers(const Find, Replace: TShiftStateEnum);
-
     property FontAntialising: Boolean read GetFontAntialising write SetFontAntialising;
   end;
 
@@ -153,19 +151,6 @@ begin
   Font.Name := SynDefaultFontName;
 
   FontAntialising := True;
-end;
-
-procedure TSimbaSynEdit.ReplaceKeyStrokeModifiers(const Find, Replace: TShiftStateEnum);
-var
-  I: Integer;
-begin
-  for I := 0 to Keystrokes.Count - 1 do
-    if (Find in Keystrokes[I].Shift) then
-      Keystrokes[I].Shift := Keystrokes[I].Shift - [Find] + [Replace];
-
-  for I := 0 to MouseActions.Count - 1 do
-    if (Find in MouseActions[I].Shift) then
-      MouseActions[I].Shift := MouseActions[I].Shift - [Find] + [Replace];
 end;
 
 constructor TSimbaMemo.Create(AOwner: TComponent; LineWrapping: Boolean);

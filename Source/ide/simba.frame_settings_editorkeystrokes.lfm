@@ -6,8 +6,8 @@ object SimbaEditorHotkeyFrame: TSimbaEditorHotkeyFrame
   ClientHeight = 709
   ClientWidth = 1241
   TabOrder = 0
-  DesignLeft = 586
-  DesignTop = 88
+  DesignLeft = -1642
+  DesignTop = 114
   object Tree: TTreeView
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = TreeFilterEdit1
@@ -16,7 +16,7 @@ object SimbaEditorHotkeyFrame: TSimbaEditorHotkeyFrame
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = GroupBox1
     Left = 0
-    Height = 457
+    Height = 459
     Top = 98
     Width = 1241
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -53,13 +53,13 @@ object SimbaEditorHotkeyFrame: TSimbaEditorHotkeyFrame
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 149
-    Top = 560
+    Height = 147
+    Top = 562
     Width = 1241
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = True
     BorderSpacing.Top = 5
-    ClientHeight = 119
+    ClientHeight = 117
     ClientWidth = 1237
     Enabled = False
     TabOrder = 2
@@ -80,11 +80,11 @@ object SimbaEditorHotkeyFrame: TSimbaEditorHotkeyFrame
       AnchorSideLeft.Control = GroupBox1
       AnchorSideTop.Control = ComboKey
       AnchorSideTop.Side = asrBottom
-      Left = 5
+      Left = 10
       Height = 29
       Top = 43
       Width = 40
-      BorderSpacing.Left = 5
+      BorderSpacing.Left = 10
       BorderSpacing.Top = 5
       Caption = 'Alt'
       TabOrder = 1
@@ -95,12 +95,12 @@ object SimbaEditorHotkeyFrame: TSimbaEditorHotkeyFrame
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = ComboKey
       AnchorSideTop.Side = asrBottom
-      Left = 52
+      Left = 60
       Height = 29
-      Top = 45
+      Top = 43
       Width = 54
-      BorderSpacing.Left = 7
-      BorderSpacing.Top = 7
+      BorderSpacing.Left = 10
+      BorderSpacing.Top = 5
       Caption = 'Shift'
       TabOrder = 2
       OnChange = CheckboxShiftChange
@@ -110,12 +110,12 @@ object SimbaEditorHotkeyFrame: TSimbaEditorHotkeyFrame
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = ComboKey
       AnchorSideTop.Side = asrBottom
-      Left = 113
+      Left = 124
       Height = 29
-      Top = 45
+      Top = 43
       Width = 45
-      BorderSpacing.Left = 7
-      BorderSpacing.Top = 7
+      BorderSpacing.Left = 10
+      BorderSpacing.Top = 5
       Caption = 'Ctrl'
       TabOrder = 3
       OnChange = CheckboxShiftChange
@@ -128,7 +128,7 @@ object SimbaEditorHotkeyFrame: TSimbaEditorHotkeyFrame
       AnchorSideBottom.Side = asrBottom
       Left = 5
       Height = 35
-      Top = 79
+      Top = 77
       Width = 69
       Anchors = [akTop, akLeft, akBottom]
       AutoSize = True
@@ -138,6 +138,21 @@ object SimbaEditorHotkeyFrame: TSimbaEditorHotkeyFrame
       Caption = 'Reset'
       TabOrder = 4
       OnClick = ButtonResetClick
+    end
+    object CheckboxMeta: TCheckBox
+      AnchorSideLeft.Control = CheckboxCtrl
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = ComboKey
+      AnchorSideTop.Side = asrBottom
+      Left = 179
+      Height = 29
+      Top = 43
+      Width = 45
+      BorderSpacing.Left = 10
+      BorderSpacing.Top = 5
+      Caption = 'Ctrl'
+      TabOrder = 5
+      OnChange = CheckboxShiftChange
     end
   end
   object ButtonResetDefaults: TButton

@@ -5,7 +5,7 @@
 }
 unit simba.frame_settings_editorkeystrokes;
 
-{$i simba.inc}
+{$I simba.inc}
 
 interface
 
@@ -18,6 +18,7 @@ type
     ButtonResetDefaults: TButton;
     ButtonReset: TButton;
     CheckboxAlt: TCheckBox;
+    CheckboxMeta: TCheckBox;
     CheckboxShift: TCheckBox;
     CheckboxCtrl: TCheckBox;
     ComboKey: TComboBox;
@@ -94,6 +95,7 @@ begin
   if CheckboxShift.Checked then Include(NewShift, ssShift);
   if CheckboxAlt.Checked   then Include(NewShift, ssAlt);
   if CheckboxCtrl.Checked  then Include(NewShift, ssCtrl);
+  if CheckboxMeta.Checked  then Include(NewShift, ssMeta);
 
   Keystroke.Shift := NewShift;
 
@@ -139,6 +141,7 @@ begin
     CheckboxShift.Checked := ssShift in Keystroke.Shift;
     CheckboxAlt.Checked   := ssAlt   in Keystroke.Shift;
     CheckboxCtrl.Checked  := ssCtrl  in Keystroke.Shift;
+    CheckboxMeta.Checked  := ssMeta  in Keystroke.Shift;
     ComboKey.ItemIndex    := ComboKey.Items.IndexOfObject(TObject(Pointer(PtrUInt(Keystroke.Key))));
     FChanging := False;
 
@@ -151,7 +154,7 @@ end;
 
 procedure TSimbaEditorHotkeyFrame.Init;
 
-  procedure Add(const Key: integer);
+  procedure Add(const Key: Integer);
   var
     S: String;
   begin
@@ -166,13 +169,16 @@ begin
   if FDoneInit then
     Exit;
 
+  {$IFNDEF DARWIN}
+  CheckboxMeta.Visible := False;
+  {$ENDIF}
+
   for Key := 0 to VK_SCROLL do
     Add(Key);
   for Key := VK_BROWSER_BACK to VK_OEM_8 do
     Add(Key);
 
   FDefaultKeyStrokes := TSimbaEditor.Create(Self, []).Keystrokes;
-
   FDoneInit := True;
 end;
 
@@ -191,7 +197,7 @@ end;
 
 procedure TSimbaEditorHotkeyFrame.Load;
 var
-  i: Integer;
+  I: Integer;
   node: TTreeNode;
 begin
   Init();
@@ -200,10 +206,10 @@ begin
   FEditor := TSimbaEditor.Create(Self, [seoKeybindings]);
 
   Tree.Items.Clear();
-  for i := 0 to FEditor.Keystrokes.Count - 1 do
+  for I := 0 to FEditor.Keystrokes.Count - 1 do
   begin
-    node := Tree.Items.Add(nil, KeystrokeText(FEditor.Keystrokes[i]));
-    node.Data := FEditor.Keystrokes[i];
+    node := Tree.Items.Add(nil, KeystrokeText(FEditor.Keystrokes[I]));
+    node.Data := FEditor.Keystrokes[I];
   end;
 end;
 
@@ -229,14 +235,14 @@ begin
     INI := TIniFile.Create(SimbaEnv.DataPath + 'editor_keys.ini');
     for I := 0 to FEditor.Keystrokes.Count - 1 do
     begin
-      Section := EditorCommandName(FEditor.Keystrokes[i].Command);
+      Section := EditorCommandName(FEditor.Keystrokes[I].Command);
       if (Section = '') then
         Continue;
 
       if KeystrokeIsNotDefault(FEditor.Keystrokes[I]) then
       begin
-        INI.WriteInteger(Section, 'Key', Int32(FEditor.Keystrokes[i].Key));
-        INI.WriteInteger(Section, 'Shift', Int32(FEditor.Keystrokes[i].Shift));
+        INI.WriteInteger(Section, 'Key', Int32(FEditor.Keystrokes[I].Key));
+        INI.WriteInteger(Section, 'Shift', Int32(FEditor.Keystrokes[I].Shift));
       end else
         INI.EraseSection(Section);
     end;

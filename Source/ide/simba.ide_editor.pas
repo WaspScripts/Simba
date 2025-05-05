@@ -56,8 +56,6 @@ type
 
     procedure FontChanged(Sender: TObject); override;
 
-    procedure MaybeReplaceModifiers;
-
     procedure DoSettingChanged_Colors(Setting: TSimbaSetting);
     procedure DoSettingChanged_Keystrokes(Setting: TSimbaSetting);
     procedure DoSettingChanged_AllowCaretPastEOL(Setting: TSimbaSetting);
@@ -318,14 +316,6 @@ begin
     FParamHint.Form.Hide();
 end;
 
-procedure TSimbaEditor.MaybeReplaceModifiers;
-begin
-  if Application.HasOption('no-macos-commandkey') then
-    Exit;
-
-  ReplaceKeyStrokeModifiers(ssCtrl, ssMeta);
-end;
-
 procedure TSimbaEditor.DoSettingChanged_Colors(Setting: TSimbaSetting);
 begin
   if (seoColors in FSimbaOptions) then
@@ -553,10 +543,6 @@ begin
     Width := Scale96ToScreen(6);
     Index := Gutter.LineNumberPart().Index + 1;
   end;
-
-  {$IFDEF DARWIN}
-  MaybeReplaceModifiers();
-  {$ENDIF}
 
   with SimbaSettings do
   begin
