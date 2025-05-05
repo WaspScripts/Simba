@@ -2,8 +2,8 @@
   Author: Raymond van Venetië and Merlijn Wajer
   Project: Simba (https://github.com/MerlijnWajer/Simba)
   License: GNU General Public License (https://www.gnu.org/licenses/gpl-3.0)
-
-  Relatively simple themed TEdit.
+  --------------------------------------------------------------------------
+  Custom drawn TEdit like component.
 }
 unit simba.component_edit;
 
@@ -12,9 +12,13 @@ unit simba.component_edit;
 interface
 
 uses
-  Classes, SysUtils, Controls, Graphics, StdCtrls, ExtCtrls, LMessages, LCLType;
+  Classes, SysUtils, Controls, Graphics, ExtCtrls, LMessages, LCLType;
 
 type
+  (*
+   Fully custom drawn "TEdit" component.
+   Pretty crude and somewhat hacky but works quite well.
+  *)
   TSimbaEdit = class(TCustomControl)
   protected
   type
@@ -27,7 +31,6 @@ type
       Width: Integer;
     end;
 
-    FCaretTimer: TTimer;
     FCaretX: Integer;
     FCaretFlash: Integer;
 
@@ -49,8 +52,6 @@ type
 
     procedure WMSetFocus(var Message: TLMSetFocus); message LM_SETFOCUS;
     procedure WMKillFocus(var Message: TLMKillFocus); message LM_KILLFOCUS;
-
-    procedure DoCaretTimer(Sender: TObject);
 
     procedure ClearCache;
 
@@ -116,19 +117,30 @@ type
     property HintTextStyle: TFontStyles read FHintTextStyle write SetHintTextStyle;
   end;
 
+  (*
+   Label on the left with rest of the space being the edit.
+   - Optional button can be added on the far right
+   - If LabelMeasure is assigned this will be used to measure the placement of the edit.
+  *)
   TSimbaLabeledEdit = class(TCustomControl)
   protected
-    FLabel: TLabel;
+    FButton: TControl;
+    FLabel: TPanel;
     FLabelMeasure: String;
     FEdit: TSimbaEdit;
+
+    procedure DoPaintLabel(Sender: TObject);
+    procedure DoMeasure;
 
     procedure TextChanged; override;
     procedure FontChanged(Sender: TObject); override;
 
+    procedure SetButton(AValue: TControl);
     procedure SetLabelMeasure(Value: String);
   public
     constructor Create(AOwner: TComponent); override;
 
+    property Button: TControl read FButton write SetButton;
     property Edit: TSimbaEdit read FEdit;
     property LabelMeasure: String read FLabelMeasure write SetLabelMeasure;
   end;
@@ -138,6 +150,68 @@ implementation
 uses
   Math, Clipbrd,
   simba.ide_theme, simba.misc;
+
+type
+  TCaretFlasher = class
+  protected
+    FTimer: TTimer;
+    FList: TList;
+
+    procedure DoTimer(Sender: TObject);
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Add(Edit: TSimbaEdit);
+    procedure Remove(Edit: TSimbaEdit);
+  end;
+
+var
+  CaretFlasher: TCaretFlasher;
+
+procedure TCaretFlasher.DoTimer(Sender: TObject);
+var
+  I: Integer;
+begin
+  for I := 0 to FList.Count -1 do
+    TSimbaEdit(FList[I]).Invalidate();
+end;
+
+constructor TCaretFlasher.Create;
+begin
+  inherited Create();
+
+  FList := TList.Create();
+end;
+
+destructor TCaretFlasher.Destroy;
+begin
+  if (FList <> nil) then
+    FreeAndNil(FList);
+  if (FTimer <> nil) then
+    FreeAndNil(FTimer);
+  inherited Destroy;
+end;
+
+procedure TCaretFlasher.Add(Edit: TSimbaEdit);
+begin
+  FList.Add(Edit);
+
+  if (FTimer = nil) then
+  begin
+    FTimer := TTimer.Create(nil);
+    FTimer.OnTimer := @DoTimer;
+    FTimer.Interval := 500;
+  end;
+  FTimer.Enabled := True;
+end;
+
+procedure TCaretFlasher.Remove(Edit: TSimbaEdit);
+begin
+  FList.Remove(Edit);
+  if (FList.Count = 0) and (FTimer <> nil) then
+    FTimer.Enabled := False;
+end;
 
 procedure TSimbaEdit.SetHintText(Value: String);
 begin
@@ -188,7 +262,7 @@ procedure TSimbaEdit.WMSetFocus(var Message: TLMSetFocus);
 begin
   inherited;
 
-  FCaretTimer.Enabled := True;
+  CaretFlasher.Add(Self);
   Invalidate();
 end;
 
@@ -196,7 +270,7 @@ procedure TSimbaEdit.WMKillFocus(var Message: TLMKillFocus);
 begin
   inherited;
 
-  FCaretTimer.Enabled := False;
+  CaretFlasher.Remove(Self);
   ClearSelection();
   Invalidate();
 end;
@@ -384,11 +458,6 @@ begin
   end;
 end;
 
-procedure TSimbaEdit.DoCaretTimer(Sender: TObject);
-begin
-  Invalidate();
-end;
-
 procedure TSimbaEdit.MouseMove(Shift: TShiftState; X, Y: Integer);
 begin
   inherited MouseMove(Shift, X, Y);
@@ -574,26 +643,21 @@ begin
     Canvas.Font.Style := OldFontStyles;
   end;
 
-  if Focused then
+  if Focused then // flash caret and active border
   begin
-    // Caret
-    if FCaretTimer.Enabled then
-    begin
-      Inc(FCaretFlash);
-      if Odd(FCaretFlash) then
-        Canvas.Pen.Color := clWhite
-      else
-        Canvas.Pen.Color := clBlack;
+    Inc(FCaretFlash);
+    if Odd(FCaretFlash) then
+      Canvas.Pen.Color := clWhite
+    else
+      Canvas.Pen.Color := clBlack;
+    Canvas.Pen.Mode := pmXor;
 
-      Canvas.Pen.Mode := pmXor;
+    if (Text = '') then
+      DrawCaretX := (BorderWidth * 2)
+    else
+      DrawCaretX := (FDrawOffsetX + TextWidth) - 1;
 
-      if (Text = '') then
-        DrawCaretX := (BorderWidth * 2)
-      else
-        DrawCaretX := (FDrawOffsetX + TextWidth) - 1;
-
-      Canvas.Line(DrawCaretX, BorderWidth, DrawCaretX, Height - BorderWidth);
-    end;
+    Canvas.Line(DrawCaretX, (BorderWidth*2), DrawCaretX, Height - (BorderWidth*2));
 
     Canvas.Brush.Color := ColorBorderActive;
   end else
@@ -718,11 +782,6 @@ constructor TSimbaEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FCaretTimer := TTimer.Create(Self);
-  FCaretTimer.Enabled := False;
-  FCaretTimer.Interval := 500;
-  FCaretTimer.OnTimer := @DoCaretTimer;
-
   ControlStyle := ControlStyle + [csOpaque];
   Cursor := crIBeam;
   TabStop := True;
@@ -746,28 +805,67 @@ begin
   Text := '';
 end;
 
+procedure TSimbaLabeledEdit.SetButton(AValue: TControl);
+begin
+  if (FButton = AValue) then
+    Exit;
+
+  // remove from this control, does not free though!
+  if (FButton <> nil) then
+    FButton.Parent := nil;
+  FButton := AValue;
+
+  if (FButton <> nil) then
+  begin
+    FButton.Parent := Self;
+    FButton.Align := alRight;
+    FButton.BorderSpacing.Left := 5;
+
+    FEdit.AnchorSide[akRight].Control := FButton;
+    FEdit.AnchorSide[akRight].Side := asrLeft;
+  end else
+  begin
+    FEdit.AnchorSide[akRight].Control := Self;
+    FEdit.AnchorSide[akRight].Side := asrRight;
+  end;
+end;
+
+procedure TSimbaLabeledEdit.DoPaintLabel(Sender: TObject);
+var
+  Style: TTextStyle;
+begin
+  with TPanel(Sender) do
+  begin
+    Style := Canvas.TextStyle;
+    Style.Layout := tlCenter;
+
+    Canvas.TextRect(ClientRect, 0, 0, Self.Caption, Style);
+  end;
+end;
+
+procedure TSimbaLabeledEdit.DoMeasure;
+begin
+  if (FEdit = nil) then
+    Exit;
+
+  if (FLabelMeasure <> '') then
+    FLabel.Width := Canvas.TextWidth(FLabelMeasure)
+  else
+    FLabel.Width := Canvas.TextWidth(Caption);
+end;
+
 procedure TSimbaLabeledEdit.TextChanged;
 begin
   inherited TextChanged();
 
-  if Assigned(FLabel) then
-    FLabel.Caption := Text;
+  DoMeasure();
 end;
 
 procedure TSimbaLabeledEdit.FontChanged(Sender: TObject);
 begin
   inherited FontChanged(Sender);
 
-  if (FLabelMeasure <> '') then
-  begin
-    with TBitmap.Create() do
-    try
-      Canvas.Font := FLabel.Font;
-      FEdit.Left := Canvas.TextWidth(FLabelMeasure);
-    finally
-      Free();
-    end
-  end;
+  DoMeasure();
 end;
 
 procedure TSimbaLabeledEdit.SetLabelMeasure(Value: String);
@@ -775,20 +873,7 @@ begin
   if (FLabelMeasure = Value) then
     Exit;
   FLabelMeasure := Value;
-
-  if (FLabelMeasure <> '') then
-  begin
-    FEdit.AnchorSide[akLeft].Control := nil;
-
-    with TBitmap.Create() do
-    try
-      Canvas.Font := FLabel.Font;
-      FEdit.Left := FLabel.Left + Canvas.TextWidth(FLabelMeasure) + (FLabel.BorderSpacing.Right * 2);
-    finally
-      Free();
-    end;
-  end else
-    FEdit.AnchorSide[akLeft].Control := Self;
+  DoMeasure();
 end;
 
 constructor TSimbaLabeledEdit.Create(AOwner: TComponent);
@@ -797,33 +882,41 @@ begin
 
   ControlStyle := ControlStyle + [csOpaque];
   Color := SimbaTheme.ColorBackground;
-  Font.Color := SimbaTheme.ColorFont;
   AutoSize := True;
-  ParentFont := True;
-
-  FLabel := TLabel.Create(Self);
-  FLabel.Parent := Self;
-  FLabel.Align := alLeft;
-  FLabel.AutoSize := True;
-  FLabel.Layout := tlCenter;
-  FLabel.ParentFont := True;
-  FLabel.BorderSpacing.Left := 5;
-  FLabel.BorderSpacing.Right := 5;
 
   FEdit := TSimbaEdit.Create(Self);
+
+  FLabel := TPanel.Create(Self);
+  FLabel.Parent := Self;
+  FLabel.BevelOuter := bvNone;
+  FLabel.OnPaint := @DoPaintLabel;
+  FLabel.Anchors := [akLeft, akTop, akBottom];
+  FLabel.AnchorSide[akLeft].Control := Self;
+  FLabel.AnchorSide[akLeft].Side := asrLeft;
+  FLabel.AnchorSide[akTop].Control := Self;
+  FLabel.AnchorSide[akTop].Side := asrTop;
+  FLabel.AnchorSide[akBottom].Control := FEdit;
+  FLabel.AnchorSide[akBottom].Side := asrBottom;
+
   FEdit.Parent := Self;
   FEdit.Anchors := [akLeft, akTop, akRight, akBottom];
-  FEdit.AnchorSide[akLeft].Control := Self;
-  FEdit.AnchorSide[akLeft].Side := asrLeft;
+  FEdit.AnchorSide[akLeft].Control := FLabel;
+  FEdit.AnchorSide[akLeft].Side := asrRight;
   FEdit.AnchorSide[akTop].Control := Self;
   FEdit.AnchorSide[akTop].Side := asrTop;
   FEdit.AnchorSide[akRight].Control := Self;
   FEdit.AnchorSide[akRight].Side := asrRight;
   FEdit.AnchorSide[akBottom].Control := Self;
   FEdit.AnchorSide[akBottom].Side := asrBottom;
-  FEdit.BorderSpacing.Around := 0;
-  FEdit.BorderSpacing.Right := 5;
+  FEdit.BorderSpacing.Left := 5;
 end;
+
+initialization
+  CaretFlasher := TCaretFlasher.Create();
+
+finalization
+  if (CaretFlasher <> nil) then
+    FreeAndNil(CaretFlasher);
 
 end.
 
