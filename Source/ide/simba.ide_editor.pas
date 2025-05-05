@@ -52,7 +52,7 @@ type
     FSimbaOptions: ESimbaEditorOptions;
 
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
-    procedure MouseWheelInterceptor(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+    function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
 
     procedure FontChanged(Sender: TObject); override;
 
@@ -125,7 +125,7 @@ type
 implementation
 
 uses
-  SynEditPointClasses, SynGutter, SynHighlighterPas_Simba, LazSynEditMouseCmdsTypes, Forms, IniFiles,
+  SynEditPointClasses, SynGutter, SynHighlighterPas_Simba, LazSynEditMouseCmdsTypes, Forms,
   simba.misc, simba.ide_editor_blockcompletion,
   simba.ide_editor_docgenerator, simba.ide_editor_commentblock,
   simba.ide_editor_mousewheelzoom, simba.ide_editor_multicaret,
@@ -292,24 +292,20 @@ begin
   inherited MouseDown(Button, Shift, X, Y);
 end;
 
-procedure TSimbaEditor.MouseWheelInterceptor(
-  Sender: TObject;
-  Shift: TShiftState;
-  WheelDelta: Integer;
-  MousePos: TPoint;
-  var Handled: Boolean);
+function TSimbaEditor.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean;
 const
-  SCROLL_AMOUNT = 2;
+  SCROLL_AMOUNT = 5;
 begin
-  if ssShift in Shift then
+  if (ssShift in Shift) then
   begin
-    if WheelDelta > 0 then
+    if (WheelDelta > 0) then
       FScrollbarHorz.Position := FScrollbarHorz.Position - SCROLL_AMOUNT
     else
       FScrollbarHorz.Position := FScrollbarHorz.Position + SCROLL_AMOUNT;
 
-    Handled := True;  
-  end;
+    Result := True;
+  end else
+    Result := inherited;
 end;
 
 procedure TSimbaEditor.FontChanged(Sender: TObject);
@@ -491,8 +487,6 @@ begin
 
   Options := Options + [eoTabIndent, eoKeepCaretX, eoDragDropEditing, eoScrollPastEof] - [eoSmartTabs];
   Options2 := Options2 + [eoCaretSkipsSelection];
-
-  OnMouseWheel := @MouseWheelInterceptor;
 
   MouseOptions := [emAltSetsColumnMode, emUseMouseActions, emShowCtrlMouseLinks, emCtrlWheelZoom];
   ResetMouseActions();
