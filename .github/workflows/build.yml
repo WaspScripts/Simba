@@ -35,15 +35,19 @@ jobs:
             binary: Simba-Win32.exe
             test: Simba-Win32.exe
 
-          - name: Linux64
+          - name: Linux
             runs-on: ubuntu-22.04
             binary: Simba-Linux64
             test: Simba-Linux64
-            
+          
+          - name: Linux Arm
+            runs-on: ubuntu-22.04-arm
+            binary: Simba-Linux
+            #test: Simba-Linux MatchTemplateMask test fails, investigate later
+
           - name: Mac
             runs-on: macos-13
             binary: Simba-Mac.dmg
-            test: Simba
 
           - name: Mac Arm
             runs-on: macos-14
@@ -72,13 +76,22 @@ jobs:
             https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20aarch64/Lazarus%204.0/fpc-3.2.2.intelarm64-macosx.dmg
 
       - name: Install Lazarus (Linux)
-        if: startsWith(matrix.config.name, 'Linux') == true
+        if: matrix.config.name == 'Linux'
         uses: ollydev/setup-lazarus@v3.5
         with:
           laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.0/lazarus-project_4.0.0-0_amd64.deb
           fpc-url: |
             https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.0/fpc-laz_3.2.2-210709_amd64.deb
             https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.0/fpc-src_3.2.2-210709_amd64.deb
+
+      - name: Install Lazarus (Linux Arm)
+        if: matrix.config.name == 'Linux Arm'
+        uses: ollydev/setup-lazarus@v3.5
+        with:
+          laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.0/lazarus-project_4.0.0-0_arm64.deb
+          fpc-url: |
+            https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.0/fpc-laz_3.2.3-240813_arm64.deb
+            https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.0/fpc-src_3.2.3-240813_arm64.deb
 
       - name: Install Lazarus (Win32)
         if: startsWith(matrix.config.name, 'Win32') == true

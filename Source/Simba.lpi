@@ -191,7 +191,7 @@
           </Other>
         </CompilerOptions>
       </Item4>
-      <Item5 Name="Linux64">
+      <Item5 Name="Linux">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
@@ -239,7 +239,7 @@
           </Other>
         </CompilerOptions>
       </Item5>
-      <Item6 Name="Linux64 DebugInfo">
+      <Item6 Name="Linux DebugInfo">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
@@ -280,11 +280,11 @@
           </Other>
         </CompilerOptions>
       </Item6>
-      <Item7 Name="Linux Arm64">
+      <Item7 Name="Linux Arm">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
-            <Filename Value="../Simba-Linux-AArch64"/>
+            <Filename Value="../Simba-Linux"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);$(LazarusDir)/components/synedit;../Third-Party/lape"/>
