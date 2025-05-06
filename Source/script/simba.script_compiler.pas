@@ -312,7 +312,7 @@ end;
 // Import our own methods later (import_datetime.pas)
 procedure TScriptCompiler.InitBaseDateTime;
 begin
-  DumpSection := 'Date & Time';
+  DumpSection := 'DateTime';
 
   addGlobalType(getBaseType(ltDouble).createCopy(True), 'TDateTime', False);
 

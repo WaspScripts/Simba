@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ComCtrls, ExtCtrls,
-  LCLType, LMessages,
+  LCLType, LMessages, GraphType,
   simba.base,
   simba.component_statusbar,
   simba.component_scrollbar,
@@ -198,7 +198,7 @@ implementation
 
 uses
   simba.datetime,
-  GraphType, LCLIntf;
+  LCLIntf;
 
 generic procedure ZoomOut<_T>(Ratio, SrcX, SrcY, LoopEndX, LoopEndY: Integer; SrcImg, DestImg: TRawImage);
 type

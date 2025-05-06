@@ -59,38 +59,38 @@ jobs:
         if: matrix.config.name == 'Mac'
         uses: ollydev/setup-lazarus@v3.5
         with:
-          laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20x86-64/Lazarus%203.8/lazarus-darwin-x86_64-3.8.zip
+          laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20x86-64/Lazarus%204.0/lazarus-darwin-x86_64-4.0.zip
           fpc-url: |
-            https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20x86-64/Lazarus%203.8/fpc-3.2.2.intelarm64-macosx.dmg
+            https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20x86-64/Lazarus%204.0/fpc-3.2.2.intelarm64-macosx.dmg
 
       - name: Install Lazarus (Mac Arm)
         if: matrix.config.name == 'Mac Arm'
         uses: ollydev/setup-lazarus@v3.5
         with:
-          laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20aarch64/Lazarus%203.8/lazarus-darwin-aarch64-3.8.zip
+          laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20aarch64/Lazarus%204.0/lazarus-darwin-aarch64-4.0.zip
           fpc-url: |
-            https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20aarch64/Lazarus%203.8/fpc-3.2.2.intelarm64-macosx.dmg
+            https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20aarch64/Lazarus%204.0/fpc-3.2.2.intelarm64-macosx.dmg
 
       - name: Install Lazarus (Linux)
         if: startsWith(matrix.config.name, 'Linux') == true
         uses: ollydev/setup-lazarus@v3.5
         with:
-          laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%203.8/lazarus-project_3.8.0-0_amd64.deb
+          laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.0/lazarus-project_4.0.0-0_amd64.deb
           fpc-url: |
-            https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%203.6/fpc-laz_3.2.2-210709_amd64.deb
-            https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%203.6/fpc-src_3.2.2-210709_amd64.deb
+            https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.0/fpc-laz_3.2.2-210709_amd64.deb
+            https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.0/fpc-src_3.2.2-210709_amd64.deb
 
       - name: Install Lazarus (Win32)
         if: startsWith(matrix.config.name, 'Win32') == true
         uses: ollydev/setup-lazarus@v3.5
         with:
-          laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2032%20bits/Lazarus%203.8/lazarus-3.8-fpc-3.2.2-win32.exe
+          laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2032%20bits/Lazarus%204.0/lazarus-4.0-fpc-3.2.2-win32.exe
 
       - name: Install Lazarus (Win64)
         if: startsWith(matrix.config.name, 'Win64') == true
         uses: ollydev/setup-lazarus@v3.5
         with:
-          laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2064%20bits/Lazarus%203.8/lazarus-3.8-fpc-3.2.2-win64.exe
+          laz-url: https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2064%20bits/Lazarus%204.0/lazarus-4.0-fpc-3.2.2-win64.exe
 
       - name: Build Simba
         run: |
