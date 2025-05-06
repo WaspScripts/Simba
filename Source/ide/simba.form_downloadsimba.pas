@@ -126,7 +126,7 @@ end;
 
 procedure TDownloader.DoUnZipOutput(Sender: TObject; var AStream: TStream; AItem: TFullZipFileEntry);
 begin
-  FFile := TSimbaPath.PathExtractNameWithoutExt(AItem.ArchiveFileName) + '_' + FCommit + TSimbaPath.PathExtractExt(AItem.ArchiveFileName);
+  FFile := Application.Location + TSimbaPath.PathExtractNameWithoutExt(AItem.ArchiveFileName) + '_' + FCommit + TSimbaPath.PathExtractExt(AItem.ArchiveFileName);
   if FileExists(FFile) then
     AStream := TFileStream.Create(FFile, fmOpenReadWrite)
   else
@@ -137,7 +137,9 @@ procedure TDownloader.Execute;
 begin
   try
     if FHttpClient.Get(FURL, FData) > 0 then
-      FUnZipper.UnZipAllFiles();
+      FUnZipper.UnZipAllFiles()
+    else
+      FError := 'No data received';
   except
     on E: Exception do
       FError := E.Message;

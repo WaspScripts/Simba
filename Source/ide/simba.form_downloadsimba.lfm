@@ -16,7 +16,7 @@ object SimbaDownloadSimbaForm: TSimbaDownloadSimbaForm
     Height = 470
     Top = 0
     Width = 846
-    PageIndex = 1
+    PageIndex = 0
     Align = alClient
     TabOrder = 0
     object MainPage: TPage

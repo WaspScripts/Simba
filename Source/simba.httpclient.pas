@@ -596,11 +596,7 @@ begin
     end;
 
     if (Stream <> nil) then // Can be nil for HEAD request etc.
-    begin
-      Stream.Position := 0;
       Stream.Write(urlData.bytes^, urlData.length);
-      Stream.Position := 0;
-    end;
   finally
     LocalPool.release;
   end;
