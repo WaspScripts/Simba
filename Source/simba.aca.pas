@@ -390,6 +390,7 @@ end;
 procedure TSimbaACA.DoDeleteSelectedClick(Sender: TObject);
 begin
   FColorList.DeleteSelection();
+  CalcBestColor();
 end;
 
 procedure TSimbaACA.DoAddFromClipboardClick(Sender: TObject);
