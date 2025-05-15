@@ -3,7 +3,7 @@
   Project: Simba (https://github.com/MerlijnWajer/Simba)
   License: GNU General Public License (https://www.gnu.org/licenses/gpl-3.0)
 }
-unit simba.form_tabs_history;
+unit simba.ide_editorcarethistory;
 
 {$i simba.inc}
 
@@ -14,7 +14,7 @@ uses
   simba.base, simba.ide_tab, simba.containers;
 
 type
-  TSimbaScriptTabHistory = class(TComponent)
+  TSimbaEditorCaretHistory = class(TComponent)
   strict private
   type
     THistoryPoint = record
@@ -26,6 +26,7 @@ type
     FIndex    : Integer;       // 1-based “next slot”; 0 means empty
     FHistory  : THistoryList;
     FMaxDepth : Integer;
+    FMoving   : Boolean;
 
     procedure PruneIfNeeded;
     procedure DumpState(const msg: String);
@@ -33,7 +34,6 @@ type
     procedure DoTabClose(Sender: TObject);
     procedure DoTabCaretMoved(Sender: TObject);
   public
-    FSilent   : Boolean;
     property MaxDepth: Integer read FMaxDepth write FMaxDepth;
 
     procedure PushFromEditor(Tab: TSimbaScriptTab);
@@ -52,7 +52,7 @@ type
   end;
 
 var
-  SimbaScriptTabHistory: TSimbaScriptTabHistory;
+  SimbaEditorCaretHistory: TSimbaEditorCaretHistory;
 
 implementation
 
@@ -63,7 +63,7 @@ uses
   simba.ide_editor_mousecommands,
   simba.threading;
 
-procedure TSimbaScriptTabHistory.DumpState(const msg: String);
+procedure TSimbaEditorCaretHistory.DumpState(const msg: String);
 var
   i: Integer;
 begin
@@ -82,40 +82,47 @@ begin
   end;
 end;
 
-procedure TSimbaScriptTabHistory.DoTabClose(Sender: TObject);
+procedure TSimbaEditorCaretHistory.DoTabClose(Sender: TObject);
 begin
   Clear(Sender as TSimbaScriptTab);
 end;
 
-procedure TSimbaScriptTabHistory.DoTabCaretMoved(Sender: TObject);
+procedure TSimbaEditorCaretHistory.DoTabCaretMoved(Sender: TObject);
 begin
   PushFromEditor(Sender as TSimbaScriptTab);
 end;
 
-procedure TSimbaScriptTabHistory.PruneIfNeeded;
+procedure TSimbaEditorCaretHistory.PruneIfNeeded;
 begin
   if (FMaxDepth > 0) and (FHistory.Count > FMaxDepth) then
   begin
     while FHistory.Count > FMaxDepth do
       FHistory.Delete(0);
     FIndex := EnsureRange(FIndex, 0, FHistory.Count);
+
+    {$IFDEF DEBUG}
     DumpState('Prune');
+    {$ENDIF}
   end;
 end;
 
-procedure TSimbaScriptTabHistory.PushFromEditor(Tab: TSimbaScriptTab);
+procedure TSimbaEditorCaretHistory.PushFromEditor(Tab: TSimbaScriptTab);
 var
   CaretXY: TPoint;
   pt: THistoryPoint;
 begin
-  if FSilent then
+  if FMoving then
     Exit;
 
-  DebugLn('TSimbaScriptTabHistory.PushFromEditor');
+  {$IFDEF DEBUG}
+  DebugLn('TSimbaEditorCaretHistory.PushFromEditor');
+  {$ENDIF}
   CaretXY := Tab.Editor.CaretXY;
   if (CaretXY.X = 1) and (CaretXY.Y = 1) then
   begin
-    DebugLn('TSimbaScriptTabHistory.PushFromEditor default caret pos');
+    {$IFDEF DEBUG}
+    DebugLn('TSimbaEditorCaretHistory.PushFromEditor default caret pos');
+    {$ENDIF}
     Exit;
   end;
 
@@ -123,14 +130,18 @@ begin
   pt.Tab := Tab;
   pt.Caret := Tab.Editor.CaretXY;
 
-  DebugLn(Format('TSimbaScriptTabHistory.PushFromEditor pt %d, %d', [pt.Caret.X, pt.Caret.Y]));
+  {$IFDEF DEBUG}
+  DebugLn(Format('TSimbaEditorCaretHistory.PushFromEditor pt %d, %d', [pt.Caret.X, pt.Caret.Y]));
+  {$ENDIF}
 
   { ignore tiny moves in the same file }
   if (FHistory.Count > 0) and (FIndex > 0) then
     with FHistory[FIndex-1] do
       if (Tab = Pt.Tab) and (Abs(Caret.Y - Pt.Caret.Y) < 15) then
       begin
-        DebugLn('TSimbaScriptTabHistory.PushFromEditor short distance in same file');
+        {$IFDEF DEBUG}
+        DebugLn('TSimbaEditorCaretHistory.PushFromEditor short distance in same file');
+        {$ENDIF}
         Exit;
       end;
 
@@ -153,11 +164,13 @@ begin
 
   FHistory.Add(Pt);
   Inc(FIndex);
+  {$IFDEF DEBUG}
   DumpState('Push');
+  {$ENDIF}
   PruneIfNeeded;
 end;
 
-procedure TSimbaScriptTabHistory.Clear(Tab: TSimbaScriptTab);
+procedure TSimbaEditorCaretHistory.Clear(Tab: TSimbaScriptTab);
 var
   i: Integer;
 begin
@@ -167,16 +180,20 @@ begin
       if i < FIndex then Dec(FIndex);
       FHistory.Delete(i);
     end;
+  {$IFDEF DEBUG}
   DumpState('Clear');
+  {$ENDIF}
 end;
 
-procedure TSimbaScriptTabHistory.GoBack;
+procedure TSimbaEditorCaretHistory.GoBack;
 begin
   try
+    {$IFDEF DEBUG}
     DebugLn('GoBack');
+    {$ENDIF}
     if FIndex <= 1 then Exit;
 
-    FSilent := True;
+    FMoving := True;
 
     repeat
       Dec(FIndex);
@@ -186,7 +203,9 @@ begin
 
     if FIndex = 0 then FIndex := 1;          // safety
 
+    {$IFDEF DEBUG}
     DumpState('Back → '+IntToStr(FIndex));
+    {$ENDIF}
 
     with FHistory[FIndex-1] do
     begin
@@ -195,13 +214,15 @@ begin
       SimbaTabsForm.CurrentTab.Editor.TopLine := Caret.Y - (Tab.Editor.LinesInWindow div 2);
     end;
   finally
-    FSilent := False;
+    FMoving := False;
   end;
 end;
 
-procedure TSimbaScriptTabHistory.GoForward;
+procedure TSimbaEditorCaretHistory.GoForward;
 begin
+  {$IFDEF DEBUG}
   DebugLn('GoForward');
+  {$ENDIF}
   if FIndex >= FHistory.Count then Exit;
 
   repeat
@@ -212,7 +233,9 @@ begin
 
   if FIndex > FHistory.Count then FIndex := FHistory.Count; // safety
 
+  {$IFDEF DEBUG}
   DumpState('Forward → '+IntToStr(FIndex));
+  {$ENDIF}
 
   with FHistory[FIndex-1] do
   begin
@@ -223,20 +246,20 @@ begin
 end;
 
 { ───── lifecycle ───── }
-constructor TSimbaScriptTabHistory.Create;
+constructor TSimbaEditorCaretHistory.Create;
 begin
   inherited Create(nil);
 
   FHistory  := THistoryList.Create();
   FIndex    := 0;
   FMaxDepth := 128;
-  FSilent   := False;
+  FMoving   := False;
 
   SimbaIDEEvents.Register(Self, SimbaIDEEvent.TAB_CLOSED, @DoTabClose);
   SimbaIDEEvents.Register(Self, SimbaIDEEvent.TAB_CARETMOVED, @DoTabCaretMoved);
 end;
 
-destructor TSimbaScriptTabHistory.Destroy;
+destructor TSimbaEditorCaretHistory.Destroy;
 begin
   if (FHistory <> nil) then
     FreeAndNil(FHistory);
@@ -262,22 +285,22 @@ begin
 
   if Result then
     if (AnAction.Command = emcMouseButtonForward) then
-      QueueOnMainThread(@SimbaScriptTabHistory.GoForward)
+      QueueOnMainThread(@SimbaEditorCaretHistory.GoForward)
     else if (AnAction.Command = emcMouseButtonBack) then
-      QueueOnMainThread(@SimbaScriptTabHistory.GoBack);
+      QueueOnMainThread(@SimbaEditorCaretHistory.GoBack);
 end;
 
-procedure CreateTabHistory;
+procedure CreateEditorCaretHistory;
 begin
-  SimbaScriptTabHistory := TSimbaScriptTabHistory.Create();
+  SimbaEditorCaretHistory := TSimbaEditorCaretHistory.Create();
 end;
 
 initialization
-  SimbaIDEInitialization_AddBeforeCreate(@CreateTabHistory, 'Create TabHistory');
+  SimbaIDEInitialization_AddBeforeCreate(@CreateEditorCaretHistory, 'Create EditorCaretHistory');
 
 finalization
-  if (SimbaScriptTabHistory <> nil) then
-    FreeAndNil(SimbaScriptTabHistory);
+  if (SimbaEditorCaretHistory <> nil) then
+    FreeAndNil(SimbaEditorCaretHistory);
 
 end.
 

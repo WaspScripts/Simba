@@ -14,7 +14,7 @@ uses
   SynEdit, SynEditTypes, SynGutterLineOverview, SynEditMouseCmds, SynEditMiscClasses, SynEditKeyCmds, SynEditHighlighter, SynEditMarkupCtrlMouseLink, SynEditMarkupHighAll,
   simba.base, simba.settings,
   simba.ide_editor_completionbox, simba.ide_editor_paramhint, simba.ide_editor_attributes,
-  simba.ide_editor_modifiedlinegutter, simba.component_synedit, simba.ide_editor_history;
+  simba.ide_editor_modifiedlinegutter, simba.component_synedit;
 
 type
   TSimbaEditorFileNameEvent = function(Sender: TObject): String of object;
@@ -135,7 +135,8 @@ uses
   simba.ide_editor_mousewheelzoom,
   simba.ide_editor_multicaret,
   simba.ide_editor_codecomplete,
-  simba.ide_editor_commands;
+  simba.ide_editor_commands,
+  simba.ide_editorcarethistory;
 
 function TSimbaEditor.IsHighlighterAttribute(Values: TStringArray): Boolean;
 var
