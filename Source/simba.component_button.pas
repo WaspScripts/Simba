@@ -41,8 +41,6 @@ type
     FYPadding: Integer;
     FImageSpacing: Integer;
 
-    function GetCustomImage: TCustomBitmap; virtual;
-
     function HasImage: Boolean;
     function ImageSize: TSize;
     function CalculateSize: TPoint;
@@ -91,8 +89,7 @@ type
   end;
 
   TSimbaCheckButton = class(TSimbaToggleButton)
-  protected
-    function GetCustomImage: TCustomBitmap; override;
+    constructor Create(AOwner: TComponent); override;
   end;
 
   TSimbaLabeledButton = class(TCustomControl)
@@ -169,11 +166,8 @@ type
 implementation
 
 uses
-  simba.ide_theme, simba.form_main, simba.misc, LCLType,
+  simba.ide_theme, simba.component_images, simba.form_main, simba.misc, LCLType,
   ATCanvasPrimitives;
-
-var
-  ImgTick: TPortableNetworkGraphic;
 
 procedure TSimbaTransparentButton.Paint;
 begin
@@ -410,21 +404,14 @@ begin
   AdjustSize();
 end;
 
-function TSimbaButton.GetCustomImage: TCustomBitmap;
-begin
-  Result := nil;
-end;
 
 function TSimbaButton.HasImage: Boolean;
 begin
-  Result := (FImageIndex > -1) or (GetCustomImage() <> nil);
+  Result := (FImageIndex > -1);
 end;
 
 function TSimbaButton.ImageSize: TSize;
 begin
-  if (GetCustomImage <> nil) then
-    Result := TSize.Create(GetCustomImage.Width, GetCustomImage.Height)
-  else
   if (FImageIndex > -1) then
     Result := FImageList.SizeForPPI[FImageList.Width, Font.PixelsPerInch]
   else
@@ -523,10 +510,7 @@ begin
       ImgPoint.Y := R.CenterPoint.Y - (ImageSize.Height div 2);
     end;
 
-    if (GetCustomImage <> nil) then
-      Canvas.Draw(ImgPoint.X, ImgPoint.Y, GetCustomImage())
-    else
-      FImageList.DrawForControl(Canvas, ImgPoint.X, ImgPoint.Y, FImageIndex, FImageList.Width, Self, Enabled);
+    FImageList.DrawForControl(Canvas, ImgPoint.X, ImgPoint.Y, FImageIndex, FImageList.Width, Self, Enabled);
   end;
 
   Style := Canvas.TextStyle;
@@ -602,9 +586,12 @@ begin
   inherited Click();
 end;
 
-function TSimbaCheckButton.GetCustomImage: TCustomBitmap;
+constructor TSimbaCheckButton.Create(AOwner: TComponent);
 begin
-  Result := ImgTick;
+  inherited Create(AOwner);
+
+  ImageList := SimbaComponentImages;
+  ImageIndex := SimbaComponentImages.TICK;
 end;
 
 procedure TSimbaLabeledButton.TextChanged;
@@ -634,13 +621,6 @@ begin
   FLabel.Align := alClient;
   FLabel.Layout := tlCenter;
 end;
-
-initialization
-  ImgTick := TPortableNetworkGraphic.Create();
-  ImgTick.LoadFromStream(TResourceStream.Create(HINSTANCE, 'TICK', RT_RCDATA));
-
-finalization
-  FreeAndNil(ImgTick);
 
 end.
 

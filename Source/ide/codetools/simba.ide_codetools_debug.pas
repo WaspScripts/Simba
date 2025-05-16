@@ -20,7 +20,8 @@ uses
   Controls, ComCtrls, Forms,
   simba.component_treeview,
   simba.ide_codetools_insight,
-  simba.ide_codetools_parser;
+  simba.ide_codetools_parser,
+  simba.form_main;
 
 procedure DebugSymbolTable(Script: String; ScriptName: String);
 var
@@ -39,6 +40,7 @@ begin
   TreeView := TSimbaTreeView.Create(Form);
   TreeView.Parent := Form;
   TreeView.Align := alClient;
+  TreeView.Images := SimbaMainForm.Images;
 
   Codeinsight := TCodeinsight.Create();
   Codeinsight.SetScript(Script, ScriptName);

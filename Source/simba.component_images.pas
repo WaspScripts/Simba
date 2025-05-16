@@ -1,3 +1,11 @@
+{
+  Author: Raymond van Venetië and Merlijn Wajer
+  Project: Simba (https://github.com/MerlijnWajer/Simba)
+  License: GNU General Public License (https://www.gnu.org/licenses/gpl-3.0)
+
+  Images for components.
+  Must be here so the components work in a script process since SimbaMainForm.Images wont be created
+}
 unit simba.component_images;
 
 {$i simba.inc}
@@ -7,8 +15,16 @@ interface
 uses
   Classes, SysUtils, Graphics, Controls, ImgList, Types, Forms;
 
+type
+  TSimbaImageComponents = class(TImageList)
+  public
+    ARROW_RIGHT: Integer;
+    ARROW_DOWN: Integer;
+    TICK: Integer;
+  end;
+
 var
-  SimbaComponentImages: TImageList;
+  SimbaComponentImages: TSimbaImageComponents;
 
 implementation
 
@@ -28,25 +44,39 @@ end;
 procedure CreateSimbaComponentImages;
 
   function ImageFromResource(Name: String): TCustomBitmap;
+  var
+    Stream: TStream;
   begin
-    Result := TPortableNetworkGraphic.Create();
-    Result.LoadFromStream(TResourceStream.Create(HINSTANCE, Name, RT_RCDATA));
+    Stream := TResourceStream.Create(HINSTANCE, Name, RT_RCDATA);
+    try
+      Result := TPortableNetworkGraphic.Create();
+      Result.LoadFromStream(Stream);
+    finally
+      Stream.Free();
+    end;
   end;
 
 begin
-  SimbaComponentImages := TImageList.Create(Application);
+  SimbaComponentImages := TSimbaImageComponents.Create(Application);
   SimbaComponentImages.RegisterResolutions([16,24,32]);
   SimbaComponentImages.OnGetWidthForPPI := @SimbaComponentImages.DoWidthForPPI;
-  SimbaComponentImages.AddMultipleResolutions([
+
+  SimbaComponentImages.ARROW_RIGHT := SimbaComponentImages.AddMultipleResolutions([
     ImageFromResource('ARROW_RIGHT'),
     ImageFromResource('ARROW_RIGHT_150'),
     ImageFromResource('ARROW_RIGHT_200')
   ]);
 
-  SimbaComponentImages.AddMultipleResolutions([
+  SimbaComponentImages.ARROW_DOWN := SimbaComponentImages.AddMultipleResolutions([
     ImageFromResource('ARROW_DOWN'),
     ImageFromResource('ARROW_DOWN_150'),
     ImageFromResource('ARROW_DOWN_200')
+  ]);
+
+  SimbaComponentImages.TICK := SimbaComponentImages.AddMultipleResolutions([
+    ImageFromResource('TICK'),
+    ImageFromResource('TICK_150'),
+    ImageFromResource('TICK_200')
   ]);
 end;
 

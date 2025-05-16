@@ -15,7 +15,7 @@ uses
   Classes, SysUtils, Controls, Forms, Graphics, StdCtrls, ComCtrls, LMessages, LCLType, ImgList, Types,
   simba.component_edit, simba.component_treeviewhint, simba.component_scrollbar, simba.component_button,
   simba.settings;
-     
+
 type
   TSimbaInternalTreeView = class(TTreeView)
   protected
@@ -665,7 +665,7 @@ begin
     Sender.Canvas,
     ARect.Left + (ARect.Right - ARect.Left - R.Height) div 2,
     ARect.Top + (ARect.Bottom - ARect.Top - R.Height) div 2,
-    IfThen(ACollapsed, 0, 1)
+    IfThen(ACollapsed, SimbaComponentImages.ARROW_RIGHT, SimbaComponentImages.ARROW_DOWN)
   );
 end;
 
