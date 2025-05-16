@@ -137,11 +137,10 @@ type
   end;
 
   TSimbaToggleButtonGroup = class(TFlowPanel)
-  private
-    function GetSelectedText: String;
   protected
     FOnChange: TNotifyEvent;
 
+    function GetSelectedText: String;
     procedure DoButtonClick(Sender: TObject);
   public
     procedure Add(AText: String);

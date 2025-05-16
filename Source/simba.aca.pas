@@ -80,7 +80,7 @@ type
     procedure DoImgMouseMove(Sender: TSimbaImageBox; Shift: TShiftState; X, Y: Integer);
     procedure DoImgMouseDown(Sender: TSimbaImageBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure DoPaintNode(ACanvas: TCanvas; Node: TTreeNode);
-    procedure DoListClear(Sender: TObject);
+    procedure DoListModify(Sender: TObject);
     procedure DoListSelectionChange(Sender: TObject);
     procedure DoListDeleteKey(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoColorSpaceChange(Sender: TObject);
@@ -243,11 +243,7 @@ end;
 procedure TSimbaACA.DoImgMouseDown(Sender: TSimbaImageBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   if (Button = mbLeft) then
-  begin
     Add(FImageBox.Background.Canvas.Pixels[X, Y]);
-
-    CalcBestColor();
-  end;
 end;
 
 // stolen from colorpickerhistory
@@ -290,8 +286,9 @@ begin
   ACanvas.TextRect(BaseRect, BaseRect.Left, BaseRect.Top, Node.Text, S);
 end;
 
-procedure TSimbaACA.DoListClear(Sender: TObject);
+procedure TSimbaACA.DoListModify(Sender: TObject);
 begin
+  CalcBestColor();
   FButtonClearImg.Click();
 end;
 
@@ -390,7 +387,6 @@ end;
 procedure TSimbaACA.DoDeleteSelectedClick(Sender: TObject);
 begin
   FColorList.DeleteSelection();
-  CalcBestColor();
 end;
 
 procedure TSimbaACA.DoAddFromClipboardClick(Sender: TObject);
@@ -613,8 +609,8 @@ begin
   FColorList := TSimbaTreeView.Create(FForm, TColorNode);
   FColorList.Parent := FPanel;
   FColorList.Align := alClient;
+  FColorList.OnModify := @DoListModify;
   FColorList.OnPaintNode := @DoPaintNode;
-  FColorList.OnClear := @DoListClear;
   FColorList.OnSelectionChange := @DoListSelectionChange;
   FColorList.AddKeyEvent(VK_DELETE, [], @DoListDeleteKey);
   FColorList.FilterVisible := False;
@@ -732,8 +728,8 @@ begin
     ToggleButtons.Add('RGB');
     ToggleButtons.Add('HSL');
     ToggleButtons.Add('HSV');
-    ToggleButtons.Add('XYZ');
-    ToggleButtons.Add('LAB');
+    //ToggleButtons.Add('XYZ'); not implemented properly yet
+    //ToggleButtons.Add('LAB'); ...
     ToggleButtons.Add('LCH');
     ToggleButtons.Add('DeltaE');
 
@@ -761,8 +757,6 @@ begin
       Exit;
 
   TColorNode(FColorList.AddNode(ColorToStr(Color))).Color := Color;
-
-  FButtonClearImg.Click();
 end;
 
 function TSimbaACA.GetBest: TColorTolerance;

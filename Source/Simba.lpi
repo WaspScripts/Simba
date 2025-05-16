@@ -17,7 +17,7 @@
         <TextDesc Value=""/>
       </XPManifest>
       <Icon Value="0"/>
-      <Resources Count="20">
+      <Resources Count="26">
         <Resource_0 FileName="..\Examples\array.simba" Type="RCDATA" ResourceName="EXAMPLE_ARRAY"/>
         <Resource_1 FileName="..\Examples\function.simba" Type="RCDATA" ResourceName="EXAMPLE_FUNCTION"/>
         <Resource_2 FileName="..\Examples\loop.simba" Type="RCDATA" ResourceName="EXAMPLE_LOOP"/>
@@ -38,6 +38,12 @@
         <Resource_17 FileName="..\Images\tick.png" Type="RCDATA" ResourceName="TICK"/>
         <Resource_18 FileName="..\Images\tick_150.png" Type="RCDATA" ResourceName="TICK_150"/>
         <Resource_19 FileName="..\Images\tick_200.png" Type="RCDATA" ResourceName="TICK_200"/>
+        <Resource_20 FileName="..\Images\arrow_down.png" Type="RCDATA" ResourceName="ARROW_DOWN"/>
+        <Resource_21 FileName="..\Images\arrow_down_150.png" Type="RCDATA" ResourceName="ARROW_DOWN_150"/>
+        <Resource_22 FileName="..\Images\arrow_down_200.png" Type="RCDATA" ResourceName="ARROW_DOWN_200"/>
+        <Resource_23 FileName="..\Images\arrow_right.png" Type="RCDATA" ResourceName="ARROW_RIGHT"/>
+        <Resource_24 FileName="..\Images\arrow_right_150.png" Type="RCDATA" ResourceName="ARROW_RIGHT_150"/>
+        <Resource_25 FileName="..\Images\arrow_right_200.png" Type="RCDATA" ResourceName="ARROW_RIGHT_200"/>
       </Resources>
     </General>
     <VersionInfo>
@@ -469,7 +475,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="84">
+    <Units Count="85">
       <Unit0>
         <Filename Value="Simba.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -860,9 +866,13 @@
         <IsPartOfProject Value="True"/>
       </Unit82>
       <Unit83>
-        <Filename Value="ide/simba.form_tabs_history.pas"/>
+        <Filename Value="ide/simba.ide_editorcarethistory.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit83>
+      <Unit84>
+        <Filename Value="simba.component_images.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit84>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

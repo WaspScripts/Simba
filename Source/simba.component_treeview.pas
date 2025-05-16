@@ -19,10 +19,26 @@ uses
 type
   TSimbaInternalTreeView = class(TTreeView)
   protected
+  type
+    TSimbaInternalTreeNodes = class(TTreeNodes)
+    public
+      OnBeginUpdate: TNotifyEvent;
+      OnEndUpdate: TNotifyEvent;
+      procedure BeginUpdate; override;
+      procedure EndUpdate; override;
+    end;
+  protected
     FLoading: Boolean;
     FScrollbarVert: TSimbaScrollBar;
     FScrollbarHorz: TSimbaScrollBar;
 
+    FOnBeginUpdate: TNotifyEvent;
+    FOnEndUpdate: TNotifyEvent;
+
+    procedure DoBeginUpdate(Sender: TObject);
+    procedure DoEndUpdate(Sender: TObject);
+
+    function CreateNodes: TTreeNodes; override;
     procedure UpdateScrollBars;
     procedure DoSelectionChanged; override;
     procedure Resize; override;
@@ -30,14 +46,13 @@ type
     procedure Expand(Node: TTreeNode); override;
     procedure CMChanged(var Message: TLMessage); message CM_CHANGED;
     function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
-    procedure DoDrawArrow(Sender: TCustomTreeView; const ARect: TRect; ACollapsed: Boolean);
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure Paint; override;
     procedure SetLoading(Value: Boolean);
   public
     property Loading: Boolean read FLoading write SetLoading;
-
-    constructor Create(AnOwner: TComponent); override;
+    property OnBeginUpdate: TNotifyEvent read FOnBeginUpdate write FOnBeginUpdate;
+    property OnEndUpdate: TNotifyEvent read FOnEndUpdate write FOnEndUpdate;
   end;
 
   TNodePaintEvent = procedure(Canvas: TCanvas; Node: TTreeNode) of object;
@@ -59,6 +74,7 @@ type
     FOnPaintNode: TNodePaintEvent;
     FOnAfterFilter: TNotifyEvent;
     FOnClear: TNotifyEvent;
+    FOnModify: TNotifyEvent;
     FNodeClass: TTreeNodeClass;
     FTempBackgroundColor: TColor;
     FFilterOnlyTopLevel: Boolean;
@@ -68,6 +84,7 @@ type
       Shift: TShiftState;
       Callback: TKeyEvent;
     end;
+    FModified: Boolean;
 
     procedure FontChanged(Sender: TObject); override;
 
@@ -105,6 +122,9 @@ type
     procedure DoScrollHorzChange(Sender: TObject);
     procedure DoScrollVertChange(Sender: TObject);
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure DoEndUpdate(Sender: TObject);
+    procedure DoTreeAddOrDelete(Sender: TObject; Node: TTreeNode);
+    procedure DoDrawArrow(Sender: TCustomTreeView; const ARect: TRect; ACollapsed: Boolean);
   public
     constructor Create(AOwner: TComponent; NodeClass: TTreeNodeClass = nil); reintroduce;
 
@@ -130,6 +150,7 @@ type
     property OnSelectionChange: TNotifyEvent read GetOnSelectionChange write SetOnSelectionChange;
     property OnAfterFilter: TNotifyEvent read FOnAfterFilter write FOnAfterFilter;
     property OnClear: TNotifyEvent read FOnClear write FOnClear;
+    property OnModify: TNotifyEvent read FOnModify write FOnModify;
     property Images: TCustomImageList read GetImages write SetImages;
     property Items: TTreeNodes read GetItems;
     property Selected: TTreeNode read GetSelected write SetSelected;
@@ -157,7 +178,10 @@ implementation
 
 uses
   Math,
-  simba.ide_theme;
+  simba.ide_theme,
+  simba.ide_utils,
+  simba.form_main,
+  simba.component_images;
 
 constructor TSimbaTreeView.Create(AOwner: TComponent; NodeClass: TTreeNodeClass);
 var
@@ -200,6 +224,7 @@ begin
   FTree.ExpandSignColor := clWhite;
   FTree.TreeLinePenStyle := psClear;
   FTree.OnCreateNodeClass := @DoCreateNodeClass;
+  FTree.OnCustomDrawArrow := @DoDrawArrow;
   FTree.OnMouseMove := @DoMouseMove;
   FTree.DragMode := dmAutomatic;
   FTree.TabStop := False;
@@ -207,6 +232,9 @@ begin
   FTree.SelectionColor := SimbaTheme.ColorActive;
   FTree.Font.Color := SimbaTheme.ColorFont;
   FTree.OnAdvancedCustomDrawItem := @DoDrawItem;
+  FTree.OnEndUpdate := @DoEndUpdate;
+  FTree.OnAddition := @DoTreeAddOrDelete;
+  FTree.OnDeletion := @DoTreeAddOrDelete;
   FTree.AddHandlerOnKeyDown(@DoKeyDown);
 
   FHint := TSimbaTreeViewHint.Create(FTree);
@@ -238,6 +266,8 @@ begin
 
   with SimbaSettings do
     RegisterChangeHandler(Self, General.CustomImageSize, @DoSettingChanged_ImageSize);
+
+  FontChanged(nil);
 end;
 
 procedure TSimbaTreeView.HideRoot;
@@ -413,6 +443,9 @@ begin
 
   FFilterEdit.Font := Self.Font;
   FFilterEdit.Font.Color := SimbaTheme.ColorFont;
+
+  FTree.ExpandSignSize := ImageWidthForDPI(Font.PixelsPerInch) - 2;
+  FTree.Indent := ImageWidthForDPI(Font.PixelsPerInch) - 2;
 end;
 
 procedure TSimbaTreeView.UpdateFilter;
@@ -584,6 +617,9 @@ end;
 
 procedure TSimbaTreeView.DoSettingChanged_ImageSize(Setting: TSimbaSetting);
 begin
+  FTree.ExpandSignSize := ImageWidthForDPI(Font.PixelsPerInch) - 2;
+  FTree.Indent := ImageWidthForDPI(Font.PixelsPerInch) - 2;
+
   Invalidate();
 end;
 
@@ -601,9 +637,60 @@ begin
       FKeyEvents[I].Callback(Self, Key, Shift);
 end;
 
+procedure TSimbaTreeView.DoEndUpdate(Sender: TObject);
+begin
+  if FModified and Assigned(FOnModify) then
+    FOnModify(Self);
+  FModified := False;
+end;
+
+procedure TSimbaTreeView.DoTreeAddOrDelete(Sender: TObject; Node: TTreeNode);
+begin
+  if FTree.Items.IsUpdating then // will get called in DoEndUpdate
+  begin
+    FModified := True;
+    Exit;
+  end;
+
+  if Assigned(FOnModify) then
+    FOnModify(Self);
+end;
+
+procedure TSimbaTreeView.DoDrawArrow(Sender: TCustomTreeView; const ARect: TRect; ACollapsed: Boolean);
+var
+  R: TScaledImageListResolution;
+begin
+  R := SimbaComponentImages.ResolutionForPPI[16, Sender.Font.PixelsPerInch, Sender.GetCanvasScaleFactor];
+  R.Draw(
+    Sender.Canvas,
+    ARect.Left + (ARect.Right - ARect.Left - R.Height) div 2,
+    ARect.Top + (ARect.Bottom - ARect.Top - R.Height) div 2,
+    IfThen(ACollapsed, 0, 1)
+  );
+end;
+
 procedure TSimbaTreeView.DoScrollHorzChange(Sender: TObject);
 begin
   FTree.ScrolledLeft := FScrollbarHorz.Position;
+end;
+
+procedure TSimbaInternalTreeView.DoBeginUpdate(Sender: TObject);
+begin
+  if Assigned(FOnBeginUpdate) then
+    FOnBeginUpdate(Self);
+end;
+
+procedure TSimbaInternalTreeView.DoEndUpdate(Sender: TObject);
+begin
+  if Assigned(FOnEndUpdate) then
+    FOnEndUpdate(Self);
+end;
+
+function TSimbaInternalTreeView.CreateNodes: TTreeNodes;
+begin
+  Result := TSimbaInternalTreeNodes.Create(Self);
+  TSimbaInternalTreeNodes(Result).OnBeginUpdate := @DoBeginUpdate;
+  TSimbaInternalTreeNodes(Result).OnEndUpdate := @DoEndUpdate;
 end;
 
 procedure TSimbaInternalTreeView.UpdateScrollBars();
@@ -623,41 +710,6 @@ begin
 
   FScrollbarVert.Update();
   FScrollbarHorz.Update();
-end;
-
-procedure TSimbaInternalTreeView.DoDrawArrow(Sender: TCustomTreeView; const ARect: TRect; ACollapsed: Boolean);
-var
-  CosValue, SinValue: Double;
-
-  function RotatePoint(const P: TPoint; const X, Y: Double): TPoint; inline;
-  begin
-    Result.X := Round(X + CosValue * (P.X - X) - SinValue * (P.Y - Y));
-    Result.Y := Round(Y + SinValue * (P.X - X) + CosValue * (P.Y - Y));
-  end;
-
-var
-  MidX, MidY: Integer;
-  Points: array[0..2] of TPoint;
-begin
-  MidX := ARect.CenterPoint.X;
-  MidY := ARect.CenterPoint.Y;
-
-  Points[0] := Point(MidX - 1, ARect.Top);
-  Points[1] := Point(ARect.Right - 1, MidY);
-  Points[2] := Point(MidX - 1, ARect.Bottom);
-
-  if (not ACollapsed) then
-  begin
-    SinCos(DegToRad(90), SinValue, CosValue);
-
-    Points[0] := RotatePoint(Points[0], MidX+2, MidY);
-    Points[1] := RotatePoint(Points[1], MidX+2, MidY);
-    Points[2] := RotatePoint(Points[2], MidX+2, MidY);
-  end;
-
-  Sender.Canvas.Pen.Width := 2;
-  Sender.Canvas.Pen.Color := SimbaTheme.ColorLine;
-  Sender.Canvas.Polyline(Points);
 end;
 
 procedure TSimbaInternalTreeView.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -699,13 +751,6 @@ begin
   Invalidate();
 end;
 
-constructor TSimbaInternalTreeView.Create(AnOwner: TComponent);
-begin
-  inherited Create(AnOwner);
-
-  OnCustomDrawArrow := @DoDrawArrow;
-end;
-
 procedure TSimbaInternalTreeView.DoSelectionChanged;
 begin
   inherited;
@@ -740,6 +785,23 @@ procedure TSimbaInternalTreeView.Expand(Node: TTreeNode);
 begin
   inherited;
   UpdateScrollBars();
+end;
+
+procedure TSimbaInternalTreeView.TSimbaInternalTreeNodes.BeginUpdate;
+var
+  WasUpdating: Boolean;
+begin
+  WasUpdating := IsUpdating;
+  inherited BeginUpdate();
+  if Assigned(OnBeginUpdate) and (not WasUpdating) then
+    OnBeginUpdate(Self);
+end;
+
+procedure TSimbaInternalTreeView.TSimbaInternalTreeNodes.EndUpdate;
+begin
+  inherited EndUpdate();
+  if Assigned(OnEndUpdate) and (not IsUpdating) then
+    OnEndUpdate(Self);
 end;
 
 end.
