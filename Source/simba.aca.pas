@@ -725,13 +725,13 @@ begin
     Align := alTop;
     Color := SimbaTheme.ColorFrame;
 
-    ToggleButtons.Add('RGB');
-    ToggleButtons.Add('HSL');
-    ToggleButtons.Add('HSV');
+    ToggleButtons.Add('RGB').MeasureText := 'DeltaE';
+    ToggleButtons.Add('HSL').MeasureText := 'DeltaE';
+    ToggleButtons.Add('HSV').MeasureText := 'DeltaE';
+    ToggleButtons.Add('LCH').MeasureText := 'DeltaE';
+    ToggleButtons.Add('DeltaE').MeasureText := 'DeltaE';
     //ToggleButtons.Add('XYZ'); not implemented properly yet
     //ToggleButtons.Add('LAB'); ...
-    ToggleButtons.Add('LCH');
-    ToggleButtons.Add('DeltaE');
 
     Caption := 'Color Space';
 

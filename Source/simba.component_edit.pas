@@ -100,6 +100,7 @@ type
     procedure SetHintTextStyle(Value: TFontStyles);
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     procedure Clear;
 
@@ -263,7 +264,6 @@ begin
   inherited;
 
   CaretFlasher.Add(Self);
-  Invalidate();
 end;
 
 procedure TSimbaEdit.WMKillFocus(var Message: TLMKillFocus);
@@ -800,6 +800,13 @@ begin
   Height := CalculateHeight();
 end;
 
+destructor TSimbaEdit.Destroy;
+begin
+  CaretFlasher.Remove(Self);
+
+  inherited Destroy();
+end;
+
 procedure TSimbaEdit.Clear;
 begin
   Text := '';
@@ -848,10 +855,17 @@ begin
   if (FEdit = nil) then
     Exit;
 
-  if (FLabelMeasure <> '') then
-    FLabel.Width := Canvas.TextWidth(FLabelMeasure)
-  else
-    FLabel.Width := Canvas.TextWidth(Caption);
+  with TBitmap.Create() do
+  try
+    Canvas.Font := Self.Font;
+
+    if (FLabelMeasure <> '') then
+      FLabel.Width := Canvas.TextWidth(FLabelMeasure)
+    else
+      FLabel.Width := Canvas.TextWidth(Caption);
+  finally
+    Free();
+  end;
 end;
 
 procedure TSimbaLabeledEdit.TextChanged;

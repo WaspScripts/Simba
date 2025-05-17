@@ -35,11 +35,13 @@ type
     FImageList: TCustomImageList;
     FImageIndex: Integer;
     FImage: ESimbaButtonImage;
+    FImageSpacing: Integer;
 
     FDown: Boolean;
     FXPadding: Integer;
     FYPadding: Integer;
-    FImageSpacing: Integer;
+
+    FMeasureText: String;
 
     function HasImage: Boolean;
     function ImageSize: TSize;
@@ -57,8 +59,8 @@ type
     procedure SetDown(AValue: Boolean);
     procedure SetXPadding(AValue: Integer);
     procedure SetYPadding(AValue: Integer);
+    procedure SetMeasureText(Value: String);
     procedure SetImageSpacing(AValue: Integer);
-
     procedure SetImage(Img: ESimbaButtonImage);
     procedure SetImageIndex(Index: Integer);
   public
@@ -70,11 +72,12 @@ type
     property ImageList: TCustomImageList read FImageList write FImageList;
     property ImageIndex: Integer read FImageIndex write SetImageIndex;
     property Image: ESimbaButtonImage read FImage write SetImage;
-
     property ImageSpacing: Integer read FImageSpacing write SetImageSpacing;
     property Down: Boolean read FDown write SetDown;
     property XPadding: Integer read FXPadding write SetXPadding;
     property YPadding: Integer read FYPadding write SetYPadding;
+
+    property MeasureText: String read FMeasureText write SetMeasureText;
 
     property OnMouseDown;
     property OnMouseUp;
@@ -140,22 +143,20 @@ type
     function GetSelectedText: String;
     procedure DoButtonClick(Sender: TObject);
   public
-    procedure Add(AText: String);
+    function Add(AText: String): TSimbaToggleButton;
     property SelectedText: String read GetSelectedText;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     constructor Create(AOwner: TComponent); override;
   end;
 
   TSimbaLabeledToggleButtonGroup = class(TCustomControl)
-  private
-    FLabelMeasure: String;
-
-    procedure SetLabelMeasure(Value: String);
   protected
     FLabel: TLabel;
     FToggleButtons: TSimbaToggleButtonGroup;
+    FLabelMeasure: String;
 
     procedure TextChanged; override;
+    procedure SetLabelMeasure(Value: String);
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -204,12 +205,10 @@ begin
 
   FCheckButton := TSimbaCheckButton.Create(Self);
   FCheckButton.Parent := Self;
-
   FCheckButton.Anchors := [akLeft];
   FCheckButton.AnchorSideLeft.Control := FLabel;
   FCheckButton.AnchorSideLeft.Side := asrRight;
   FCheckButton.AnchorVerticalCenterTo(FLabel);
-
   FCheckButton.BorderSpacing.Top := 5;
   FCheckButton.BorderSpacing.Bottom := 5;
   FCheckButton.BorderSpacing.Right := 5;
@@ -269,9 +268,10 @@ begin
     FOnChange(Self);
 end;
 
-procedure TSimbaToggleButtonGroup.Add(AText: String);
+function TSimbaToggleButtonGroup.Add(AText: String): TSimbaToggleButton;
 begin
-  with TSimbaToggleButton.Create(Self) do
+  Result := TSimbaToggleButton.Create(Self);
+  with Result do
   begin
     Parent := Self;
     Caption := AText;
@@ -395,6 +395,12 @@ begin
   AdjustSize();
 end;
 
+procedure TSimbaButton.SetMeasureText(Value: String);
+begin
+  FMeasureText := Value;
+  AdjustSize();
+end;
+
 procedure TSimbaButton.SetImageSpacing(AValue: Integer);
 begin
   FImageSpacing := Scale96ToScreen(AValue);
@@ -403,7 +409,6 @@ begin
 
   AdjustSize();
 end;
-
 
 function TSimbaButton.HasImage: Boolean;
 begin
@@ -419,16 +424,21 @@ begin
 end;
 
 function TSimbaButton.CalculateSize: TPoint;
+var
+  Str: String;
 begin
   Result.X := 0;
   Result.Y := 0;
 
-  if (Caption <> '') then
+  Str := FMeasureText;
+  if (Str = '') then
+    Str := Caption;
+  if (Str <> '') then
     with TBitmap.Create() do
     try
       Canvas.Font := Self.Font;
 
-      Result.X := Canvas.TextWidth(Caption) + (BorderWidth * 2);
+      Result.X := Canvas.TextWidth(Str) + (BorderWidth * 2);
       Result.Y := Canvas.TextHeight('Fj') + (BorderWidth * 2);
     finally
       Free();
