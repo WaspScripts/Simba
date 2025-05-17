@@ -236,6 +236,8 @@ begin
   FTree.OnAddition := @DoTreeAddOrDelete;
   FTree.OnDeletion := @DoTreeAddOrDelete;
   FTree.AddHandlerOnKeyDown(@DoKeyDown);
+  FTree.ExpandSignSize := ImageWidthForDPI(Font.PixelsPerInch) - 2;
+  FTree.Indent := ImageWidthForDPI(Font.PixelsPerInch) - 2;
 
   FHint := TSimbaTreeViewHint.Create(FTree);
 
@@ -266,8 +268,6 @@ begin
 
   with SimbaSettings do
     RegisterChangeHandler(Self, General.CustomImageSize, @DoSettingChanged_ImageSize);
-
-  FontChanged(nil);
 end;
 
 procedure TSimbaTreeView.HideRoot;
@@ -440,12 +440,11 @@ begin
 
   FTree.Font := Self.Font;
   FTree.Font.Color := SimbaTheme.ColorFont;
+  FTree.ExpandSignSize := ImageWidthForDPI(Font.PixelsPerInch) - 2;
+  FTree.Indent := ImageWidthForDPI(Font.PixelsPerInch) - 2;
 
   FFilterEdit.Font := Self.Font;
   FFilterEdit.Font.Color := SimbaTheme.ColorFont;
-
-  FTree.ExpandSignSize := ImageWidthForDPI(Font.PixelsPerInch) - 2;
-  FTree.Indent := ImageWidthForDPI(Font.PixelsPerInch) - 2;
 end;
 
 procedure TSimbaTreeView.UpdateFilter;

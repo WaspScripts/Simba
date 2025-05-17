@@ -41,7 +41,7 @@ type
   // Hide gutters and such so the synedit acts more like the "memo" component.
   TSimbaMemo = class(TSimbaSynEdit)
   public
-    constructor Create(AOwner: TComponent; LineWrapping: Boolean); reintroduce;
+    constructor Create(AOwner: TComponent; LineWrapping: Boolean); virtual; reintroduce;
   end;
 
 implementation

@@ -12,24 +12,34 @@ unit simba.form_findinfiles;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
   SynEditMiscClasses, SynEditSearch, SynEditMouseCmds,
   simba.base,
-  simba.component_synedit, simba.component_button, simba.component_edit, simba.component_buttonpanel;
+  simba.component_synedit,
+  simba.component_button,
+  simba.component_edit,
+  simba.component_buttonpanel,
+  simba.component_divider;
 
 type
-  TLineInfo = class
-  public
-    isFile: Boolean;
-    isResult: Boolean;
-    FileName: String;
-    Line: Integer;
-  end;
-
   TResultsMemo = class(TSimbaMemo)
+  protected type
+    TLineInfo = class
+    public
+      isFile: Boolean;
+      isResult: Boolean;
+      FileName: String;
+      Line: Integer;
+    end;
   protected
+    procedure DoLineMarkup(Sender: TObject; Line: integer; var Special: boolean; AMarkup: TSynSelectedColor);
+    procedure DoAllowMouseLink(Sender: TObject; X, Y: Integer; var AllowMouseLink: Boolean);
+    procedure DoMouseLinkClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+
     function GetLineInfo(Line: Integer): TLineInfo;
   public
+    constructor Create(AOwner: TComponent; LineWrapping: Boolean); override;
+
     procedure GetWordBoundsAtRowCol(const XY: TPoint; out StartX, EndX: integer); override;
 
     procedure AddFileLine(FileName: String);
@@ -38,31 +48,17 @@ type
     property LineInfo[Line: Integer]: TLineInfo read GetLineInfo;
   end;
 
-  TSimbaFindInFilesForm = class(TForm)
-    MatchesLabel: TLabel;
-    PanelSearchButton: TPanel;
-    PanelDivider: TPanel;
-    PanelTop: TPanel;
-    PanelSelectLocation: TPanel;
-    PanelOptions: TPanel;
-    PanelLocation: TPanel;
-    PanelMatches: TPanel;
-    DialogSelectDir: TSelectDirectoryDialog;
-
-    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure DialogSelectDirClose(Sender: TObject);
-  private
-    Searcher: TSynEditSearch;
-    ButtonFind: TSimbaButton;
-    ButtonOpenAllFiles: TSimbaButton;
-    ButtonSelectDir: TSimbaButton;
-    EditLocation: TSimbaLabeledEdit;
-    MemoResults: TResultsMemo;
-    EditSearch: TSimbaLabeledEdit;
-    ButtonPanel: TSimbaButtonPanel;
-    CheckboxOptions: TSimbaCheckButtonGroup;
+  TFindInFilesTab = class(TCustomControl)
+  protected
+    FEditSearch: TSimbaLabeledEdit;
+    FEditLocation: TSimbaLabeledEdit;
+    FCheckboxOptions: TSimbaCheckButtonGroup;
+    FMemoResults: TResultsMemo;
+    FButtonFind: TSimbaButton;
+    FButtonSelectDir: TSimbaButton;
+    FButtonOpenAll: TSimbaButton;
+    FMatchesLabel: TLabel;
+    FLabelOpenAll: TLAbel;
 
     FSearchString: String;
     FSearchLocation: String;
@@ -71,13 +67,22 @@ type
     FSearchWholeWords: Boolean;
 
     procedure DoSearching;
-
-    procedure DoButtonOpenAllFiles(Sender: TObject);
+    procedure DoClickOpenAll(Sender: TObject);
+    procedure DoLabelOpenAllHover(Sender: TObject);
     procedure DoButtonFindClick(Sender: TObject);
     procedure DoSelectDirButtonClick(Sender: TObject);
-    procedure DoLineMarkup(Sender: TObject; Line: integer; var Special: boolean; Markup: TSynSelectedColor);
-    procedure DoAllowMouseLink(Sender: TObject; X, Y: Integer; var AllowMouseLink: Boolean);
-    procedure DoMouseLinkClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    procedure OpenAllFiles;
+  end;
+
+  TSimbaFindInFilesForm = class(TForm)
+    procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+  private
+    Tab: TFindInFilesTab;
+    ButtonPanel: TSimbaButtonPanel;
   end;
 
 var
@@ -88,8 +93,11 @@ implementation
 {$R *.lfm}
 
 uses
-  LazFileUtils,
-  simba.threading, simba.ide_theme, simba.fs, simba.settings, simba.form_tabs;
+  simba.threading,
+  simba.ide_theme,
+  simba.fs,
+  simba.settings,
+  simba.form_tabs;
 
 procedure TResultsMemo.AddFileLine(FileName: String);
 var
@@ -114,12 +122,47 @@ begin
   Lines.AddObject('  Line ' + Line.ToString().PadRight(4) + ' -> ' + LineStr.Trim(), Info);
 end;
 
+procedure TResultsMemo.DoLineMarkup(Sender: TObject; Line: integer; var Special: boolean; AMarkup: TSynSelectedColor);
+begin
+  Special := Assigned(LineInfo[Line - 1]) and LineInfo[Line - 1].isFile;
+
+  if Special then
+  begin
+    AMarkup.Background := clNone;
+    AMarkup.Foreground := $50D8FB;
+  end;
+end;
+
+procedure TResultsMemo.DoAllowMouseLink(Sender: TObject; X, Y: Integer; var AllowMouseLink: Boolean);
+begin
+  AllowMouseLink := Assigned(LineInfo[Y - 1]) and LineInfo[Y - 1].isResult;
+end;
+
+procedure TResultsMemo.DoMouseLinkClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Line: Integer;
+begin
+  Line := PixelsToRowColumn(TPoint.Create(X, Y)).Y;
+
+  if Assigned(LineInfo[Line - 1]) and SimbaTabsForm.Open(LineInfo[Line - 1].FileName) then
+    SimbaTabsForm.CurrentTab.GotoLine(LineInfo[Line - 1].Line);
+end;
+
 function TResultsMemo.GetLineInfo(Line: Integer): TLineInfo;
 begin
   if (Line >= 0) and (Line < Lines.Count) then
     Result := TLineInfo(Lines.Objects[Line])
   else
     Result := nil;
+end;
+
+constructor TResultsMemo.Create(AOwner: TComponent; LineWrapping: Boolean);
+begin
+  inherited Create(AOwner, LineWrapping);
+
+  OnSpecialLineMarkup := @DoLineMarkup;
+  OnMouseLink := @DoAllowMouseLink;
+  OnClickLink := @DoMouseLinkClick;
 end;
 
 procedure TResultsMemo.GetWordBoundsAtRowCol(const XY: TPoint; out StartX, EndX: integer);
@@ -140,158 +183,44 @@ begin
   end;
 end;
 
-procedure TSimbaFindInFilesForm.DoButtonFindClick(Sender: TObject);
-begin
-  FSearchString := EditSearch.Edit.Text;
-  FSearchLocation := EditLocation.Edit.Text;
-
-  FSearchSubDirs := CheckboxOptions.Checked[0];
-  FSearchCaseSens := CheckboxOptions.Checked[1];
-  FSearchWholeWords := CheckboxOptions.Checked[2];
-
-  RunInThread(@DoSearching);
-end;
-
-procedure TSimbaFindInFilesForm.FormCreate(Sender: TObject);
-begin
-  Color := SimbaTheme.ColorFrame;
-  Font.Color := SimbaTheme.ColorFont;
-  PanelDivider.Color := SimbaTheme.ColorScrollBarActive;
-
-  ButtonPanel := TSimbaButtonPanel.Create(Self);
-  ButtonPanel.ButtonCancel.Hide();
-  ButtonPanel.ButtonOk.Caption := 'Close';
-  ButtonPanel.Parent := Self;
-  ButtonPanel.BorderSpacing.Around := 5;
-
-  ButtonFind := TSimbaButton.Create(Self);
-  ButtonFind.Parent := PanelSearchButton;
-  ButtonFind.Caption := 'Find';
-  ButtonFind.BorderSpacing.Around := 5;
-  ButtonFind.XPadding := 20;
-  ButtonFind.OnClick := @DoButtonFindClick;
-
-  CheckboxOptions := TSimbaCheckButtonGroup.Create(Self);
-  CheckboxOptions.Parent := PanelOptions;
-  CheckboxOptions.Align := alClient;
-  CheckboxOptions.Add('Search Subdirectories');
-  CheckboxOptions.Add('Case Sensitive');
-  CheckboxOptions.Add('Whole Words Only');
-
-  EditLocation := TSimbaLabeledEdit.Create(Self);
-  EditLocation.Parent := PanelLocation;
-  EditLocation.Align := alClient;
-  EditLocation.Caption := 'Where: ';
-  EditLocation.Color := SimbaTheme.ColorFrame;
-  EditLocation.Edit.ColorBorder := SimbaTheme.ColorScrollBarActive;
-
-  ButtonSelectDir := TSimbaButton.Create(Self);
-  ButtonSelectDir.Parent := PanelSelectLocation;
-  ButtonSelectDir.BorderSpacing.Around := 5;
-  ButtonSelectDir.Align := alClient;
-  ButtonSelectDir.Image := ESimbaButtonImage.SELECT_DIR;
-  ButtonSelectDir.OnClick := @DoSelectDirButtonClick;
-
-  ButtonOpenAllFiles := TSimbaButton.Create(Self);
-  ButtonOpenAllFiles.Parent := ButtonPanel;
-  ButtonOpenAllFiles.Caption := 'Open all files';
-  ButtonOpenAllFiles.BorderSpacing.Around := 5;
-  ButtonOpenAllFiles.XPadding := Scale96ToScreen(10);
-  ButtonOpenAllFiles.OnClick := @DoButtonOpenAllFiles;
-
-  EditSearch := TSimbaLabeledEdit.Create(Self);
-  EditSearch.Parent := PanelLocation;
-  EditSearch.Align := alTop;
-  EditSearch.Caption := 'Search: ';
-  EditSearch.Color := SimbaTheme.ColorFrame;
-  EditSearch.Edit.ColorBorder := SimbaTheme.ColorScrollBarActive;
-
-  MemoResults := TResultsMemo.Create(Self, False);
-  MemoResults.ReadOnly := True;
-  MemoResults.OnSpecialLineMarkup := @DoLineMarkup;
-  MemoResults.OnMouseLink := @DoAllowMouseLink;
-  MemoResults.OnClickLink := @DoMouseLinkClick;
-  MemoResults.Parent := PanelMatches;
-  MemoResults.Align := alClient;
-  MemoResults.MaxUndo := 0;
-  MemoResults.MouseLinkColor.Style := [];
-  MemoResults.MouseLinkColor.Foreground := $CC6600;
-  MemoResults.MouseOptions := [emUseMouseActions];
-  MemoResults.ResetMouseActions();
-  with MemoResults.MouseTextActions.Add() do
-    Command := emcMouseLink;
-
-  Searcher := TSynEditSearch.Create();
-
-  Width := Scale96ToScreen(SimbaSettings.General.FindInFilesWidth.Value);
-  Height := Scale96ToScreen(SimbaSettings.General.FindInFilesHeight.Value);
-  EditSearch.Edit.Text := SimbaSettings.General.FindInFilesSearch.Value;
-  EditLocation.Edit.Text := SimbaSettings.General.FindInFilesLocation.Value;
-
-  CheckboxOptions.Checked[0] := SimbaSettings.General.FindInFilesSubDirs.Value;
-  CheckboxOptions.Checked[1] := SimbaSettings.General.FindInFilesCaseSens.Value;
-  CheckboxOptions.Checked[2] := SimbaSettings.General.FindInFilesWholeWords.Value;
-
-  PanelTop.AutoSize := True;
-  PanelOptions.AutoSize := True;
-  PanelLocation.AutoSize := True;
-  PanelSelectLocation.AutoSize := True;
-  PanelSearchButton.AutoSize := True;
-end;
-
-procedure TSimbaFindInFilesForm.FormDestroy(Sender: TObject);
-begin
-  if Assigned(Searcher) then
-    FreeAndNil(Searcher);
-end;
-
-procedure TSimbaFindInFilesForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
-begin
-  SimbaSettings.General.FindInFilesWidth.Value := ScaleScreenTo96(Width);
-  SimbaSettings.General.FindInFilesHeight.Value := ScaleScreenTo96(Height);
-  SimbaSettings.General.FindInFilesSearch.Value := EditSearch.Edit.Text;
-  SimbaSettings.General.FindInFilesLocation.Value := EditLocation.Edit.Text;
-  SimbaSettings.General.FindInFilesSubDirs.Value := CheckboxOptions.Checked[0];
-  SimbaSettings.General.FindInFilesCaseSens.Value := CheckboxOptions.Checked[1];
-  SimbaSettings.General.FindInFilesWholeWords.Value := CheckboxOptions.Checked[2];
-end;
-
-procedure TSimbaFindInFilesForm.DialogSelectDirClose(Sender: TObject);
-begin
-  EditLocation.Edit.Text := DialogSelectDir.FileName;
-end;
-
-procedure TSimbaFindInFilesForm.DoSearching;
+procedure TFindInFilesTab.DoSearching;
 var
-  Total: Integer;
+  Total, Files: Integer;
 
   procedure BeginUpdate;
   var
     I: Integer;
   begin
     Total := 0;
+    Files := 0;
 
-    MatchesLabel.Caption := 'Searching...';
-    ButtonFind.Enabled := False;
-    MemoResults.Visible := False;
-    MemoResults.BeginUpdate(False);
-    for I := 0 to MemoResults.Lines.Count - 1 do
-      if Assigned(MemoResults.Lines.Objects[I]) then
-        MemoResults.Lines.Objects[I].Free();
-    MemoResults.Clear();
+    FMatchesLabel.Caption := 'Searching...';
+    FLabelOpenAll.Caption := '';
+    FButtonFind.Enabled := False;
+    FMemoResults.Visible := False;
+    FMemoResults.BeginUpdate(False);
+    for I := 0 to FMemoResults.Lines.Count - 1 do
+      if Assigned(FMemoResults.Lines.Objects[I]) then
+        FMemoResults.Lines.Objects[I].Free();
+    FMemoResults.Clear();
 
     Application.ProcessMessages();
   end;
 
   procedure EndUpdate;
   begin
-    MemoResults.EndUpdate();
-    ButtonFind.Enabled := True;
-    MemoResults.Visible := True;
-    MatchesLabel.Caption := 'Matches: ' + IntToStr(Total);
+    FMemoResults.EndUpdate();
+    FButtonFind.Enabled := True;
+    FMemoResults.Visible := True;
+    if (Total > 0) then
+      FMatchesLabel.Caption := 'Matches: ' + IntToStr(Total) + ' in ' + IntToStr(Files) + ' files'
+    else
+      FMatchesLabel.Caption := 'Matches: 0';
+    FLabelOpenAll.Caption := '(click to open all files)';
   end;
 
 var
+  Searcher: TSynEditSearch;
   Lines: TStringList;
   SearchStart, SearchEnd, FoundStart, FoundEnd: TPoint;
   Added: Boolean;
@@ -299,6 +228,7 @@ var
 begin
   RunInMainThread(@BeginUpdate);
 
+  Searcher := TSynEditSearch.Create();
   Searcher.Sensitive := FSearchCaseSens;
   Searcher.Whole := FSearchWholeWords;
   Searcher.Pattern := FSearchString;
@@ -306,7 +236,7 @@ begin
   Lines := TStringList.Create();
 
   for FileName in TSimbaDir.DirListFiles(FSearchLocation, FSearchSubDirs) do
-    if FileIsText(FileName) then
+    if TSimbaFile.FileIsText(FileName) then
     begin
       try
         Lines.LoadFromFile(FileName);
@@ -328,69 +258,200 @@ begin
           Inc(Total);
           if not Added then
           begin
-            MemoResults.AddFileLine(FileName);
+            Inc(Files);
+            FMemoResults.AddFileLine(FileName);
             Added := True;
           end;
-          MemoResults.AddResultLine(FileName, FoundStart.Y, Lines[FoundStart.Y - 1]);
+          FMemoResults.AddResultLine(FileName, FoundStart.Y, Lines[FoundStart.Y - 1]);
 
           SearchStart := FoundEnd;
         end;
 
         if Added then
-          MemoResults.Lines.Add('');
+          FMemoResults.Lines.Add('');
       end;
     end;
 
+  Searcher.Free();
   Lines.Free();
 
   RunInMainThread(@EndUpdate);
 end;
 
-procedure TSimbaFindInFilesForm.DoButtonOpenAllFiles(Sender: TObject);
+procedure TFindInFilesTab.DoClickOpenAll(Sender: TObject);
+begin
+  OpenAllFiles();
+end;
+
+procedure TFindInFilesTab.DoLabelOpenAllHover(Sender: TObject);
+begin
+  TLabel(Sender).Font.Underline := TLabel(Sender).MouseInClient;
+end;
+
+procedure TFindInFilesTab.DoButtonFindClick(Sender: TObject);
+begin
+  FSearchString := FEditSearch.Edit.Text;
+  FSearchLocation := FEditLocation.Edit.Text;
+
+  FSearchSubDirs := FCheckboxOptions.Checked[0];
+  FSearchCaseSens := FCheckboxOptions.Checked[1];
+  FSearchWholeWords := FCheckboxOptions.Checked[2];
+
+  RunInThread(@DoSearching);
+end;
+
+procedure TFindInFilesTab.DoSelectDirButtonClick(Sender: TObject);
+var
+  InitialDir, Dir: String;
+begin
+  InitialDir := FEditLocation.Edit.Text;
+  if (InitialDir = '') then
+    InitialDir := Application.Location;
+  if SelectDirectory('Select location', InitialDir, Dir) then
+    FEditLocation.Edit.Text := Dir;
+end;
+
+constructor TFindInFilesTab.Create(AOwner: TComponent);
+var
+  LabelContainer: TCustomControl;
+  MemoContainer: TCustomControl;
+begin
+  inherited Create(AOwner);
+
+  LabelContainer := TCustomControl.Create(Self);
+  LabelContainer.Parent := Self;
+  LabelContainer.Align := alTop;
+  LabelContainer.AutoSize := True;
+
+  FLabelOpenAll := TLabel.Create(Self);
+  FLabelOpenAll.Parent := LabelContainer;
+  FLabelOpenAll.Align := alLeft;
+  FLabelOpenAll.Caption := '';
+  FLabelOpenAll.OnClick := @DoClickOpenAll;
+  FLabelOpenAll.OnMouseEnter := @DoLabelOpenAllHover;
+  FLabelOpenAll.OnMouseLeave := @DoLabelOpenAllHover;
+  FLabelOpenAll.BorderSpacing.Left := 5;
+
+  FMatchesLabel := TLabel.Create(Self);
+  FMatchesLabel.Parent := LabelContainer;
+  FMatchesLabel.Align := alLeft;
+  FMatchesLabel.Caption := 'Matches:';
+  FMatchesLabel.BorderSpacing.Bottom := 5;
+
+  with TSimbaDivider.Create(Self) do
+  begin
+    Parent := Self;
+    Align := alTop;
+    BorderSpacing.Top := 10;
+    BorderSpacing.Bottom := 10;
+  end;
+
+  FButtonFind := TSimbaButton.Create(Self);
+  FButtonFind.Parent := Self;
+  FButtonFind.Align := alTop;
+  FButtonFind.Caption := 'Find';
+  FButtonFind.XPadding := 20;
+  FButtonFind.Constraints.MaxWidth := 100;
+  FButtonFind.OnClick := @DoButtonFindClick;
+
+  FCheckboxOptions := TSimbaCheckButtonGroup.Create(Self);
+  FCheckboxOptions.Parent := Self;
+  FCheckboxOptions.Align := alTop;
+  FCheckboxOptions.Add('Search Subdirectories');
+  FCheckboxOptions.Add('Case Sensitive');
+  FCheckboxOptions.Add('Whole Words Only');
+  FCheckboxOptions.BorderSpacing.Top := 5;
+
+  FButtonSelectDir := TSimbaButton.Create(Self);
+  FButtonSelectDir.Image := ESimbaButtonImage.SELECT_DIR;
+  FButtonSelectDir.OnClick := @DoSelectDirButtonClick;
+
+  FEditLocation := TSimbaLabeledEdit.Create(Self);
+  FEditLocation.Parent := Self;
+  FEditLocation.Align := alTop;
+  FEditLocation.Caption := 'Location:';
+  FEditLocation.LabelMeasure := 'Location:';
+  FEditLocation.Color := SimbaTheme.ColorFrame;
+  FEditLocation.Edit.ColorBorder := SimbaTheme.ColorScrollBarActive;
+  FEditLocation.BorderSpacing.Top := 5;
+  FEditLocation.Button := FButtonSelectDir;
+  FEditLocation.TabOrder := 1;
+
+  FEditSearch := TSimbaLabeledEdit.Create(Self);
+  FEditSearch.Parent := Self;
+  FEditSearch.Align := alTop;
+  FEditSearch.Caption := 'Search:';
+  FEditSearch.LabelMeasure := 'Location:';
+  FEditSearch.Color := SimbaTheme.ColorFrame;
+  FEditSearch.Edit.ColorBorder := SimbaTheme.ColorScrollBarActive;
+  FEditSearch.TabOrder := 0;
+
+  MemoContainer := TCustomControl.Create(Self);
+  MemoContainer.Parent := Self;
+  MemoContainer.Align := alClient;
+  MemoContainer.BorderSpacing.Top := 5;
+
+  FMemoResults := TResultsMemo.Create(Self, False);
+  FMemoResults.Parent := MemoContainer;
+  FMemoResults.ReadOnly := True;
+  FMemoResults.Align := alClient;
+  FMemoResults.MaxUndo := 0;
+  FMemoResults.MouseLinkColor.Style := [];
+  FMemoResults.MouseLinkColor.Foreground := $CC6600;
+  FMemoResults.MouseOptions := [emUseMouseActions];
+  FMemoResults.ResetMouseActions();
+  with FMemoResults.MouseTextActions.Add() do
+    Command := emcMouseLink;
+end;
+
+procedure TFindInFilesTab.OpenAllFiles;
 var
   Line: Integer;
-  LineInfo: TLineInfo;
 begin
-  for Line := 0 to MemoResults.Lines.Count - 1 do
+  for Line := 0 to FMemoResults.Lines.Count - 1 do
+    if Assigned(FMemoResults.LineInfo[Line]) and FMemoResults.LineInfo[Line].isFile then
+      SimbaTabsForm.Open(FMemoResults.LineInfo[Line].FileName);
+end;
+
+procedure TSimbaFindInFilesForm.FormCreate(Sender: TObject);
+begin
+  Color := SimbaTheme.ColorFrame;
+  Font.Color := SimbaTheme.ColorFont;
+
+  ButtonPanel := TSimbaButtonPanel.Create(Self);
+  ButtonPanel.Parent := Self;
+  ButtonPanel.ButtonCancel.Hide();
+  ButtonPanel.ButtonOk.Caption := 'Close';
+  ButtonPanel.BorderSpacing.Around := 5;
+
+  Tab := TFindInFilesTab.Create(Self);
+  Tab.Parent := Self;
+  Tab.Align := alClient;
+  Tab.BorderSpacing.Around := 5;
+
+  Width  := Scale96ToScreen(SimbaSettings.General.FindInFilesWidth.Value);
+  Height := Scale96ToScreen(SimbaSettings.General.FindInFilesHeight.Value);
+
+  Tab.FEditSearch.Edit.Text       := SimbaSettings.General.FindInFilesSearch.Value;
+  Tab.FEditLocation.Edit.Text     := SimbaSettings.General.FindInFilesLocation.Value;
+  Tab.FCheckboxOptions.Checked[0] := SimbaSettings.General.FindInFilesSubDirs.Value;
+  Tab.FCheckboxOptions.Checked[1] := SimbaSettings.General.FindInFilesCaseSens.Value;
+  Tab.FCheckboxOptions.Checked[2] := SimbaSettings.General.FindInFilesWholeWords.Value;
+end;
+
+procedure TSimbaFindInFilesForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  with Tab do
   begin
-    LineInfo := MemoResults.GetLineInfo(Line);
-    if Assigned(LineInfo) and LineInfo.isFile then
-      SimbaTabsForm.Open(LineInfo.FileName);
+    SimbaSettings.General.FindInFilesWidth.Value  := ScaleScreenTo96(Width);
+    SimbaSettings.General.FindInFilesHeight.Value := ScaleScreenTo96(Height);
+
+    SimbaSettings.General.FindInFilesSearch.Value     := FEditSearch.Edit.Text;
+    SimbaSettings.General.FindInFilesLocation.Value   := FEditLocation.Edit.Text;
+    SimbaSettings.General.FindInFilesSubDirs.Value    := FCheckboxOptions.Checked[0];
+    SimbaSettings.General.FindInFilesCaseSens.Value   := FCheckboxOptions.Checked[1];
+    SimbaSettings.General.FindInFilesWholeWords.Value := FCheckboxOptions.Checked[2];
   end;
-end;
-
-procedure TSimbaFindInFilesForm.DoSelectDirButtonClick(Sender: TObject);
-begin
-  DialogSelectDir.InitialDir := Application.Location;
-  DialogSelectDir.Execute();
-end;
-
-procedure TSimbaFindInFilesForm.DoLineMarkup(Sender: TObject; Line: integer; var Special: boolean; Markup: TSynSelectedColor);
-begin
-  Special := Assigned(MemoResults.LineInfo[Line - 1]) and MemoResults.LineInfo[Line - 1].isFile;
-
-  if Special then
-  begin
-    Markup.Background := clNone;
-    Markup.Foreground := $50D8FB;
-  end;
-end;
-
-procedure TSimbaFindInFilesForm.DoAllowMouseLink(Sender: TObject; X, Y: Integer; var AllowMouseLink: Boolean);
-begin
-  AllowMouseLink := Assigned(MemoResults.LineInfo[Y - 1]) and MemoResults.LineInfo[Y - 1].isResult;
-end;
-
-procedure TSimbaFindInFilesForm.DoMouseLinkClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var
-  Line: Integer;
-  LineInfo: TLineInfo;
-begin
-  Line := MemoResults.PixelsToRowColumn(TPoint.Create(X, Y)).Y;
-
-  LineInfo := MemoResults.LineInfo[Line - 1];
-  if Assigned(LineInfo) and SimbaTabsForm.Open(LineInfo.FileName) then
-    SimbaTabsForm.CurrentTab.GotoLine(LineInfo.Line);
 end;
 
 end.

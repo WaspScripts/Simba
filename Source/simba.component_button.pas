@@ -602,6 +602,8 @@ begin
 
   ImageList := SimbaComponentImages;
   ImageIndex := SimbaComponentImages.TICK;
+
+  YPadding := 3;
 end;
 
 procedure TSimbaLabeledButton.TextChanged;
