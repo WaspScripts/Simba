@@ -1407,5 +1407,9 @@ end;
 initialization
   InitKeywordDictionary();
 
+finalization
+  if (KeywordDict <> nil) then
+    FreeAndNil(KeywordDict);
+
 end.
 

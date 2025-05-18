@@ -9,7 +9,7 @@ program Simba;
 {$R Simba.res}
 
 uses
-  {$IFDEF SIMBA_CUSTOM_MM}
+  {$IFDEF SIMBA_CUSTOM_MM} // note: comment out if needing heaptrc
   mormot_mm,
   {$ENDIF}
   simba.init,

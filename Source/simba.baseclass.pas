@@ -249,7 +249,21 @@ initialization
   CreateEvents := TCreateObjectEvents.Create();
 
 finalization
-  while (TrackedObjects.Count > 0) do
-    TrackedObjects.First.Free();
+  if (TrackedObjects <> nil) then
+  begin
+    while (TrackedObjects.Count > 0) do
+      TrackedObjects.First.Free();
+    FreeAndNil(TrackedObjects);
+  end;
+
+  if (TrackedThreads <> nil) then
+  begin
+    while (TrackedThreads.Count > 0) do
+      TrackedThreads.First.Free();
+    FreeAndNil(TrackedThreads);
+  end;
+
+  if (CreateEvents <> nil) then
+    FreeAndNil(CreateEvents);
 
 end.

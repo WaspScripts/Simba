@@ -56,28 +56,31 @@ procedure CreateSimbaComponentImages;
     end;
   end;
 
+  function Add(img16, img24, img32: String): Integer;
+  var
+    bmp16, bmp24, bmp32: TCustomBitmap;
+  begin
+    bmp16 := ImageFromResource(img16);
+    bmp24 := ImageFromResource(img24);
+    bmp32 := ImageFromResource(img32);
+
+    Result := SimbaComponentImages.AddMultipleResolutions([
+      bmp16, bmp24, bmp32
+    ]);
+
+    bmp16.Free();
+    bmp24.Free();
+    bmp32.Free();
+  end;
+
 begin
   SimbaComponentImages := TSimbaImageComponents.Create(Application);
   SimbaComponentImages.RegisterResolutions([16,24,32]);
   SimbaComponentImages.OnGetWidthForPPI := @SimbaComponentImages.DoWidthForPPI;
 
-  SimbaComponentImages.ARROW_RIGHT := SimbaComponentImages.AddMultipleResolutions([
-    ImageFromResource('ARROW_RIGHT'),
-    ImageFromResource('ARROW_RIGHT_150'),
-    ImageFromResource('ARROW_RIGHT_200')
-  ]);
-
-  SimbaComponentImages.ARROW_DOWN := SimbaComponentImages.AddMultipleResolutions([
-    ImageFromResource('ARROW_DOWN'),
-    ImageFromResource('ARROW_DOWN_150'),
-    ImageFromResource('ARROW_DOWN_200')
-  ]);
-
-  SimbaComponentImages.TICK := SimbaComponentImages.AddMultipleResolutions([
-    ImageFromResource('TICK'),
-    ImageFromResource('TICK_150'),
-    ImageFromResource('TICK_200')
-  ]);
+  SimbaComponentImages.ARROW_RIGHT := Add('ARROW_RIGHT', 'ARROW_RIGHT_150', 'ARROW_RIGHT_200');
+  SimbaComponentImages.ARROW_DOWN  := Add('ARROW_DOWN', 'ARROW_DOWN_150', 'ARROW_DOWN_200');
+  SimbaComponentImages.TICK        := Add('TICK', 'TICK_150', 'TICK_200');
 end;
 
 initialization
