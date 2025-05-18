@@ -122,6 +122,7 @@ type
     procedure FloatType; virtual;
     procedure RecordFields; virtual;
     procedure RecordType; virtual;
+    procedure ObjectType; virtual;
     procedure UnionType; virtual;
     procedure RelativeOperator; virtual;
     procedure RepeatStatement; virtual;
@@ -1185,10 +1186,24 @@ end;
 procedure TPasParser.RecordType;
 begin
   Expected(tokRecord);
-
   if fLexer.TokenID = tokSemicolon then
     Exit;
+  if fLexer.TokenID = tokRoundOpen then
+  begin
+    AncestorId;
+    if fLexer.TokenID = tokSemicolon then
+      Exit;
+  end;
+  RecordFields;
 
+  Expected(tokEnd);
+end;
+
+procedure TPasParser.ObjectType;
+begin
+  Expected(tokObject);
+  if fLexer.TokenID = tokSemicolon then
+    Exit;
   if fLexer.TokenID = tokRoundOpen then
   begin
     AncestorId;
@@ -1225,7 +1240,7 @@ procedure TPasParser.ArrayType;
 begin
   Expected(tokArray);
 
-  // support parsing `a: array` for magic methods
+  // support parsing `a: array` for magic method dumps
   if (fLexer.TokenID = tokOf) then
   begin
     Expected(tokOf);
@@ -1680,6 +1695,7 @@ begin
           ArrayType;
       end;
 
+    tokObject: ObjectType;
     tokRecord: RecordType;
     tokUnion: UnionType;
     tokSet: SetType;
@@ -1829,7 +1845,7 @@ begin
       begin
         SimpleType;
       end;
-    tokArray, tokPacked, tokRecord, tokUnion, tokSet:
+    tokArray, tokPacked, tokRecord, tokObject, tokUnion, tokSet:
       begin
         StructuredType;
       end;

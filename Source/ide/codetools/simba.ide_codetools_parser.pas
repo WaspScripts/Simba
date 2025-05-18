@@ -194,6 +194,8 @@ type
     property Consts: TDeclarationArray read GetConsts;
   end;
 
+  TDeclaration_TypeObject = class(TDeclaration_TypeRecord);
+
   TDeclaration_TypeArray = class(TDeclaration_Type)
   public
     function Dump: String; override;
@@ -512,8 +514,9 @@ type
     // types - native
     procedure NativeType; override;
 
-    // types = record
+    // types - record & object
     procedure UnionType; override;
+    procedure ObjectType; override;
     procedure RecordType; override;
     procedure RecordField; override;
     procedure FieldName; override;
@@ -1995,6 +1998,13 @@ end;
 procedure TCodeParser.UnionType;
 begin
   PushStack(TDeclaration_TypeUnion);
+  inherited;
+  PopStack();
+end;
+
+procedure TCodeParser.ObjectType;
+begin
+  PushStack(TDeclaration_TypeObject);
   inherited;
   PopStack();
 end;
