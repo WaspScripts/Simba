@@ -264,9 +264,9 @@ begin
   addGlobalFunc('function WideSameStr(s1,s2: WideString): Boolean;', @_LapeWideSameStr);
   addGlobalFunc('function WideFormat(Fmt: WideString; Args: array of Variant): WideString;', @_LapeWideFormat);
 
-  addGlobalFunc('function Pos(Substr, Source: AnsiString): SizeInt; overload;', @_LapePosA);
-  addGlobalFunc('function Pos(Substr, Source: WideString): SizeInt; overload;', @_LapePosW);
-  addGlobalFunc('function Pos(Substr, Source: UnicodeString): SizeInt; overload;', @_LapePosU);
+  addGlobalFunc('function Pos(Substr, Source: AnsiString; Offset: SizeInt = 1): SizeInt; overload;', @_LapePosA);
+  addGlobalFunc('function Pos(Substr, Source: WideString; Offset: SizeInt = 1): SizeInt; overload;', @_LapePosW);
+  addGlobalFunc('function Pos(Substr, Source: UnicodeString; Offset: SizeInt = 1): SizeInt; overload;', @_LapePosU);
 
   addGlobalFunc('function StringReplace(S, OldPattern, NewPattern: string; Flags: TReplaceFlags = [rfReplaceAll]): string;', @_LapeStringReplace);
   addGlobalFunc('function UnicodeStringReplace(S, OldPattern, NewPattern: UnicodeString; Flags: TReplaceFlags = [rfReplaceAll]): UnicodeString;', @_LapeUnicodeStringReplace);
