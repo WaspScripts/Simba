@@ -14,7 +14,7 @@ uses
   simba.base, simba.baseclass, simba.image, simba.image_utils, simba.externalcanvas,
   simba.target_eios, simba.target_window, simba.target_image, simba.target_plugin,
   simba.colormath, simba.dtm,
-  simba.vartype_quad, simba.containers;
+  simba.vartype_quad;
 
 type
   {$PUSH}
@@ -749,12 +749,12 @@ end;
 
 function TSimbaTarget.AverageBrightness(ABounds: TBox): Integer;
 begin
-  Result := AverageBrightnessOnTarget(Self, Bounds);
+  Result := AverageBrightnessOnTarget(Self, ABounds);
 end;
 
 function TSimbaTarget.PeakBrightness(ABounds: TBox): Integer;
 begin
-  Result := PeakBrightnessOnTarget(Self, Bounds);
+  Result := PeakBrightnessOnTarget(Self, ABounds);
 end;
 
 constructor TSimbaTarget.Create;

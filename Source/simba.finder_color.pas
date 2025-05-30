@@ -4,12 +4,10 @@
   License: GNU General Public License (https://www.gnu.org/licenses/gpl-3.0)
 
   The colorfinder.
-
   Lots of code from: https://github.com/slackydev/colorlib
 }
 unit simba.finder_color;
 
-{$DEFINE SIMBA_MAX_OPTIMIZATION}
 {$i simba.inc}
 
 {.$DEFINE SIMBA_BENCHMARKS}
@@ -20,13 +18,13 @@ uses
   Classes, SysUtils, Math, Graphics,
   simba.base, simba.colormath, simba.colormath_distance, simba.target, simba.threading;
 
-function FindColorsOnTarget(constref Target: TSimbaTarget; Bounds: TBox;
+function FindColorsOnTarget(Target: TSimbaTarget; Bounds: TBox;
                             Formula: EColorSpace; Color: TColor; Tolerance: Single; Multipliers: TChannelMultipliers): TPointArray;
 
 function FindColorsOnBuffer(Formula: EColorSpace; Color: TColor; Tolerance: Single; Multipliers: TChannelMultipliers;
                             Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer; OffsetX, OffsetY: Integer): TPointArray;
 
-function CountColorsOnTarget(constref Target: TSimbaTarget; Bounds: TBox;
+function CountColorsOnTarget(Target: TSimbaTarget; Bounds: TBox;
                              Formula: EColorSpace; Color: TColor; Tolerance: Single; Multipliers: TChannelMultipliers;
                              MaxToFind: Integer = -1): Integer;
 
@@ -34,33 +32,33 @@ function CountColorsOnBuffer(var Limit: TLimit;
                              Formula: EColorSpace; Color: TColor; Tolerance: Single; Multipliers: TChannelMultipliers;
                              Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer): Integer;
 
-function MatchColorsOnTarget(constref Target: TSimbaTarget; Bounds: TBox;
+function MatchColorsOnTarget(Target: TSimbaTarget; Bounds: TBox;
                              Formula: EColorSpace; Color: TColor; Multipliers: TChannelMultipliers): TSingleMatrix;
 
 function MatchColorsOnBuffer(Formula: EColorSpace; Color: TColor; Multipliers: TChannelMultipliers;
                              Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer): TSingleMatrix;
 
-function GetColorOnTarget(constref Target: TSimbaTarget; P: TPoint): TColor;
+function GetColorOnTarget(Target: TSimbaTarget; P: TPoint): TColor;
 
 function GetColorsOnBuffer(Points: TPointArray; Offset: TPoint; Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer): TColorArray;
 
-function GetColorsOnTarget(constref Target: TSimbaTarget; Points: TPointArray): TColorArray;
+function GetColorsOnTarget(Target: TSimbaTarget; Points: TPointArray): TColorArray;
 
 function GetColorsMatrixOnBuffer(Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer): TIntegerMatrix;
 
-function GetColorsMatrixOnTarget(constref Target: TSimbaTarget; Bounds: TBox): TIntegerMatrix;
+function GetColorsMatrixOnTarget(Target: TSimbaTarget; Bounds: TBox): TIntegerMatrix;
 
 function FindEdgesOnBuffer(Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer;
                            MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray;
 
-function FindEdgesOnTarget(constref Target: TSimbaTarget; Bounds: TBox;
+function FindEdgesOnTarget(Target: TSimbaTarget; Bounds: TBox;
                            MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray;
 
 function PeakBrightnessOnBuffer(Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer): Integer;
-function PeakBrightnessOnTarget(constref Target: TSimbaTarget; Bounds: TBox): Integer;
+function PeakBrightnessOnTarget(Target: TSimbaTarget; Bounds: TBox): Integer;
 
 function AverageBrightnessOnBuffer(Buffer: PColorBGRA; BufferWidth: Integer; SearchWidth, SearchHeight: Integer): Integer;
-function AverageBrightnessOnTarget(constref Target: TSimbaTarget; Bounds: TBox): Integer;
+function AverageBrightnessOnTarget(Target: TSimbaTarget; Bounds: TBox): Integer;
 
 var
   ColorFinderMultithreadOpts: record
@@ -84,7 +82,7 @@ begin
   if ColorFinderMultithreadOpts.Enabled and (SearchWidth >= ColorFinderMultithreadOpts.SliceWidth) and (SearchHeight >= (ColorFinderMultithreadOpts.SliceHeight * 2)) then // not worth
   begin
     for I := SimbaThreadPool.ThreadCount - 1 downto 2 do
-      if (SearchHeight div I) > ColorFinderMultithreadOpts.SliceHeight then // Each slice is at leastColorFinderMT_SliceHeight` pixels
+      if (SearchHeight div I) > ColorFinderMultithreadOpts.SliceHeight then // Each slice is at least ColorFinderMultithreadOpts.SliceHeight pixels
         Exit(I);
   end;
 
@@ -241,7 +239,7 @@ function CountColorsOnBuffer(var Limit: TLimit;
   }
   MACRO_FINDCOLORS
 
-function FindColorsOnTarget(constref Target: TSimbaTarget; Bounds: TBox;
+function FindColorsOnTarget(Target: TSimbaTarget; Bounds: TBox;
                             Formula: EColorSpace; Color: TColor; Tolerance: Single; Multipliers: TChannelMultipliers): TPointArray;
 var
   Buffer: PColorBGRA;
@@ -281,7 +279,7 @@ begin
   end;
 end;
 
-function CountColorsOnTarget(constref Target: TSimbaTarget; Bounds: TBox; Formula: EColorSpace; Color: TColor; Tolerance: Single; Multipliers: TChannelMultipliers; MaxToFind: Integer): Integer;
+function CountColorsOnTarget(Target: TSimbaTarget; Bounds: TBox; Formula: EColorSpace; Color: TColor; Tolerance: Single; Multipliers: TChannelMultipliers; MaxToFind: Integer): Integer;
 var
   Limit: TLimit;
 
@@ -339,7 +337,7 @@ function MatchColorsOnBuffer(Formula: EColorSpace; Color: TColor; Multipliers: T
   }
   MACRO_FINDCOLORS
 
-function MatchColorsOnTarget(constref Target: TSimbaTarget; Bounds: TBox;
+function MatchColorsOnTarget(Target: TSimbaTarget; Bounds: TBox;
                              Formula: EColorSpace; Color: TColor; Multipliers: TChannelMultipliers): TSingleMatrix;
 var
   Buffer: PColorBGRA;
@@ -441,7 +439,7 @@ begin
   Result := Limit.Reached;
 end;
 
-function GetColorOnTarget(constref Target: TSimbaTarget; P: TPoint): TColor;
+function GetColorOnTarget(Target: TSimbaTarget; P: TPoint): TColor;
 var
   B: TBox;
   Data: PColorBGRA;
@@ -480,7 +478,7 @@ begin
   SetLength(Result, Count);
 end;
 
-function GetColorsOnTarget(constref Target: TSimbaTarget; Points: TPointArray): TColorArray;
+function GetColorsOnTarget(Target: TSimbaTarget; Points: TPointArray): TColorArray;
 var
   Bounds, SearchBounds: TBox;
   Buffer: PColorBGRA;
@@ -521,7 +519,7 @@ begin
   end;
 end;
 
-function GetColorsMatrixOnTarget(constref Target: TSimbaTarget; Bounds: TBox): TIntegerMatrix;
+function GetColorsMatrixOnTarget(Target: TSimbaTarget; Bounds: TBox): TIntegerMatrix;
 var
   Buffer: PColorBGRA;
   BufferWidth: Integer;
@@ -558,7 +556,7 @@ begin
   Result := PointBuffer.ToArray(False);
 end;
 
-function FindEdgesOnTarget(constref Target: TSimbaTarget; Bounds: TBox;
+function FindEdgesOnTarget(Target: TSimbaTarget; Bounds: TBox;
                           MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers): TPointArray;
 var
   Buffer: PColorBGRA;
@@ -588,7 +586,7 @@ begin
       end;
 end;
 
-function PeakBrightnessOnTarget(constref Target: TSimbaTarget; Bounds: TBox): Integer;
+function PeakBrightnessOnTarget(Target: TSimbaTarget; Bounds: TBox): Integer;
 var
   Buffer: PColorBGRA;
   BufferWidth: Integer;
@@ -617,7 +615,7 @@ begin
   Result := Sum div (SearchWidth * SearchHeight);
 end;
 
-function AverageBrightnessOnTarget(constref Target: TSimbaTarget; Bounds: TBox): Integer;
+function AverageBrightnessOnTarget(Target: TSimbaTarget; Bounds: TBox): Integer;
 var
   Buffer: PColorBGRA;
   BufferWidth: Integer;

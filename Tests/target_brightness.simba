@@ -1,0 +1,20 @@
+{$assertions on}
+var
+  img: TImage;
+begin
+  img := new TImage(50,50);
+
+  img.Fill($F0F);
+  img.DrawColor := $FF00F;
+  img.DrawBoxFilled([10,10,15,15]);
+
+  Target.SetImage(img);
+
+  // entire target
+  Assert(Target.AverageBrightness = 14);
+  Assert(Target.PeakBrightness = 147);
+
+  // just the green
+  Assert(Target.AverageBrightness([10,10,15,15]) = 147);
+  Assert(Target.PeakBrightness([10,10,15,15]) = 147);
+end.
