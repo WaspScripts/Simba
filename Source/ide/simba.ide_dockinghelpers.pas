@@ -16,14 +16,11 @@ uses
 type
   TSimbaAnchorDockHeader = class(TAnchorDockHeader)
   protected
-    FCaption: String;
-
     procedure ParentFontChanged; override;
     procedure Paint; override;
 
     procedure CalculatePreferredSize(var PreferredWidth, PreferredHeight: integer; WithThemeSpace: Boolean); override;
     procedure SetAlign(Value: TAlign); override;
-    procedure SetParent(NewParent: TWinControl); override;
   public
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
@@ -129,18 +126,6 @@ end;
 procedure TSimbaAnchorDockHeader.SetAlign(Value: TAlign);
 begin
   inherited SetAlign(alTop);
-end;
-
-procedure TSimbaAnchorDockHeader.SetParent(NewParent: TWinControl);
-begin
-  if (NewParent <> nil) then
-  begin
-    FCaption := NewParent.Caption;
-    NewParent.Caption := '';
-  end else if (Parent <> nil) then
-    Parent.Caption := FCaption;
-
-  inherited SetParent(NewParent);
 end;
 
 procedure TSimbaAnchorDockHeader.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

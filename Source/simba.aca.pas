@@ -568,6 +568,7 @@ begin
   FForm.KeyPreview := True;
   FForm.OnKeyDown := @DoFormKeyDown;
   FForm.OnClose := @DoFormClose;
+  FForm.ShowInTaskBar := stAlways;
 
   FMenuBar := TSimbaMenuBar.Create(FForm);
   FMenuBar.Parent := FForm;

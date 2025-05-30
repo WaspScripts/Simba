@@ -34,12 +34,14 @@ Target related methods.
 *)
 
 (*
-TTargetOptions.FocusFocus
+TTargetOptions.ForceFocus
 -------------------------
 ```
-property TTargetOptions.FocusFocus: Boolean;
-property TTargetOptions.FocusFocus(Value: Boolean);
+property TTargetOptions.ForceFocus: Boolean;
+property TTargetOptions.ForceFocus(Value: Boolean);
 ```
+
+Request window focus before mouse/key press.
 *)
 procedure _LapeTargetOptions_ForceFocus_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -58,6 +60,8 @@ TTargetOptions.MousePressMin
 property TTargetOptions.MousePressMin: Integer;
 property TTargetOptions.MousePressMin(Value: Integer);
 ```
+
+When clicking the mouse with `MouseClick` the minimum milliseconds to hold the button down for.
 *)
 procedure _LapeTargetOptions_MousePressMin_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -76,6 +80,8 @@ TTargetOptions.MousePressMax
 property TTargetOptions.MousePressMax: Integer;
 property TTargetOptions.MousePressMax(Value: Integer);
 ```
+
+When clicking the mouse with `MouseClick` the maximum milliseconds to hold the button down for.
 *)
 procedure _LapeTargetOptions_MousePressMax_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -166,6 +172,8 @@ TTargetOptions.KeyPressMin
 property TTargetOptions.KeyPressMin: Integer;
 property TTargetOptions.KeyPressMin(Value: Integer);
 ```
+
+When pressing a key with `KeyPress/KeySend` the minimum milliseconds to hold the button down for.
 *)
 procedure _LapeTargetOptions_KeyPressMin_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -184,6 +192,8 @@ TTargetOptions.KeyPressMax
 property TTargetOptions.KeyPressMax: Integer;
 property TTargetOptions.KeyPressMax(Value: Integer);
 ```
+
+When pressing a key with `KeyPress/KeySend` maximum milliseconds to hold the button down for.
 *)
 procedure _LapeTargetOptions_KeyPressMax_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -359,6 +369,9 @@ TTarget.GetImage
 ```
 function TTarget.GetImage(Bounds: TBox = [-1,-1,-1,-1]): TImage;
 ```
+
+Returns the image of the target in the desired bounds.
+If bounds is not specified the entire target image is returned.
 *)
 procedure _LapeTarget_GetImage(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -646,9 +659,8 @@ TTarget.MouseMove
 procedure TTarget.MouseMove(Dest: TPoint);
 ```
 
-Move the mouse in a human-like way.
-
-Speed, Gravity and Wind variables affects this.
+Move the mouse in a "human-like" way.
+Speed, Gravity and Wind variables of `Options` variable affects this.
 
 ```{note}
 The algorithm used is WindMouse. For more details see <https://ben.land/post/2021/04/25/windmouse-human-mouse-movement>

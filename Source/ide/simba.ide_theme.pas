@@ -120,7 +120,6 @@ begin
     ColorArrowFill := ColorScrollBarActive;
     ColorArrowBorder := ColorScrollBarActive;
     ColorArrowSign := ColorLine;
-
     ColorArrowFillOver := ColorScrollBarActive;
     ColorArrowFillPressed := ColorScrollBarActive;
   end;
