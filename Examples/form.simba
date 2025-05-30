@@ -61,7 +61,7 @@ begin
   Form.Color := Colors.DARK_GREY;
   Form.BorderStyle := ELazFormBorderStyle.Single; // Do not allow resizing
 
-  SimbaImg := TImage.CreateFromTarget([0,0,400,400]);
+  SimbaImg := Target.GetImage([0,0,400,400]);
 
   Group := TLazGroupBox.Create(Form);
   Group.Parent := Form;
@@ -76,8 +76,6 @@ begin
   Img.Stretch := True;
   Img.Picture.Bitmap := SimbaImg.ToLazBitmap();
   Img.BorderSpacing.Around := 10;
-
-  SimbaImg.Free();
 
   Button := TLazButton.Create(Form);
   Button.Parent := Form;
@@ -161,6 +159,7 @@ begin
   SpeedButton.SetBounds(200,350,150,50);
   SpeedButton.Caption := 'Hello World';
   SpeedButton.Glyph := LazBmp;
+  SpeedButton.AutoSize := True;
 
   Form.ShowModal();
 

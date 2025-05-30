@@ -2,7 +2,7 @@ var
   myImage: TImage;
   myBox: TBox;
 begin
-  myImage := TImage.Create(500,1000);
+  myImage := new TImage(500,1000);
   myImage.Fill(Colors.DARK_GRAY);
 
   myImage.FontAntialiasing := True;
@@ -15,7 +15,7 @@ begin
   myImage.DrawColor := Colors.RED;
   myImage.DrawBox(myBox);
   myImage.DrawColor := Colors.BLACK;
-  myImage.DrawText(Now.ToString('c'), myBox, [EImageTextAlign.CENTER, EImageTextAlign.VERTICAL_CENTER]);
+  myImage.DrawText(TDateTime.CreateFromSystem.ToString('c'), myBox, [EImageTextAlign.CENTER, EImageTextAlign.VERTICAL_CENTER]);
 
   myImage.FontBold := True;
   myImage.FontSize := 50;
@@ -23,5 +23,4 @@ begin
   myImage.DrawText(IntToStr(Random(10000)), [225, 300]);
 
   myImage.Show();
-  myImage.Free();
 end.

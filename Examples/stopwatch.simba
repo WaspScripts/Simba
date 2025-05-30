@@ -16,9 +16,9 @@ var
 begin
   StopWatch.Start();
   SomethingToTime();
-  StopWatch.Stop();
+  StopWatch.Pause();
 
-  Milliseconds := StopWatch.Elapsed();
+  Milliseconds := StopWatch.Elapsed;
   Formatted := StopWatch.ElapsedFmt('s');
 
   WriteLn('Milliseconds: ', Milliseconds);

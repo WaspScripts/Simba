@@ -1,7 +1,7 @@
 var
   Img: TImage;
 begin
-  Img := TImage.Create(500, 500); // Images must explictly created and freed!
+  Img := new TImage(500, 500);
   Img.DrawColor := Colors.RED;
   Img.DrawBox([100,100,400,400]);
   Img.DrawColor := Colors.YELLOW;
@@ -15,5 +15,4 @@ begin
   WriteLn('Color at 250,250 is $' + IntToHex(Img.Pixel[250, 250]));
 
   Img.Show(); // Show on Simba's debug image
-  Img.Free(); // Images must be freed
 end. 

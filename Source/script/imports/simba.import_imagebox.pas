@@ -69,7 +69,7 @@ end;
 
 procedure _LapeSimbaImageBox_SetImage(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaImageBox(Params^[0])^.SetImage(PSimbaImage(PLapeObject(Params^[1])^)^, PBoolean(Params^[2])^);
+  PSimbaImageBox(Params^[0])^.SetImage(PSimbaImage(PLapeObject(Params^[1])^)^, False);
 end;
 
 procedure _LapeSimbaImageBox_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
@@ -439,13 +439,12 @@ begin
     addGlobalFunc('function TImageBox.FindColor(ColorTolerance: TColorTolerance): TPointArray', @_LapeSimbaImageBox_FindColor);
     addGlobalFunc('function TImageBox.MatchColor(ColorTolerance: TColorTolerance): TSingleMatrix', @_LapeSimbaImageBox_MatchColor);
 
+    addGlobalFunc('procedure TImageBox.SetImage(Image: TImage)', @_LapeSimbaImageBox_SetImage);
     addGlobalFunc('procedure TImageBox.MoveTo(ImageXY: TPoint);', @_LapeSimbaImageBox_MoveTo);
     addGlobalFunc('function TImageBox.IsPointVisible(ImageXY: TPoint): Boolean;', @_LapeSimbaImageBox_IsPointVisible);
     addProperty('TImageBox', 'MouseX', 'Integer', @_LapeSimbaImageBox_MouseX);
     addProperty('TImageBox', 'MouseY', 'Integer', @_LapeSimbaImageBox_MouseY);
     addProperty('TImageBox', 'MousePoint', 'TPoint', @_LapeSimbaImageBox_MousePoint);
-
-    addGlobalFunc('procedure TImageBox.SetImage(Image: TImage; DoFree: Boolean = True)', @_LapeSimbaImageBox_SetImage);
 
     addClassConstructor('TImageBox', '(Owner: TLazComponent)', @_LapeSimbaImageBox_Create);
   end;
