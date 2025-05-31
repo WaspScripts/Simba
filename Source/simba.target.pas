@@ -256,8 +256,8 @@ type
     function FindEdges(MinDiff: Single; ColorSpace: EColorSpace; Multipliers: TChannelMultipliers; ABounds: TBox): TPointArray; overload;
     function FindEdges(MinDiff: Single; ABounds: TBox): TPointArray; overload;
 
-    function GetPixelDifference(WaitTime: Integer; ABounds: TBox): TPointArray; overload;
     function GetPixelDifference(WaitTime: Integer; Tolerance: Single; ABounds: TBox): TPointArray; overload;
+    function GetPixelDifference(WaitTime: Integer; ABounds: TBox): TPointArray; overload;
 
     function AverageBrightness(ABounds: TBox): Integer;
     function PeakBrightness(ABounds: TBox): Integer;
@@ -705,19 +705,24 @@ begin
     Result := TPoint.Create(-1, -1);
 end;
 
-function TSimbaTarget.GetPixelDifference(WaitTime: Integer; ABounds: TBox): TPointArray;
+function TSimbaTarget.GetPixelDifference(WaitTime: Integer; Tolerance: Single; ABounds: TBox): TPointArray;
 var
   ImgBefore, ImgAfter: TSimbaImage;
+  B: TBox;
 begin
   Result := [];
 
   ImgBefore := nil;
   ImgAfter := nil;
-  if GetImageDataAsImage(ABounds, ImgBefore) then
+
+  B := ABounds;
+  if GetImageDataAsImage(B, ImgBefore) then
   try
     Sleep(WaitTime);
-    if GetImageDataAsImage(ABounds, ImgAfter) and (ImgBefore.Width = ImgAfter.Width) and (ImgBefore.Height = ImgAfter.Height) then
-      Result := ImgBefore.PixelDifference(ImgAfter);
+
+    B := ABounds;
+    if GetImageDataAsImage(B, ImgAfter) and (ImgBefore.Width = ImgAfter.Width) and (ImgBefore.Height = ImgAfter.Height) then
+      Result := ImgBefore.PixelDifference(ImgAfter, Tolerance, B.TopLeft);
   finally
     if (ImgBefore <> nil) then
       ImgBefore.Free();
@@ -726,25 +731,9 @@ begin
   end;
 end;
 
-function TSimbaTarget.GetPixelDifference(WaitTime: Integer; Tolerance: Single; ABounds: TBox): TPointArray;
-var
-  ImgBefore, ImgAfter: TSimbaImage;
+function TSimbaTarget.GetPixelDifference(WaitTime: Integer; ABounds: TBox): TPointArray;
 begin
-  Result := [];
-
-  ImgBefore := nil;
-  ImgAfter := nil;
-  if GetImageDataAsImage(ABounds, ImgBefore) then
-  try
-    Sleep(WaitTime);
-    if GetImageDataAsImage(ABounds, ImgAfter) and (ImgBefore.Width = ImgAfter.Width) and (ImgBefore.Height = ImgAfter.Height) then
-      Result := ImgBefore.PixelDifference(ImgAfter, Tolerance);
-  finally
-    if (ImgBefore <> nil) then
-      ImgBefore.Free();
-    if (ImgAfter <> nil) then
-      ImgAfter.Free();
-  end;
+  Result := GetPixelDifference(WaitTime, 0, ABounds);
 end;
 
 function TSimbaTarget.AverageBrightness(ABounds: TBox): Integer;

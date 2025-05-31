@@ -252,7 +252,8 @@ type
     // Compare/Difference
     function Equals(Other: TSimbaImage): Boolean; reintroduce;
     function Compare(Other: TSimbaImage): Single;
-    function PixelDifference(Other: TSimbaImage; Tolerance: Single = 0): TPointArray;
+    function PixelDifference(Other: TSimbaImage; Tolerance: Single; AOffset: TPoint): TPointArray; overload;
+    function PixelDifference(Other: TSimbaImage; Tolerance: Single): TPointArray; overload;
 
     // Laz bridge
     function ToLazBitmap: TBitmap;
@@ -269,6 +270,7 @@ implementation
 uses
   Math, FPImage, BMPcomn,
   simba.vartype_matrix,
+  simba.vartype_point,
   simba.vartype_pointarray,
   simba.vartype_box,
   simba.image_utils,
@@ -728,7 +730,7 @@ begin
   Result := Result / Sqrt(isum * tsum);
 end;
 
-function TSimbaImage.PixelDifference(Other: TSimbaImage; Tolerance: Single): TPointArray;
+function TSimbaImage.PixelDifference(Other: TSimbaImage; Tolerance: Single; AOffset: TPoint): TPointArray;
 var
   P1, P2: PColorBGRA;
   X, Y, W, H: Integer;
@@ -746,13 +748,18 @@ begin
     for X := 0 to W do
     begin
       if not SimilarRGB(P1^, P2^, Tolerance) then
-        Buffer.Add(X, Y);
+        Buffer.Add(X + AOffset.X, Y + AOffset.Y);
 
       Inc(P1);
       Inc(P2);
     end;
 
   Result := Buffer.ToArray(False);
+end;
+
+function TSimbaImage.PixelDifference(Other: TSimbaImage; Tolerance: Single): TPointArray;
+begin
+  Result := PixelDifference(Other, Tolerance, TPoint.ZERO);
 end;
 
 procedure TSimbaImage.FromLazBitmap(LazBitmap: TBitmap);
