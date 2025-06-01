@@ -6,11 +6,11 @@ object SimbaDownloadSimbaForm: TSimbaDownloadSimbaForm
   Caption = 'Download Simba'
   ClientHeight = 470
   ClientWidth = 846
-  OnCreate = FormCreate
-  OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '3.8.0.0'
+  LCLVersion = '4.0.0.4'
+  OnCreate = FormCreate
+  OnShow = FormShow
   object Notebook1: TNotebook
     Left = 0
     Height = 470

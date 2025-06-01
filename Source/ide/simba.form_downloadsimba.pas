@@ -19,12 +19,14 @@ uses
   simba.settings,
   simba.httpclient,
   simba.component_treeview,
-  simba.component_buttonpanel;
+  simba.component_buttonpanel,
+  simba.component_button;
 
 type
   TDownloaderFormNode = class(TTreeNode)
   public
     Commit: String;
+    Branch: String;
     DownloadURL: String;
   end;
 
@@ -71,6 +73,7 @@ type
     procedure Label6MouseEnter(Sender: TObject);
     procedure Label6MouseLeave(Sender: TObject);
   private
+    FDefaultBranch: String;
     FData: array of record
       Date: String;
       Branch: String;
@@ -83,6 +86,7 @@ type
 
     procedure DoGetNodeColor(Node: TTreeNode; var TheColor: TColor);
     procedure DoTreeDoubleClick(Sender: TObject);
+    procedure DoCheckClick(Sender: TObject);
 
     procedure DoPopulate;
     procedure DoPopulated(Sender: TObject);
@@ -198,9 +202,19 @@ var
   ButtonPanel: TSimbaButtonPanel;
   Control: TControl;
 begin
-  Color := SimbaTheme.ColorBackground;
+  Color := SimbaTheme.ColorFrame;
+  Font.Color := SimbaTheme.ColorFont;
   Width := Scale96ToScreen(750);
   Height := Scale96ToScreen(450);
+
+  with TSimbaLabeledCheckButton.Create(Self) do
+  begin
+    Parent := Self;
+    Align := alTop;
+    Caption := 'Show all branches';
+    BorderSpacing.Around := 5;
+    CheckButton.OnClick := @DoCheckClick;
+  end;
 
   FTreeView := TSimbaTreeView.Create(Self, TDownloaderFormNode);
   FTreeView.Parent := Mainpage;
@@ -269,6 +283,23 @@ begin
     TDownloader.Create(Node, FStatusLabel);
 end;
 
+procedure TSimbaDownloadSimbaForm.DoCheckClick(Sender: TObject);
+
+  procedure HideOrShowOtherBranches(Node: TTreeNode);
+  begin
+    if TSimbaCheckButton(Sender).Down then
+      Node.Visible := True
+    else
+      Node.Visible := TDownloaderFormNode(Node).Branch = FDefaultBranch;
+  end;
+
+begin
+  if (FDefaultBranch = '') then
+    Exit;
+
+  FTreeView.ForEachTopLevel(@HideOrShowOtherBranches);
+end;
+
 procedure TSimbaDownloadSimbaForm.DoPopulate;
 var
   Count: Integer = 0;
@@ -297,6 +328,8 @@ begin
 
   if (Length(Lines) > 0) then
   begin
+    FDefaultBranch := Lines[0].Between('<!--', '-->');
+
     SetLength(FData, Length(Lines));
     for I := 6 to High(Lines) do
     begin
@@ -320,7 +353,7 @@ procedure TSimbaDownloadSimbaForm.DoPopulated(Sender: TObject);
 var
   I: Integer;
   Download: String;
-  Node: TTreeNode;
+  Node: TDownloaderFormNode;
 begin
   if (Length(FData) = 0) then
   begin
@@ -332,9 +365,14 @@ begin
   FTreeView.Clear();
   for I := 0 to High(FData) do
   begin
-    Node := FTreeView.AddNode(FData[I].Date + ' | ' + FData[I].Branch + ' | ' + FData[I].Commit);
+    Node := TDownloaderFormNode(FTreeView.AddNode(FData[I].Date + ' | ' + FData[I].Branch + ' | ' + FData[I].Commit));
+    Node.Commit := FData[I].Commit;
+    Node.Branch := FData[I].Branch;
     for Download in FData[i].Downloads do
       AddDownloadNode(Node, Download, FData[I].Commit);
+
+    // by default other branches are not visible
+    Node.Visible := (FDefaultBranch = '') or (Node.Branch = FDefaultBranch);
   end;
   FTreeView.EndUpdate();
   if (FTreeView.Items.Count > 0) then
