@@ -105,7 +105,7 @@ procedure TLapeMethodBuilder.Build(DoReset: Boolean);
       OldState := getTempTokenizerState(FuncBody, '!' + FObjectType.ClassName + '::' + FuncName);
       Options := [lcoShortCircuit, lcoAlwaysInitialize, lcoLooseSyntax, lcoRangeCheck];
 
-      IncStackInfo();
+      IncStackInfo([]);
       try
         if (FuncHeader is TLapeType_MethodOfType) then
           FStackInfo.addSelfVar(TLapeType_MethodOfType(FuncHeader).SelfParam, TLapeType_MethodOfType(FuncHeader).ObjectType);
@@ -120,7 +120,7 @@ procedure TLapeMethodBuilder.Build(DoReset: Boolean);
         CheckAfterCompile();
         addDelayedExpression(Result, True, True);
       finally
-        DecStackInfo(True, False, (Result = nil));
+        DecStackInfo([lsfFunction], Result = nil);
       end;
 
       resetTokenizerState(OldState);
