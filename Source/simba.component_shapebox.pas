@@ -295,7 +295,7 @@ implementation
 uses
   LCLType, simba.geometry, simba.vartype_pointarray,
   simba.vartype_box, simba.vartype_string, simba.vartype_point, simba.vartype_polygon,
-  simba.dialog;
+  simba.dialog, simba.json;
 
 const
   CLOSE_DISTANCE = 4;
@@ -1330,72 +1330,71 @@ end;
 procedure TSimbaShapeBox.SaveToFile(FileName: String);
 var
   I: Integer;
+  Json, JsonObject: TSimbaJSONItem;
 begin
   if (FShapes.Count = 0) then
     Exit;
 
-  with TStringList.Create() do
+  Json := NewJSONArray();
   try
     for I := 0 to FShapes.Count - 1 do
     begin
-      Add('[' + FShapes[I].FShapeType + ']');
-      Add('Name=' + FShapes[I].FName);
-      Add('Value=' + FShapes[I].ToStr());
-      Add('');
+      JsonObject := NewJSONObject();
+      JsonObject.AddString('shape', FShapes[i].FShapeType);
+      JsonObject.AddString('name',  FShapes[i].FName);
+      JsonObject.AddString('value', FShapes[i].ToStr());
+
+      Json.Add('', JsonObject);
     end;
 
-    SaveToFile(FileName);
-  finally
-    Free();
+    SaveJSON(Json, FileName);
+  except
+    on E: Exception do
+      DebugLn('TSimbaShapeBox.SaveToFile: %s', [E.Message]);
   end;
+  Json.Free();
 end;
 
 procedure TSimbaShapeBox.LoadFromFile(FileName: String);
 var
   I: Integer;
-  ShapeName, ShapeValue: String;
   NewShape: TSimbaShapeBoxShape;
   ShapeClass: TSimbaShapeBoxShapeClass;
+  Json: TSimbaJSONItem;
+  ShapeVal, NameVal, ValueVal: String;
 begin
   BeginUpdate();
   InternalClear();
 
+  Json := nil;
   if FileExists(FileName) then
   try
-    with TStringList.Create() do
-    try
-      LoadFromFile(FileName);
-
-      I := 0;
-      while (I < (Count - 3)) do
+    Json := LoadJSON(FileName);
+    for I := 0 to Json.Count - 1 do
+    begin
+      if Json.ItemsByIndex[i].GetString('shape', ShapeVal) and
+         Json.ItemsByIndex[i].GetString('name', NameVal)   and
+         Json.ItemsByIndex[i].GetString('value', ValueVal) then
       begin
-        ShapeClass := nil;
+        if (ShapeVal = 'Box')   then ShapeClass := TSimbaShapeBoxShape_Box   else
+        if (ShapeVal = 'Point') then ShapeClass := TSimbaShapeBoxShape_Point else
+        if (ShapeVal = 'Path')  then ShapeClass := TSimbaShapeBoxShape_Path  else
+        if (ShapeVal = 'Poly')  then ShapeClass := TSimbaShapeBoxShape_Poly  else
+                                     ShapeClass := nil;
 
-        if (Strings[I] = '[Box]')   then ShapeClass := TSimbaShapeBoxShape_Box   else
-        if (Strings[I] = '[Point]') then ShapeClass := TSimbaShapeBoxShape_Point else
-        if (Strings[I] = '[Path]')  then ShapeClass := TSimbaShapeBoxShape_Path  else
-        if (Strings[I] = '[Poly]')  then ShapeClass := TSimbaShapeBoxShape_Poly;
+        NewShape := ShapeClass.Create(Self);
+        NewShape.FromStr(ValueVal);
+        NewShape.FName := NameVal;
 
-        if (ShapeClass <> nil) then
-        begin
-          ShapeName := Strings[I+1].After('Name=');
-          ShapeValue := Strings[I+2].After('Value=');
-
-          NewShape := ShapeClass.Create(Self);
-          NewShape.FromStr(ShapeValue);
-          NewShape.FName := ShapeName;
-
-          InternalAddShape(NewShape);
-
-          I := I + 3;
-        end else
-          I := I + 1;
+        InternalAddShape(NewShape);
       end;
-    finally
-      Free();
     end;
   except
+    on E: Exception do
+      DebugLn('TSimbaShapeBox.LoadFromFile: %s', [E.Message]);
   end;
+  if (Json <> nil) then
+    Json.Free();
 
   EndUpdate();
 end;
@@ -1515,8 +1514,6 @@ begin
     BorderSpacing.Around := 5;
     PopupMenu := FNewPopup;
   end;
-
-
 
   FClearButton := TButton.Create(FPanel);
   with FClearButton do

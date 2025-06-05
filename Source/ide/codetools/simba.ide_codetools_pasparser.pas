@@ -1023,7 +1023,7 @@ end;
 procedure TPasParser.Term;
 begin
   Factor;
-  while fLexer.TokenID in [tokAnd, tokDiv, tokMod, tokShl, tokShr, tokSlash, tokStar, tokStarStar] do
+  while fLexer.TokenID in [tokAnd, tokDiv, tokMod, tokShl, tokShr, tokSlash, tokStar, tokStarStar, tokSquareOpen] do
   begin
     MultiplicativeOperator;
     Factor;

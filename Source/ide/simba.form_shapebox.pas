@@ -56,7 +56,7 @@ end;
 procedure TSimbaShapeBoxForm.FormHide(Sender: TObject);
 begin
   ShapeBox.PrintShapes();
-  ShapeBox.SaveToFile(SimbaEnv.DataPath + 'shapes');
+  ShapeBox.SaveToFile(SimbaEnv.DataPath + 'shapes.json');
 end;
 
 procedure TSimbaShapeBoxForm.FormShow(Sender: TObject);
@@ -64,7 +64,7 @@ begin
   if (ShapeBox.Background.Width = 0) and (ShapeBox.Background.Height = 0) then
     ShapeBox.SetImage(TSimbaImage.Create(1500, 1500));
 
-  ShapeBox.LoadFromFile(SimbaEnv.DataPath + 'shapes');
+  ShapeBox.LoadFromFile(SimbaEnv.DataPath + 'shapes.json');
 end;
 
 procedure TSimbaShapeBoxForm.MenuItem3Click(Sender: TObject);

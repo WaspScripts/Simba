@@ -35,24 +35,24 @@ type
     function RandomPoint: TPoint;
     function RandomPointCenter: TPoint;
 
-    function EqualDimensions(Other: TBox): Boolean; inline;
+    function EqualDimensions(Other: TBox): Boolean;
     function Expand(SizeMod: Integer): TBox; overload;
     function Expand(SizeMod: Integer; MaxBounds: TBox): TBox; overload;
     function Expand(WidMod, HeiMod: Integer): TBox; overload;
     function Expand(WidMod, HeiMod: Integer; MaxBounds: TBox): TBox; overload;
     function Contains(p: TPoint): Boolean; inline;
 
-    function Offset(P: TPoint): TBox; inline;
-    function Combine(Other: TBox): TBox; inline;
-    function Invert(Space: TBox): TBoxArray; inline;
+    function Offset(P: TPoint): TBox;
+    function Combine(Other: TBox): TBox;
+    function Invert(Space: TBox): TBoxArray;
     function Partition(Rows, Cols: Integer): TBoxArray; 
 
-    function NearestEdge(P: TPoint): TPoint; inline;
-    function Intersect(P: TPoint): TPoint; inline;
-    function Corners: TPointArray; inline;
+    function NearestEdge(P: TPoint): TPoint;
+    function Intersect(P: TPoint): TPoint;
+    function Corners: TPointArray;
 
-    function Clip(Other: TBox): TBox; inline;
-    function Normalize: TBox; inline;
+    function Clip(Other: TBox): TBox;
+    function Normalize: TBox;
 
     property TopRight: TPoint read GetTopRight;
     property BottomLeft: TPoint read GetBottomLeft;
@@ -305,7 +305,16 @@ end;
 
 function TBoxHelper.Corners: TPointArray;
 begin
-  Result := [TPoint.Create(X1, Y1), TPoint.Create(X2, Y1), TPoint.Create(X2, Y2), TPoint.Create(X1, Y2)];
+  SetLength(Result, 4);
+
+  Result[0].X := X1;
+  Result[0].Y := Y1;
+  Result[1].X := X2;
+  Result[1].Y := Y1;
+  Result[2].X := X2;
+  Result[2].Y := Y2;
+  Result[3].X := X1;
+  Result[3].Y := Y2;
 end;
 
 function TBoxHelper.Clip(Other: TBox): TBox;
