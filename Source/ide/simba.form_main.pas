@@ -63,6 +63,7 @@ const
   IMG_ARROW_DOWN = 54;
   IMG_TICK = 62;
   IMG_PROPERTY = 63;
+  IMG_INFO = 64;
 
 type
   TSimbaMainForm = class(TForm)

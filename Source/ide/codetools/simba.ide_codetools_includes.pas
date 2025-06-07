@@ -30,6 +30,10 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    procedure DebugEnter;
+    function Debug: TCodeParserList;
+    procedure DebugLeave;
+
     function GetInclude(Defines: TSaveDefinesRec; IncludedFiles: TStringList; FileName: String): TCodeParser; overload;
     function GetInclude(Lexer: TPasLexer; IncludedFiles: TStringList): TCodeParser; overload;
 
@@ -57,6 +61,8 @@ type
     destructor Destroy; override;
 
     property Plugins: TStringArray read GetPlugins;
+    property RefCount: Integer read FRefCount;
+    property LastUsed: Integer read FLastUsed;
 
     function IsOutdated: Boolean;
     function IncRef: TCodetoolsInclude;
@@ -272,6 +278,21 @@ begin
   inherited Destroy();
 end;
 
+procedure TCodetoolsIncludes.DebugEnter;
+begin
+  FLock.Enter();
+end;
+
+function TCodetoolsIncludes.Debug: TCodeParserList;
+begin
+  Result := FParsers;
+end;
+
+procedure TCodetoolsIncludes.DebugLeave;
+begin
+  FLock.Leave();
+end;
+
 function TCodetoolsIncludes.GetInclude(Defines: TSaveDefinesRec; IncludedFiles: TStringList; FileName: String): TCodeParser;
 var
   I: Integer;
@@ -344,7 +365,6 @@ var
   I: Integer;
 begin
   FLock.Enter();
-
   try
     for I := 0 to List.Count - 1 do
       if (List[I] is TCodetoolsInclude) then

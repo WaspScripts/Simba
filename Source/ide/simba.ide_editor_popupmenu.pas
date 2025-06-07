@@ -28,7 +28,6 @@ type
     FReplace: TMenuItem;
     FDocComment: TMenuItem;
     FSelectAll: TMenuItem;
-    FCodetoolsSymbols: TMenuItem;
 
     procedure DoFindDeclaration(Sender: TObject);
     procedure DoOpenFileDir(Sender: TObject);
@@ -49,6 +48,7 @@ type
     procedure DoDocComment(Sender: TObject);
 
     procedure DoCodetoolsSymbols(Sender: TObject);
+    procedure DoCodetoolsCache(Sender: TObject);
 
     procedure DoPopup(Sender: TObject); override;
     procedure DoMeasureItem(Sender: TObject; ACanvas: TCanvas; var AWidth, AHeight: Integer);
@@ -147,6 +147,11 @@ begin
   DebugSymbolTable(ScriptTab.Script, ScriptTab.ScriptFileName);
 end;
 
+procedure TSimbaTabPopupMenu.DoCodetoolsCache(Sender: TObject);
+begin
+  DebugCache();
+end;
+
 procedure TSimbaTabPopupMenu.DoPopup(Sender: TObject);
 begin
   with ScriptTab.Editor do
@@ -214,8 +219,10 @@ begin
                  AddLine();
 
   FDocComment := Add('Add Documentation Comment', IMG_NONE,       ShortCut(VK_D,       [ssCtrl]),          @DoDocComment);
+                 AddLine();
 
-  FCodetoolsSymbols  := Add('View Codetools symbols', IMG_NONE, 0, @DoCodetoolsSymbols);
+  Add('Codetools Symbols', IMG_NONE, 0, @DoCodetoolsSymbols);
+  Add('Codetools Cache', IMG_NONE, 0, @DoCodetoolsCache);
 end;
 
 end.

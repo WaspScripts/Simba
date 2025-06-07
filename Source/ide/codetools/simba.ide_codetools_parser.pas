@@ -84,6 +84,7 @@ type
   public
     function Dump: String; virtual;
     function DumpTree: String; virtual;
+    function SizeInBytes: Integer; virtual;
 
     function IsName(const Value: String): Boolean;
 
@@ -190,6 +191,8 @@ type
     function GetFields: TDeclarationArray;
     function GetConsts: TDeclarationArray;
   public
+    function SizeInBytes: Integer; override;
+
     property Fields: TDeclarationArray read GetFields;
     property Consts: TDeclarationArray read GetConsts;
   end;
@@ -239,6 +242,8 @@ type
 
     function GetElements: TDeclarationArray;
   public
+    function SizeInBytes: Integer; override;
+
     property Elements: TDeclarationArray read GetElements;
   end;
   TDeclaration_TypeEnumScoped = class(TDeclaration_TypeEnum);
@@ -249,6 +254,8 @@ type
 
     function GetEnumElements: TDeclarationArray;
   public
+    function SizeInBytes: Integer; override;
+
     property EnumElements: TDeclarationArray read GetEnumElements;
   end;
 
@@ -281,6 +288,8 @@ type
   public
     DefToken: ELexerToken;
 
+    function SizeInBytes: Integer; override;
+
     property VarType: TDeclaration read GetVarType;
     property VarTypeString: String read GetVarTypeString;
     property VarDefaultString: String read GetVarDefaultString;
@@ -307,7 +316,6 @@ type
     FMethodDirectives: EMethodDirectives;
 
     FParams: TDeclarationCache;
-
     FParamString: TStringCache;
     FResultString: TStringCache;
 
@@ -318,6 +326,8 @@ type
     function GetParams: TDeclarationArray;
     function GetParamVarType(Index: Integer): TDeclaration;
   public
+    function SizeInBytes: Integer; override;
+
     function isFunc: Boolean;
     function isProc: Boolean;
     function isOperator: Boolean;
@@ -344,6 +354,8 @@ type
     function GetFullName: String; override;
     function GetHeader: String; override;
   public
+    function SizeInBytes: Integer; override;
+
     property ObjectName: String read FObjectName;
   end;
 
@@ -433,6 +445,7 @@ type
 
     // Hashes lexers filenames, fileage and defines.
     function GetHash: String; virtual;
+    function GetSizeInBytes: Int64; virtual;
 
     function PushStack(const AClass: TDeclarationClass): TDeclaration; inline;
     function PushStub(const AClass: TDeclarationClass): TDeclaration; inline;
@@ -530,6 +543,10 @@ type
     procedure EnumElement; override;
     procedure EnumElementName; override;
   public
+    property SizeInBytes: Int64 read GetSizeInBytes;
+    property Garbage: TDeclarationList read FManagedItems;
+    property Stack: TDeclarationStack read FStack;
+
     property SourceType: EParserSourceType read FSourceType write FSourceType;
 
     property Root: TDeclaration read FRoot;
@@ -864,6 +881,18 @@ begin
   Result := Builder.Str;
 end;
 
+function TDeclaration.SizeInBytes: Integer;
+begin
+  Result := InstanceSize;
+  Result += FItems.Count * SizeOf(TDeclaration);
+
+  if FHeader.HasValue                   then Result += Length(FHeader.Value);
+  if FName.HasValue                     then Result += Length(FName.Value);
+  if FText.HasValue                     then Result += Length(FText.Value);
+  if FTextNoComments.HasValue           then Result += Length(FTextNoComments.Value);
+  if FTextNoCommentsSingleLine.HasValue then Result += Length(FTextNoCommentsSingleLine.Value);
+end;
+
 function TDeclaration.IsName(const Value: String): Boolean;
 begin
   Result := SameText(Name, Value);
@@ -1126,6 +1155,13 @@ begin
   Result := FConsts;
 end;
 
+function TDeclaration_TypeRecord.SizeInBytes: Integer;
+begin
+  Result := inherited;
+  if FFields.HasValue then Result += Length(FFields.Value) * SizeOf(TDeclaration);
+  if FConsts.HasValue then Result += Length(FConsts.Value) * SizeOf(TDeclaration);
+end;
+
 function TDeclaration_Var.GetHeader: String;
 begin
   if FHeader.IsNull then
@@ -1181,6 +1217,14 @@ begin
   Result := FVarDefaultString;
 end;
 
+function TDeclaration_Var.SizeInBytes: Integer;
+begin
+  Result := inherited;
+
+  if FVarDefaultString.HasValue then Result += Length(FVarDefaultString.Value);
+  if FVarTypeString.HasValue    then Result += Length(FVarTypeString.Value);
+end;
+
 function TDeclaration_Const.GetHeader: String;
 begin
   if FHeader.IsNull then
@@ -1212,12 +1256,24 @@ begin
   Result := FElements;
 end;
 
+function TDeclaration_TypeEnum.SizeInBytes: Integer;
+begin
+  Result := inherited;
+  if FElements.HasValue then Result += Length(FElements.Value) * SizeOf(TDeclaration);
+end;
+
 function TDeclaration_TypeSet.GetEnumElements: TDeclarationArray;
 begin
   if FEnumElements.IsNull then
     FEnumElements := FItems.GetByClass(TDeclaration_EnumElement);
 
   Result := FEnumElements;
+end;
+
+function TDeclaration_TypeSet.SizeInBytes: Integer;
+begin
+  Result := inherited;
+  if FEnumElements.HasValue then Result += Length(FEnumElements.Value) * SizeOf(TDeclaration);
 end;
 
 function TDeclaration_Method.ResultType: TDeclaration;
@@ -1288,6 +1344,15 @@ begin
     Result := Params[Index].Items.GetByClassFirst(TDeclaration_VarType)
   else
     Result := nil;
+end;
+
+function TDeclaration_Method.SizeInBytes: Integer;
+begin
+  Result := inherited;
+
+  if FParams.HasValue then       Result += Length(FParams.Value) * SizeOf(TDeclaration);
+  if FParamString.HasValue then  Result += Length(FParamString.Value);
+  if FResultString.HasValue then Result += Length(FResultString.Value);
 end;
 
 function TDeclaration_Method.GetParamString: String;
@@ -1377,6 +1442,12 @@ begin
   end;
 
   Result := FHeader;
+end;
+
+function TDeclaration_MethodOfType.SizeInBytes: Integer;
+begin
+  Result := inherited;
+  Result += Length(FObjectName);
 end;
 
 function TDeclaration_Property.GetIsRead: Boolean;
@@ -1516,6 +1587,9 @@ begin
 
     FStack.Top.Items.Add(NewDecl);
   end;
+
+  VarStub.Names := nil;
+  VarStub.NameCount := 0;
 end;
 
 procedure TCodeParser.EmptyParamStub(const ParamStub: TDeclaration_ParamStub);
@@ -1543,6 +1617,9 @@ begin
 
     FStack.Top.Items.Add(NewDecl);
   end;
+
+  ParamStub.Names := nil;
+  ParamStub.NameCount := 0;
 end;
 
 constructor TCodeParser.Create;
@@ -2082,6 +2159,15 @@ begin
   PushStack(TDeclaration_EnumElementName);
   inherited;
   PopStack();
+end;
+
+function TCodeParser.GetSizeInBytes: Int64;
+var
+  i: Integer;
+begin
+  Result := 0;
+  for i := 0 to FManagedItems.Count - 1 do
+    Result += FManagedItems[i].SizeInBytes;
 end;
 
 procedure TCodeParser.Reset;

@@ -122,11 +122,13 @@ type
     FArr: TArr;
     FLen: Integer;
     FCount: Integer;
+    FMax: Integer;
 
     function GetTop: _T;
   public
     property Top: _T read GetTop;
     property Count: Integer read FCount;
+    property Max: Integer read FMax;
     procedure Clear;
     procedure Push(Item: _T);
     function Pop: _T;
@@ -459,15 +461,17 @@ end;
 procedure TSimbaStack.Clear;
 begin
   FCount := 0;
+  FMax := 0;
 end;
 
 procedure TSimbaStack.Push(Item: _T);
 begin
   if (FCount >= Length(FArr)) then
     SetLength(FArr, 32 + (Length(FArr) * 2));
-
   FArr[FCount] := Item;
   Inc(FCount);
+  if (FCount > FMax) then
+    FMax := FCount;
 end;
 
 function TSimbaStack.Pop: _T;
