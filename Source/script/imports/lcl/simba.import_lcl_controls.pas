@@ -61,6 +61,11 @@ begin
   PControl(Result)^ := PAnchorSide(Params^[0])^.Control;
 end;
 
+procedure _LapeAnchorSide_Control_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PAnchorSide(Params^[0])^.Control := PControl(Params^[1])^;
+end;
+
 procedure _LapeControlBorderSpacing_Left_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PInteger(Result)^ := PControlBorderSpacing(Params^[0])^.Left;
@@ -835,7 +840,7 @@ begin
     addClass('TLazAnchorSide');
     addProperty('TLazAnchorSide', 'Side', 'ELazAnchorSideReference', @_LapeAnchorSide_Side_Read, @_LapeAnchorSide_Side_Write);
     addProperty('TLazAnchorSide', 'Kind', 'ELazAnchorKind', @_LapeAnchorSide_Kind_Read);
-    addProperty('TLazAnchorSide', 'Control', 'TLazControl', @_LapeAnchorSide_Control_Read);
+    addProperty('TLazAnchorSide', 'Control', 'TLazControl', @_LapeAnchorSide_Control_Read, @_LapeAnchorSide_Control_Write);
 
     addProperty('TLazControl', 'Anchors', 'ELazAnchors',  @_LapeControl_Anchors_Read, @_LapeControl_Anchors_Write);
     addProperty('TLazControl', 'AnchorSideLeft', 'TLazAnchorSide',  @_LapeControl_AnchorSideLeft_Read);
