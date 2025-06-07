@@ -65,20 +65,20 @@ end;
 
 procedure DebugCache;
 
-  procedure DebugClassTypes(parser: TCodeParser; TreeView: TSimbaTreeView; n: TTreeNode);
+  procedure DebugClassTypes(Parser: TCodeParser; TreeView: TSimbaTreeView; n: TTreeNode);
   var
     List: specialize TFPGMap<Pointer, Int64>;
-    i, j: Int64;
+    i, j: Integer;
     idx: Integer;
   begin
     List := specialize TFPGMap<Pointer, Int64>.Create();
-    for i := 0 to parser.FManagedItems.Count-1 do
+    for i := 0 to parser.Garbage.Count-1 do
     begin
-      idx := List.IndexOf(Parser.FManagedItems[i].ClassType);
+      idx := List.IndexOf(Parser.Garbage[i].ClassType);
       if (idx > -1) then
         List.Data[idx] := List.Data[idx] + 1
       else
-        List.Add(Parser.FManagedItems[i].ClassType, 1);
+        List.Add(Parser.Garbage[i].ClassType, 1);
     end;
 
     for i := 0 to List.Count-1 do
