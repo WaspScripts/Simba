@@ -681,12 +681,20 @@ begin
     LapeException(lpeExpectedPointerType);
 
   if (PointerType.ClassType = TLapeType_Pointer) then
-    Result := addManagedType(TClassPointer.Create(Self, nil, False))
+  begin
+    Result := addManagedType(TClassPointer.Create(Self, nil, False));
+    Result.inheritManagedDecls(PointerType);
+  end
   else
     Result := addManagedType(PointerType.CreateCopy(True));
 
-  Result := addGlobalType(Result, Name);
+  TClassPointer(Result).Name := Name;
   TClassPointer(Result).ClassTyp := LazClassType;
+
+  GlobalDeclarations.addDeclaration(Result);
+
+  if (FDump <> nil) then
+    DumpType(Name, 'type ' + Parent);
 end;
 
 function TScriptCompiler.Compile: Boolean;
