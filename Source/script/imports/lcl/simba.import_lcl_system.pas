@@ -597,10 +597,10 @@ procedure ImportLCLSystem(Script: TSimbaScript);
 begin
   with Script.Compiler do
   begin
-    addGlobalType('type Pointer', 'TObject');
+    addGlobalType('type Pointer', 'TLazObject');
 
-    addGlobalFunc('procedure TObject.Free;', @_LapeObject_Free);
-    addGlobalFunc('function TObject.ClassName: String;', @_LapeObject_ClassName);
+    addGlobalFunc('procedure TLazObject.Free;', @_LapeObject_Free);
+    addGlobalFunc('function TLazObject.ClassName: String;', @_LapeObject_ClassName);
 
     {$IF SizeOf(THandle) = 8)}
     addGlobalType('type UInt64', 'TLazHandle');
@@ -609,9 +609,9 @@ begin
     {$ENDIF}
 
     addGlobalType('enum(soBeginning, soCurrent, soEnd)', 'ELazSeekOrigin');
-    addGlobalType('procedure(Sender: TObject) of object', 'TLazNotifyEvent', FFI_DEFAULT_ABI);
+    addGlobalType('procedure(Sender: TLazObject) of object', 'TLazNotifyEvent', FFI_DEFAULT_ABI);
 
-    addClass('TLazComponent', 'TObject', TComponent);
+    addClass('TLazComponent', 'TLazObject', TComponent);
     addClassConstructor('TLazComponent', '(AOwner: TLazComponent)', @_LapeComponent_Create);
     addGlobalFunc('function TLazComponent.FindComponent(const AName: String): TLazComponent;', @_LapeComponent_FindComponent);
     addGlobalFunc('procedure TLazComponent.InsertComponent(AComponent: TLazComponent);', @_LapeComponent_InsertComponent);
@@ -622,7 +622,7 @@ begin
     addProperty('TLazComponent', 'Name', 'String', @_LapeComponent_Name_Read, @_LapeComponent_Name_Write);
     addProperty('TLazComponent', 'Tag', 'PtrInt', @_LapeComponent_Tag_Read, @_LapeComponent_Tag_Write);
 
-    addClass('TLazStream', 'TObject', TStream);
+    addClass('TLazStream', 'TLazObject', TStream);
     addGlobalFunc('function TLazStream.Read(var Buffer; Count: Integer): Integer;', @_LapeStream_Read);
     addGlobalFunc('function TLazStream.Write(constref Buffer; Count: Integer): Integer;', @_LapeStream_Write);
     addGlobalFunc('function TLazStream.Seek(Offset: Integer; Origin: ELazSeekOrigin): Integer;', @_LapeStream_Seek);
@@ -668,9 +668,9 @@ begin
     addGlobalFunc('function TLazStringStream.ReadString(Count: Integer): String;', @_LapeStringStream_ReadString);
     addGlobalFunc('procedure TLazStringStream.WriteString(const AString: String);', @_LapeStringStream_WriteString);
 
-    addClass('TLazStrings', 'TObject', TStrings);
+    addClass('TLazStrings', 'TLazObject', TStrings);
     addGlobalFunc('function TLazStrings.Add(const S: String): Integer;', @_LapeStrings_Add);
-    addGlobalFunc('function TLazStrings.AddObject(const S: String; AObject: TObject): Integer;', @_LapeStrings_AddObject);
+    addGlobalFunc('function TLazStrings.AddObject(const S: String; AObject: TLazObject): Integer;', @_LapeStrings_AddObject);
     addGlobalFunc('procedure TLazStrings.Append(const S: String);', @_LapeStrings_Append);
     addGlobalFunc('procedure TLazStrings.AddStrings(const TheStrings: TLazStrings); overload', @_LapeStrings_AddStrings);
     addGlobalFunc('procedure TLazStrings.AddStrings(const TheStrings: TStringArray); overload', @_LapeStrings_AddStringsArray);
@@ -682,9 +682,9 @@ begin
     addGlobalFunc('procedure TLazStrings.Exchange(Index1, Index2: Integer);', @_LapeStrings_Exchange);
     addGlobalFunc('function TLazStrings.IndexOf(const S: String): Integer;', @_LapeStrings_IndexOf);
     addGlobalFunc('function TLazStrings.IndexOfName(const Name: String): Integer;', @_LapeStrings_IndexOfName);
-    addGlobalFunc('function TLazStrings.IndexOfObject(AObject: TObject): Integer;', @_LapeStrings_IndexOfObject);
+    addGlobalFunc('function TLazStrings.IndexOfObject(AObject: TLazObject): Integer;', @_LapeStrings_IndexOfObject);
     addGlobalFunc('procedure TLazStrings.Insert(Index: Integer; const S: String);', @_LapeStrings_Insert);
-    addGlobalFunc('procedure TLazStrings.InsertObject(Index: Integer; const S: String; AObject: TObject);', @_LapeStrings_InsertObject);
+    addGlobalFunc('procedure TLazStrings.InsertObject(Index: Integer; const S: String; AObject: TLazObject);', @_LapeStrings_InsertObject);
     addGlobalFunc('procedure TLazStrings.LoadFromFile(const FileName: String);', @_LapeStrings_LoadFromFile);
     addGlobalFunc('procedure TLazStrings.LoadFromStream(Stream: TLazStream);', @_LapeStrings_LoadFromStream);
     addGlobalFunc('procedure TLazStrings.Move(FromIndex, ToIndex: Integer);', @_LapeStrings_Move);
@@ -692,7 +692,7 @@ begin
     addGlobalFunc('procedure TLazStrings.SaveToStream(Stream: TLazStream);', @_LapeStrings_SaveToStream);
     addGlobalFunc('function TLazStrings.ToStringArray: TStringArray;', @_LapeStrings_ToStringArray);
     addProperty('TLazStrings', 'Count', 'Integer', @_LapeStrings_Count_Read);
-    addPropertyIndexed('TLazStrings', 'Objects', 'Index: Integer', 'TObject', @_LapeStrings_Objects_Read, @_LapeStrings_Objects_Write);
+    addPropertyIndexed('TLazStrings', 'Objects', 'Index: Integer', 'TLazObject', @_LapeStrings_Objects_Read, @_LapeStrings_Objects_Write);
     addPropertyIndexed('TLazStrings', 'Values', 'Name: String', 'String', @_LapeStrings_Values_Read, @_LapeStrings_Values_Write);
     addPropertyIndexed('TLazStrings', 'Strings', 'Index: Integer', 'String', @_LapeStrings_Strings_Read, @_LapeStrings_Strings_Write);
     addPropertyIndexed('TLazStrings', 'Names', 'Index: Integer', 'String', @_LapeStrings_Names_Read);

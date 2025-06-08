@@ -773,7 +773,7 @@ begin
     addGlobalType('enum(amDontCare, amOn, amOff)', 'ELazAntialiasingMode');
     addGlobalType('enum(tlTop, tlCenter, tlBottom)', 'ELazTextLayout');
 
-    addClass('TLazGraphicsObject', 'TObject', TGraphicsObject);
+    addClass('TLazGraphicsObject', 'TLazObject', TGraphicsObject);
     addProperty('TLazGraphicsObject', 'OnChanging', 'TLazNotifyEvent', @_LapeGraphicsObject_OnChanging_Read, @_LapeGraphicsObject_OnChanging_Write);
     addProperty('TLazGraphicsObject', 'OnChange', 'TLazNotifyEvent', @_LapeGraphicsObject_OnChange_Read, @_LapeGraphicsObject_OnChange_Write);
     addClassConstructor('TLazGraphicsObject', '', @_LapeGraphicsObject_Create);
@@ -811,7 +811,7 @@ begin
     addProperty('TLazBrush', 'Color', 'Integer', @_LapeBrush_Color_Read, @_LapeBrush_Color_Write);
     addProperty('TLazBrush', 'Style', 'ELazBrushStyle', @_LapeBrush_Style_Read, @_LapeBrush_Style_Write);
 
-    addClass('TLazGraphic', 'TObject', TGraphic);
+    addClass('TLazGraphic', 'TLazObject', TGraphic);
     addGlobalFunc('procedure TLazGraphic.Clear;', @_LapeGraphic_Clear);
     addGlobalFunc('procedure TLazGraphic.LoadFromFile(const Filename: String);', @_LapeGraphic_LoadFromFile);
     addGlobalFunc('procedure TLazGraphic.SaveToFile(const Filename: String);', @_LapeGraphic_SaveToFile);
@@ -823,7 +823,7 @@ begin
     addProperty('TLazGraphic', 'Transparent', 'Boolean', @_LapeGraphic_Transparent_Read, @_LapeGraphic_Transparent_Write);
     addProperty('TLazGraphic', 'Width', 'Integer', @_LapeGraphic_Width_Read, @_LapeGraphic_Width_Write);
 
-    addClass('TLazCanvas', 'TObject', TCanvas);
+    addClass('TLazCanvas', 'TLazObject', TCanvas);
     addGlobalFunc('procedure TLazCanvas.Lock;', @_LapeCanvas_Lock);
     addGlobalFunc('function TLazCanvas.TryLock: Boolean;', @_LapeCanvas_TryLock);
     addGlobalFunc('procedure TLazCanvas.Unlock;', @_LapeCanvas_Unlock);
@@ -877,7 +877,7 @@ begin
     addProperty('TLazBitmap', 'TransparentColor', 'TColor', @_LapeBitmap_TransparentColor_Read, @_LapeBitmap_TransparentColor_Write);
     addProperty('TLazBitmap', 'TransparentMode', 'ELazTransparentMode', @_LapeBitmap_TransparentMode_Read, @_LapeBitmap_TransparentMode_Write);
 
-    addClass('TLazPicture', 'TObject', TPicture);
+    addClass('TLazPicture', 'TLazObject', TPicture);
     addClassConstructor('TLazPicture', '', @_LapePicture_Create);
     addGlobalFunc('procedure TLazPicture.Clear;', @_LapePicture_Clear);
     addGlobalFunc('procedure TLazPicture.LoadFromFile(const Filename: String);', @_LapePicture_LoadFromFile);

@@ -4,7 +4,7 @@ var
   Form: TLazForm;
 
 // Called when the mouse the mouse is pressed on the form
-procedure FormMouseDown(Sender: TObject; Button: ELazMouseButton; Shift: ELazShiftStates; X, Y: Integer);
+procedure FormMouseDown(Sender: TLazObject; Button: ELazMouseButton; Shift: ELazShiftStates; X, Y: Integer);
 begin
   WriteLn('FormMouseDown: ', Button, ', ', Shift, ' at ', X, ', ', Y);
   if (ELazShiftStates.Shift in Shift) then
@@ -14,12 +14,12 @@ begin
 end;
 
 // Called when the mouse the mouse is released on the form
-procedure FormMouseUp(Sender: TObject; Button: ELazMouseButton; Shift: ELazShiftStates; X, Y: Integer);
+procedure FormMouseUp(Sender: TLazObject; Button: ELazMouseButton; Shift: ELazShiftStates; X, Y: Integer);
 begin
   WriteLn('FormMouseUp: ', Button, ', ', Shift, ' at ', X, ', ', Y);
 end;
 
-procedure DoButtonClick(Sender: TObject);
+procedure DoButtonClick(Sender: TLazObject);
 begin
   WriteLn('Button clicked: ', TLazButton(Sender).Caption);
 
@@ -27,12 +27,12 @@ begin
     Form.Close();
 end;
 
-procedure DoSelectionChange(Sender: TObject; User: Boolean);
+procedure DoSelectionChange(Sender: TLazObject; User: Boolean);
 begin
   WriteLn('List selection changed to: ', TLazListBox(Sender).GetSelectedText());
 end;
 
-procedure DoTabChange(Sender: TObject);
+procedure DoTabChange(Sender: TLazObject);
 begin
   WriteLn('Tab changed to tab #', TLazPageControl(Sender).ActiveTabIndex);
 end;

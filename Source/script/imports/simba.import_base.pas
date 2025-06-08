@@ -586,6 +586,11 @@ begin
   PBoolean(Result)^ := PChar(Params^[0])^ in PStringArray(Params^[1])^;
 end;
 
+procedure _LapeBaseClass_Free(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  FreeAndNil(TSimbaBaseClass(Params^[0]^));
+end;
+
 procedure _LapeBaseClass_Name_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   PString(Result)^ := TSimbaBaseClass(Params^[0]^).Name;
@@ -882,6 +887,7 @@ begin
     DumpSection := '';
 
     addGlobalType('type Pointer', 'TBaseClass');
+    addGlobalFunc('procedure TBaseClass.Free;', @_LapeBaseClass_Free);
     addProperty('TBaseClass', 'Name', 'String', @_LapeBaseClass_Name_Read, @_LapeBaseClass_Name_Write);
     addProperty('TBaseClass', 'FreeOnTerminate', 'Boolean', @_LapeBaseClass_FreeOnTerminate_Read, @_LapeBaseClass_FreeOnTerminate_Write);
 

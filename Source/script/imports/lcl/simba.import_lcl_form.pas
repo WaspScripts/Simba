@@ -936,11 +936,11 @@ begin
     addGlobalType('set of enum(SystemMenu, Minimize, Maximize, Help)', 'ELazFormBorderIcons');
     addGlobalType('set of enum(ReadOnly, OverwritePrompt, HideReadOnly, NoChangeDir, ShowHelp, NoValidate, AllowMultiSelect, ExtensionDifferent, PathMustExist, FileMustExist, CreatePrompt, ShareAware, NoReadOnlyReturn, NoTestFileCreate, NoNetworkButton, NoLongNames, OldStyleDialog, NoDereferenceLinks, EnableIncludeNotify, EnableSizing, DontAddToRecent, ForceShowHidden, ViewDetail, AutoPreview)', 'ELazOpenFileOptions');
 
-    addGlobalType('procedure(Sender: TObject; const FileNames: TStringArray) of object', 'TLazDropFilesEvent', FFI_DEFAULT_ABI);
-    addGlobalType('procedure(Sender: TObject; var CloseAction: ELazFormCloseAction) of object', 'TLazCloseEvent', FFI_DEFAULT_ABI);
-    addGlobalType('procedure(Sender: TObject; var CanClose: Boolean) of object', 'TLazCloseQueryEvent', FFI_DEFAULT_ABI);
+    addGlobalType('procedure(Sender: TLazObject; const FileNames: TStringArray) of object', 'TLazDropFilesEvent', FFI_DEFAULT_ABI);
+    addGlobalType('procedure(Sender: TLazObject; var CloseAction: ELazFormCloseAction) of object', 'TLazCloseEvent', FFI_DEFAULT_ABI);
+    addGlobalType('procedure(Sender: TLazObject; var CanClose: Boolean) of object', 'TLazCloseQueryEvent', FFI_DEFAULT_ABI);
 
-    addClass('TLazSizeConstraints', 'TObject', TSizeConstraints);
+    addClass('TLazSizeConstraints', 'TLazObject', TSizeConstraints);
     addProperty('TLazSizeConstraints', 'Control', 'TLazControl', @_LapeSizeConstraints_Control_Read);
     addProperty('TLazSizeConstraints', 'OnChange', 'TLazNotifyEvent', @_LapeSizeConstraints_OnChange_Read, @_LapeSizeConstraints_OnChange_Write);
     addProperty('TLazSizeConstraints', 'MaxHeight', 'Integer', @_LapeSizeConstraints_MaxHeight_Read, @_LapeSizeConstraints_MaxHeight_Write);

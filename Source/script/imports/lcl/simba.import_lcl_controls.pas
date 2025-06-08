@@ -820,14 +820,14 @@ begin
     addGlobalType('set of ELazAnchorKind', 'ELazAnchors');
 
     addGlobalType('enum(asrTop, asrBottom, asrCenter)', 'ELazAnchorSideReference');
-    addGlobalType('procedure(Sender: TObject; var Key: Int16; Shift: ELazShiftStates) of object', 'TLazKeyEvent', FFI_DEFAULT_ABI);
-    addGlobalType('procedure(Sender: TObject; var Key: Char) of object', 'TLazKeyPressEvent', FFI_DEFAULT_ABI);
-    addGlobalType('procedure(Sender: TObject; Button: ELazMouseButton; Shift: ELazShiftStates; X, Y: Integer) of object', 'TLazMouseEvent', FFI_DEFAULT_ABI);
-    addGlobalType('procedure(Sender: TObject; Shift: ELazShiftStates; X, Y: Integer) of object', 'TLazMouseMoveEvent', FFI_DEFAULT_ABI);
-    addGlobalType('procedure(Sender: TObject; Shift: ELazShiftStates; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean) of object', 'TLazMouseWheelEvent', FFI_DEFAULT_ABI);
-    addGlobalType('procedure(Sender: TObject; Shift: ELazShiftStates; MousePos: TPoint; var Handled: Boolean) of object', 'TLazMouseWheelUpDownEvent', FFI_DEFAULT_ABI);
+    addGlobalType('procedure(Sender: TLazObject; var Key: Int16; Shift: ELazShiftStates) of object', 'TLazKeyEvent', FFI_DEFAULT_ABI);
+    addGlobalType('procedure(Sender: TLazObject; var Key: Char) of object', 'TLazKeyPressEvent', FFI_DEFAULT_ABI);
+    addGlobalType('procedure(Sender: TLazObject; Button: ELazMouseButton; Shift: ELazShiftStates; X, Y: Integer) of object', 'TLazMouseEvent', FFI_DEFAULT_ABI);
+    addGlobalType('procedure(Sender: TLazObject; Shift: ELazShiftStates; X, Y: Integer) of object', 'TLazMouseMoveEvent', FFI_DEFAULT_ABI);
+    addGlobalType('procedure(Sender: TLazObject; Shift: ELazShiftStates; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean) of object', 'TLazMouseWheelEvent', FFI_DEFAULT_ABI);
+    addGlobalType('procedure(Sender: TLazObject; Shift: ELazShiftStates; MousePos: TPoint; var Handled: Boolean) of object', 'TLazMouseWheelUpDownEvent', FFI_DEFAULT_ABI);
 
-    addClass('TLazControlBorderSpacing', 'TObject', TControlBorderSpacing);
+    addClass('TLazControlBorderSpacing', 'TLazObject', TControlBorderSpacing);
     addProperty('TLazControlBorderSpacing', 'Left', 'Integer', @_LapeControlBorderSpacing_Left_Read, @_LapeControlBorderSpacing_Left_Write);
     addProperty('TLazControlBorderSpacing', 'Right', 'Integer', @_LapeControlBorderSpacing_Right_Read, @_LapeControlBorderSpacing_Right_Write);
     addProperty('TLazControlBorderSpacing', 'Bottom', 'Integer', @_LapeControlBorderSpacing_Bottom_Read, @_LapeControlBorderSpacing_Bottom_Write);
@@ -837,7 +837,7 @@ begin
     addClass('TLazControl', 'TLazComponent', TControl);
     addClass('TLazWinControl', 'TLazControl', TWinControl);
 
-    addClass('TLazAnchorSide', 'TObject', TAnchorSide);
+    addClass('TLazAnchorSide', 'TLazObject', TAnchorSide);
     addProperty('TLazAnchorSide', 'Side', 'ELazAnchorSideReference', @_LapeAnchorSide_Side_Read, @_LapeAnchorSide_Side_Write);
     addProperty('TLazAnchorSide', 'Kind', 'ELazAnchorKind', @_LapeAnchorSide_Kind_Read);
     addProperty('TLazAnchorSide', 'Control', 'TLazControl', @_LapeAnchorSide_Control_Read, @_LapeAnchorSide_Control_Write);
@@ -915,7 +915,7 @@ begin
     addProperty('TLazCustomControl', 'Canvas', 'TLazCanvas', @_LapeCustomControl_Canvas_Read, @_LapeCustomControl_Canvas_Write);
     addProperty('TLazCustomControl', 'OnPaint', 'TLazNotifyEvent', @_LapeCustomControl_OnPaint_Read, @_LapeCustomControl_OnPaint_Write);
 
-    addClass('TLazControlScrollBar', 'TObject', TControlScrollBar);
+    addClass('TLazControlScrollBar', 'TLazObject', TControlScrollBar);
     addClassConstructor('TLazControlScrollBar' ,'(AControl: TLazWinControl; AKind: ELazScrollBarKind)', @_LapeControlScrollBar_Create);
     addGlobalFunc('function TLazControlScrollBar.GetOtherScrollBar: TLazControlScrollBar;', @_LapeControlScrollBar_GetOtherScrollBar);
     addProperty('TLazControlScrollBar', 'Size', 'Integer', @_LapeControlScrollBar_Size_Read);

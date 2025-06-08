@@ -642,7 +642,7 @@ begin
     addGlobalType('enum(Top, Bottom, Left, Right)', 'ELazTabPosition');
     addGlobalType('enum(Horizontal, Vertical)', 'ELazTrackBarOrientation');
 
-    addGlobalType('procedure(Sender: TObject; var AllowChange: Boolean) of object', 'TLazTabChangingEvent', FFI_DEFAULT_ABI);
+    addGlobalType('procedure(Sender: TLazObject; var AllowChange: Boolean) of object', 'TLazTabChangingEvent', FFI_DEFAULT_ABI);
 
     addClass('TLazProgressBar', 'TLazWinControl', TProgressBar);
     addClassConstructor('TLazProgressBar', '(AOwner: TLazComponent)', @_LapeProgressBar_Create);
@@ -707,13 +707,13 @@ begin
     addProperty('TLazPageControl', 'TabHeight', 'Integer', @_LapePageControl_TabHeight_Read, @_LapePageControl_TabHeight_Write);
 
     addClass('TLazStatusBar', 'TLazWinControl', TStatusBar);
-    addClass('TLazStatusPanel', 'TObject', TStatusPanel);
+    addClass('TLazStatusPanel', 'TLazObject', TStatusPanel);
     addGlobalFunc('function TLazStatusPanel.StatusBar: TLazStatusBar;', @_LapeStatusPanel_StatusBar);
     addProperty('TLazStatusPanel', 'Alignment', 'ELazAlignment', @_LapeStatusPanel_Alignment_Read, @_LapeStatusPanel_Alignment_Write);
     addProperty('TLazStatusPanel', 'Text', 'String', @_LapeStatusPanel_Text_Read, @_LapeStatusPanel_Text_Write);
     addProperty('TLazStatusPanel', 'Width', 'Integer', @_LapeStatusPanel_Width_Read, @_LapeStatusPanel_Width_Write);
 
-    addClass('TLazStatusPanels', 'TObject', TStatusPanels);
+    addClass('TLazStatusPanels', 'TLazObject', TStatusPanels);
     addClassConstructor('TLazStatusPanels', '(AStatusBar: TLazStatusBar)', @_LapeStatusPanels_Create);
     addGlobalFunc('function TLazStatusPanels.Add: TLazStatusPanel;', @_LapeStatusPanels_Add);
     addPropertyIndexed('TLazStatusPanels', 'Items', 'Index: Integer', 'TLazStatusPanel', @_LapeStatusPanels_Items_Index_Read, @_LapeStatusPanels_Items_Index_Write);

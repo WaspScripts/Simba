@@ -1151,13 +1151,13 @@ begin
 
     addGlobalType('procedure(Control: TLazWinControl; Index: Integer; ARect: TLazRect; State: ELazOwnerDrawStates) of object', 'TLazDrawItemEvent', FFI_DEFAULT_ABI);
     addGlobalType('procedure(Control: TLazWinControl; Index: Integer; var AHeight: Integer) of object', 'TLazMeasureItemEvent', FFI_DEFAULT_ABI);
-    addGlobalType('procedure(Sender: TObject; User: Boolean) of object', 'TLazSelectionChangeEvent', FFI_DEFAULT_ABI);
+    addGlobalType('procedure(Sender: TLazObject; User: Boolean) of object', 'TLazSelectionChangeEvent', FFI_DEFAULT_ABI);
 
     addClass('TLazCustomComboBox', 'TLazWinControl', TCustomComboBox);
     addClassConstructor('TLazCustomComboBox', '(TheOwner: TLazComponent)', @_LapeCustomComboBox_Create);
-    addGlobalFunc('procedure TLazCustomComboBox.AddItem(const Item: String; AnObject: TObject);', @_LapeCustomComboBox_AddItem);
+    addGlobalFunc('procedure TLazCustomComboBox.AddItem(const Item: String; AnObject: TLazObject);', @_LapeCustomComboBox_AddItem);
     addGlobalFunc('procedure TLazCustomComboBox.AddHistoryItem(const Item: string; MaxHistoryCount: Integer;SetAsText, CaseSensitive: Boolean);', @_LapeCustomComboBox_AddHistoryItem);
-    addGlobalFunc('procedure TLazCustomComboBox.AddHistoryItem(const Item: string; AnObject: TObject;MaxHistoryCount: Integer; SetAsText, CaseSensitive: Boolean); overload', @_LapeCustomComboBox_AddHistoryItemEx);
+    addGlobalFunc('procedure TLazCustomComboBox.AddHistoryItem(const Item: string; AnObject: TLazObject;MaxHistoryCount: Integer; SetAsText, CaseSensitive: Boolean); overload', @_LapeCustomComboBox_AddHistoryItemEx);
     addGlobalFunc('procedure TLazCustomComboBox.Clear;', @_LapeCustomComboBox_Clear);
     addGlobalFunc('procedure TLazCustomComboBox.ClearSelection;', @_LapeCustomComboBox_ClearSelection);
     addGlobalFunc('procedure TLazCustomComboBox.SelectAll;', @_LapeCustomComboBox_SelectAll);
@@ -1184,7 +1184,7 @@ begin
 
     addClass('TLazCustomListBox', 'TLazWinControl', TCustomListBox);
     addClassConstructor('TLazCustomListBox', '(TheOwner: TLazComponent)', @_LapeCustomListBox_Create);
-    addGlobalFunc('procedure TLazCustomListBox.AddItem(const Item: String; AnObject: TObject);', @_LapeCustomListBox_AddItem);
+    addGlobalFunc('procedure TLazCustomListBox.AddItem(const Item: String; AnObject: TLazObject);', @_LapeCustomListBox_AddItem);
     addGlobalFunc('procedure TLazCustomListBox.Click;', @_LapeCustomListBox_Click);
     addGlobalFunc('procedure TLazCustomListBox.Clear;', @_LapeCustomListBox_Clear);
     addGlobalFunc('procedure TLazCustomListBox.ClearSelection;', @_LapeCustomListBox_ClearSelection);
