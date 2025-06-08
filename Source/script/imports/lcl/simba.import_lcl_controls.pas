@@ -830,6 +830,7 @@ begin
     addClass('TLazControlBorderSpacing', 'TObject', TControlBorderSpacing);
     addProperty('TLazControlBorderSpacing', 'Left', 'Integer', @_LapeControlBorderSpacing_Left_Read, @_LapeControlBorderSpacing_Left_Write);
     addProperty('TLazControlBorderSpacing', 'Right', 'Integer', @_LapeControlBorderSpacing_Right_Read, @_LapeControlBorderSpacing_Right_Write);
+    addProperty('TLazControlBorderSpacing', 'Top', 'Integer', @_LapeControlBorderSpacing_Top_Read, @_LapeControlBorderSpacing_Top_Write);
     addProperty('TLazControlBorderSpacing', 'Bottom', 'Integer', @_LapeControlBorderSpacing_Bottom_Read, @_LapeControlBorderSpacing_Bottom_Write);
     addProperty('TLazControlBorderSpacing', 'Around', 'Integer', @_LapeControlBorderSpacing_Around_Read, @_LapeControlBorderSpacing_Around_Write);
     addProperty('TLazControlBorderSpacing', 'InnerBorder', 'Integer', @_LapeControlBorderSpacing_InnerBorder_Read, @_LapeControlBorderSpacing_InnerBorder_Write);
