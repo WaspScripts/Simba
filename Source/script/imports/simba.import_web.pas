@@ -910,8 +910,7 @@ begin
     addGlobalFunc('property EHTTPStatus.AsInteger: Integer', @_LapeHTTPStatus_AsInteger_Read);
     addGlobalFunc('property EHTTPStatus.AsString: String', @_LapeHTTPStatus_AsString_Read);
 
-    addClass('THTTPClient');
-
+    addGlobalType('type TBaseClass', 'THTTPClient');
     addGlobalType('procedure(Sender: THTTPClient; URL, ContentType: String; Position, Size: Int64) of object', 'THTTPDownloadingEvent', FFI_DEFAULT_ABI);
     addGlobalType('procedure(Sender: THTTPClient; URL: String; Percent: Double) of object', 'THTTPExtractingEvent', FFI_DEFAULT_ABI);
 
@@ -961,7 +960,7 @@ begin
 
     DumpSection := '';
 
-    addClass('TInternetSocket');
+    addGlobalType('type TBaseClass', 'TInternetSocket');
     addGlobalFunc('function TInternetSocket.Create(AHost: String; APort: UInt16; UseSSL: Boolean = False): TInternetSocket; static;', @_LapeSimbaInternetSocket_Create);
     addGlobalFunc('procedure TInternetSocket.Connect;', @_LapeSimbaInternetSocket_Connect);
     addGlobalFunc('procedure TInternetSocket.Close;', @_LapeSimbaInternetSocket_Close);
@@ -981,7 +980,7 @@ begin
     addProperty('TInternetSocket', 'ConnectTimeout', 'Integer', @_LapeSimbaInternetSocket_ConnectTimeout_Read, @_LapeSimbaInternetSocket_ConnectTimeout_Write);
     addProperty('TInternetSocket', 'ReadWriteTimeout', 'Integer', @_LapeSimbaInternetSocket_ReadWriteTimeout_Read, @_LapeSimbaInternetSocket_ReadWriteTimeout_Write);
 
-    addClass('TInternetSocketASync', 'TInternetSocket');
+    addGlobalType('type TBaseClass', 'TInternetSocketASync');
     addGlobalType('procedure(Socket: TInternetSocketASync) of object', 'TSocketDataEvent', FFI_DEFAULT_ABI);
     addGlobalType('procedure(Socket: TInternetSocketASync) of object', 'TSocketDisconnectEvent', FFI_DEFAULT_ABI);
     addGlobalFunc('function TInternetSocketASync.Create(AHost: String; APort: UInt16; UseSSL: Boolean = False): TInternetSocketASync; static;', @_LapeInternetSocketASync_Create);
@@ -989,7 +988,7 @@ begin
     addProperty('TInternetSocketASync', 'OnDisconnect', 'TSocketDisconnectEvent', @_LapeInternetSocketASync_DisconnectEvent_Read, @_LapeInternetSocketASync_DisconnectEvent_Write);
     addProperty('TInternetSocketASync', 'Running', 'Boolean', @_LapeInternetSocketASync_Running_Read);
 
-    addClass('TInternetSocketServer');
+    addGlobalType('type TBaseClass', 'TInternetSocketServer');
     addClassConstructor('TInternetSocketServer', '(Port: Integer)', @_LapeInternetSocketServer_Create1);
     addClassConstructor('TInternetSocketServer', '(AHost: String; APort: Integer)', @_LapeInternetSocketServer_Create2, True);
     addGlobalType('procedure(Sender: TInternetSocketServer; Sock: TInternetSocket) of object', 'THandleClientEvent', FFI_DEFAULT_ABI);

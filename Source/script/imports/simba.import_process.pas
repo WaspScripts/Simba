@@ -481,7 +481,7 @@ begin
     addGlobalFunc('function GetEnvVar(Name: String): String', @_LapeGetEnvVar);
     addGlobalFunc('function GetEnvVars: TStringArray', @_LapeGetEnvVars);
 
-    addClass('TRunningProcess', 'TBaseClass');
+    addGlobalType('type TBaseClass', 'TRunningProcess');
     addGlobalFunc('procedure TRunningProcess.Free;', @_LapeRunningProcess_Free);
     addGlobalFunc('function TRunningProcess.WaitOnExit: Boolean; overload;', @_LapeRunningProcess_WaitOnExit1);
     addGlobalFunc('function TRunningProcess.WaitOnExit(Timeout: Integer): Boolean; overload;', @_LapeRunningProcess_WaitOnExit2);
@@ -490,7 +490,7 @@ begin
     addProperty('TRunningProcess', 'PID', 'TProcessID', @_LapeRunningProcess_PID_Read);
     addProperty('TRunningProcess', 'ExitCode', 'TProcessExitCode', @_LapeRunningProcess_ExitCode_Read);
 
-    addClass('TRunningProcessPiped', 'TRunningProcess');
+    addGlobalType('type TBaseClass', 'TRunningProcessPiped');
     addGlobalFunc('function TRunningProcess.Read(Buf: Pointer; Count: Integer): Integer;', @_LapeRunningProcessPiped_Read);
     addGlobalFunc('function TRunningProcess.ReadString: String;', @_LapeRunningProcessPiped_ReadString);
     addGlobalFunc('function TRunningProcess.ReadStringUntil(Seq: String; Timeout: Integer): String;', @_LapeRunningProcessPiped_ReadStringUntil);

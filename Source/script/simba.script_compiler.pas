@@ -70,13 +70,14 @@ type
     function addGlobalFunc(Header: lpString; Value: Pointer; ABI: TFFIABI): TLapeGlobalVar; overload;
     function addGlobalType(Str: lpString; AName: lpString; ABI: TFFIABI): TLapeType; overload;
     function addGlobalType(Str: TStringArray; Name: String): TLapeType;  overload;
+    function addClass(Name, Parent: String; LazClassType: TClass): TLapeType;
     function addClassConstructor(Obj, Params: lpString; Func: Pointer; IsOverload: Boolean = False): TLapeGlobalVar;
-    procedure addClass(Name: lpString; Parent: lpString = 'TObject');
     procedure addProperty(Obj, Name, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer = nil);
     procedure addPropertyIndexed(Obj, Name, Params, Typ: String; ReadFunc: Pointer; WriteFunc: Pointer = nil);
     procedure addMagic(Name: String; Params: array of lpString; ParamTypes: array of ELapeParameterType; Res: String; Func: Pointer);
     function Compile: Boolean; override;
     procedure CallProc(ProcName: String);
+
 
     property DumpSection: String read GetDumpSection write FDumpSection;
     property Dump: TSimbaStringPairList read FDump;
@@ -85,7 +86,22 @@ type
 implementation
 
 uses
-  lpeval, lpparser, lpinterpreter;
+  lpeval, lpparser, lpinterpreter, lpmessages;
+
+type
+  TClassPointer = class(TLapeType_StrictPointer)
+  public
+    ClassTyp: TClass;
+    function EvalRes(Op: EOperator; Right: TLapeType = nil; Flags: ELapeEvalFlags = []): TLapeType; override;
+  end;
+
+function TClassPointer.EvalRes(Op: EOperator; Right: TLapeType; Flags: ELapeEvalFlags): TLapeType;
+begin
+  if (Right is TClassPointer) and (TClassPointer(Right).ClassTyp <> nil) and TClassPointer(Right).ClassTyp.InheritsFrom(ClassTyp) then
+    Result := Self
+  else
+    Result := inherited EvalRes(Op, Right, Flags);
+end;
 
 procedure TScriptCompiler.DumpCode(const Section, Code: String);
 var
@@ -654,9 +670,23 @@ begin
   Result := addGlobalFunc('function ' + Obj + '.Create' + Params + ': ' + Obj + ';' + Directives, Func);
 end;
 
-procedure TScriptCompiler.addClass(Name: lpString; Parent: lpString);
+function TScriptCompiler.addClass(Name, Parent: String; LazClassType: TClass): TLapeType;
+var
+  PointerType: TLapeType;
 begin
-  addGlobalType('strict ' + Parent, Name);
+  PointerType := getGlobalType(Parent);
+  if (PointerType = nil) then
+    LapeExceptionFmt(lpeUnknownDeclaration, [Parent]);
+  if (not (PointerType is TLapeType_Pointer)) then
+    LapeException(lpeExpectedPointerType);
+
+  if (PointerType.ClassType = TLapeType_Pointer) then
+    Result := addManagedType(TClassPointer.Create(Self, nil, False))
+  else
+    Result := addManagedType(PointerType.CreateCopy(True));
+
+  Result := addGlobalType(Result, Name);
+  TClassPointer(Result).ClassTyp := LazClassType;
 end;
 
 function TScriptCompiler.Compile: Boolean;

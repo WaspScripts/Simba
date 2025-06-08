@@ -182,7 +182,7 @@ procedure ImportSimbaShapeBox(Script: TSimbaScript);
 begin
   with Script.Compiler do
   begin
-    addClass('TShapeBox', 'TImageBox');
+    addClass('TShapeBox', 'TImageBox', TSimbaImageBox);
 
     addGlobalType([
       'record',

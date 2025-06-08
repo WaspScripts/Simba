@@ -1153,7 +1153,7 @@ begin
     addGlobalType('procedure(Control: TLazWinControl; Index: Integer; var AHeight: Integer) of object', 'TLazMeasureItemEvent', FFI_DEFAULT_ABI);
     addGlobalType('procedure(Sender: TObject; User: Boolean) of object', 'TLazSelectionChangeEvent', FFI_DEFAULT_ABI);
 
-    addClass('TLazCustomComboBox', 'TLazWinControl');
+    addClass('TLazCustomComboBox', 'TLazWinControl', TCustomComboBox);
     addClassConstructor('TLazCustomComboBox', '(TheOwner: TLazComponent)', @_LapeCustomComboBox_Create);
     addGlobalFunc('procedure TLazCustomComboBox.AddItem(const Item: String; AnObject: TObject);', @_LapeCustomComboBox_AddItem);
     addGlobalFunc('procedure TLazCustomComboBox.AddHistoryItem(const Item: string; MaxHistoryCount: Integer;SetAsText, CaseSensitive: Boolean);', @_LapeCustomComboBox_AddHistoryItem);
@@ -1178,11 +1178,11 @@ begin
     addProperty('TLazCustomComboBox', 'Style', 'ELazComboBoxStyle', @_LapeCustomComboBox_Style_Read, @_LapeCustomComboBox_Style_Write);
     addProperty('TLazCustomComboBox', 'Text', 'string', @_LapeCustomComboBox_Text_Read, @_LapeCustomComboBox_Text_Write);
 
-    addClass('TLazComboBox', 'TLazCustomComboBox');
+    addClass('TLazComboBox', 'TLazCustomComboBox', TComboBox);
     addClassConstructor('TLazComboBox', '(TheOwner: TLazComponent)', @_LapeComboBox_Create);
     addProperty('TLazComboBox', 'OnChange', 'TLazNotifyEvent', @_LapeCustomComboBox_OnChange_Read, @_LapeCustomComboBox_OnChange_Write);
 
-    addClass('TLazCustomListBox', 'TLazWinControl');
+    addClass('TLazCustomListBox', 'TLazWinControl', TCustomListBox);
     addClassConstructor('TLazCustomListBox', '(TheOwner: TLazComponent)', @_LapeCustomListBox_Create);
     addGlobalFunc('procedure TLazCustomListBox.AddItem(const Item: String; AnObject: TObject);', @_LapeCustomListBox_AddItem);
     addGlobalFunc('procedure TLazCustomListBox.Click;', @_LapeCustomListBox_Click);
@@ -1220,10 +1220,10 @@ begin
     addProperty('TLazCustomListBox', 'OnMeasureItemEvent', 'TLazMeasureItemEvent', @_LapeCustomListBox_OnMeasureItem_Read, @_LapeCustomListBox_OnMeasureItem_Write);
     addProperty('TLazCustomListBox', 'OnSelectionChange', 'TLazSelectionChangeEvent', @_LapeCustomListBox_OnSelectionChange_Read, @_LapeCustomListBox_OnSelectionChange_Write);
 
-    addClass('TLazListBox', 'TLazCustomListBox');
+    addClass('TLazListBox', 'TLazCustomListBox', TListBox);
     addClassConstructor('TLazListBox', '(AOwner: TLazComponent)', @_LapeListBox_Create);
 
-    addClass('TLazCustomEdit', 'TLazWinControl');
+    addClass('TLazCustomEdit', 'TLazWinControl', TCustomEdit);
     addClassConstructor('TLazCustomEdit', '(AOwner: TLazComponent)', @_LapeCustomEdit_Create);
     addGlobalFunc('procedure TLazCustomEdit.Clear;', @_LapeCustomEdit_Clear);
     addGlobalFunc('procedure TLazCustomEdit.SelectAll;', @_LapeCustomEdit_SelectAll);
@@ -1245,14 +1245,14 @@ begin
     addProperty('TLazCustomEdit', 'SelText', 'String', @_LapeCustomEdit_SelText_Read, @_LapeCustomEdit_SelText_Write);
     addProperty('TLazCustomEdit', 'Text', 'string', @_LapeCustomEdit_Text_Read, @_LapeCustomEdit_Text_Write);
 
-    addClass('TLazEdit', 'TLazCustomEdit');
+    addClass('TLazEdit', 'TLazCustomEdit', TEdit);
     addProperty('TLazEdit', 'OnEditingDone', 'TLazNotifyEvent', @_LapeEdit_OnEditingDone_Read, @_LapeEdit_OnEditingDone_Write);
     addClassConstructor('TLazEdit', '(AOwner: TLazComponent)', @_LapeEdit_Create);
 
-    addClass('TLazGroupBox', 'TLazWinControl');
+    addClass('TLazGroupBox', 'TLazWinControl', TGroupBox);
     addClassConstructor('TLazGroupBox', '(AOwner: TLazComponent)', @_LapeGroupBox_Create);
 
-    addClass('TLazMemo', 'TLazCustomEdit');
+    addClass('TLazMemo', 'TLazCustomEdit', TMemo);
     addClassConstructor('TLazMemo', '(AOwner: TLazComponent)', @_LapeMemo_Create);
     addGlobalFunc('procedure TLazMemo.Append(const Value: String);', @_LapeMemo_Append);
     addProperty('TLazMemo', 'Lines', 'TLazStrings', @_LapeMemo_Lines_Read, @_LapeMemo_Lines_Write);
@@ -1263,7 +1263,7 @@ begin
     addProperty('TLazMemo', 'WantTabs', 'Boolean', @_LapeMemo_WantTabs_Read, @_LapeMemo_WantTabs_Write);
     addProperty('TLazMemo', 'WordWrap', 'Boolean', @_LapeMemo_WordWrap_Read, @_LapeMemo_WordWrap_Write);
 
-    addClass('TLazButton', 'TLazWinControl');
+    addClass('TLazButton', 'TLazWinControl', TButton);
     addClassConstructor('TLazButton', '(TheOwner: TLazComponent)', @_LapeButton_Create);
     addGlobalFunc('procedure TLazButton.Click;', @_LapeButton_Click);
     addProperty('TLazButton', 'OnMouseDown', 'TLazMouseEvent', @_LapeButton_OnMouseDown_Read, @_LapeButton_OnMouseDown_Write);
@@ -1272,19 +1272,19 @@ begin
     addProperty('TLazButton', 'OnMouseMove', 'TLazMouseMoveEvent', @_LapeButton_OnMouseMove_Read, @_LapeButton_OnMouseMove_Write);
     addProperty('TLazButton', 'OnMouseUp', 'TLazMouseEvent', @_LapeButton_OnMouseUp_Read, @_LapeButton_OnMouseUp_Write);
 
-    addClass('TLazCustomCheckBox', 'TLazWinControl');
+    addClass('TLazCustomCheckBox', 'TLazWinControl', TCustomCheckBox);
     addClassConstructor('TLazCustomCheckBox', '(TheOwner: TLazComponent)', @_LapeCustomCheckBox_Create);
     addProperty('TLazCustomCheckBox', 'AllowGrayed', 'Boolean', @_LapeCustomCheckBox_AllowGrayed_Read, @_LapeCustomCheckBox_AllowGrayed_Write);
     addProperty('TLazCustomCheckBox', 'State', 'ELazCheckBoxState', @_LapeCustomCheckBox_State_Read, @_LapeCustomCheckBox_State_Write);
     addProperty('TLazCustomCheckBox', 'OnChange', 'TLazNotifyEvent', @_LapeCustomCheckBox_OnChange_Read, @_LapeCustomCheckBox_OnChange_Write);
 
-    addClass('TLazCheckBox', 'TLazCustomCheckBox');
+    addClass('TLazCheckBox', 'TLazCustomCheckBox', TCheckBox);
     addClassConstructor('TLazCheckBox', '(TheOwner: TLazComponent)', @_LapeCheckBox_Create);
 
-    addClass('TLazRadioButton', 'TLazCustomCheckBox');
+    addClass('TLazRadioButton', 'TLazCustomCheckBox', TRadioButton);
     addClassConstructor('TLazRadioButton', '(AOwner: TLazComponent)', @_LapeRadioButton_Create);
 
-    addClass('TLazLabel', 'TLazGraphicControl');
+    addClass('TLazLabel', 'TLazGraphicControl', TLabel);
     addClassConstructor('TLazLabel', '(TheOwner: TLazComponent)', @_LapeLabel_Create);
     addGlobalFunc('function TLazLabel.AdjustFontForOptimalFill: Boolean;', @_LapeLabel_AdjustFontForOptimalFill);
     addProperty('TLazLabel', 'Alignment', 'ELazAlignment', @_LapeLabel_Alignment_Read, @_LapeLabel_Alignment_Write);
@@ -1298,7 +1298,7 @@ begin
     addProperty('TLazLabel', 'OnMouseDown', 'TLazMouseEvent', @_LapeLabel_OnMouseDown_Read, @_LapeLabel_OnMouseDown_Write);
     addProperty('TLazLabel', 'OnMouseUp', 'TLazMouseEvent', @_LapeLabel_OnMouseUp_Read, @_LapeLabel_OnMouseUp_Write);
 
-    addClass('TLazSpeedButton', 'TLazGraphicControl');
+    addClass('TLazSpeedButton', 'TLazGraphicControl', TSpeedButton);
     addClassConstructor('TLazSpeedButton', '(AOwner: TLazComponent)', @_LapeSpeedButton_Create);
     addProperty('TLazSpeedButton', 'OnMouseEnter', 'TLazNotifyEvent', @_LapeSpeedButton_OnMouseEnter_Read, @_LapeSpeedButton_OnMouseEnter_Write);
     addProperty('TLazSpeedButton', 'OnMouseLeave', 'TLazNotifyEvent', @_LapeSpeedButton_OnMouseLeave_Read, @_LapeSpeedButton_OnMouseLeave_Write);

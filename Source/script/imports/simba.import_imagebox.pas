@@ -371,7 +371,7 @@ procedure ImportSimbaImageBox(Script: TSimbaScript);
 begin
   with Script.Compiler do
   begin
-    addClass('TImageBoxCanvas');
+    addGlobalType('type TBaseClass', 'TImageBoxCanvas');
 
     addProperty('TImageBoxCanvas', 'FontName', 'String', @_LapeImageBoxCanvas_FontName_Read, @_LapeImageBoxCanvas_FontName_Write);
     addProperty('TImageBoxCanvas', 'FontSize', 'Single', @_LapeImageBoxCanvas_FontSize_Read, @_LapeImageBoxCanvas_FontSize_Write);
@@ -409,7 +409,7 @@ begin
 
     addGlobalFunc('procedure TImageBoxCanvas.DrawHeatmap(Mat: TSingleMatrix);', @_LapeSimbaImageBoxCanvas_DrawHeatmap);
 
-    addClass('TImageBox', 'TLazCustomControl');
+    addClass('TImageBox', 'TLazCustomControl', TCustomControl);
 
     addGlobalType('procedure(Sender: TImageBox; Canvas: TImageBoxCanvas; R: TLazRect) of object', 'TImageBoxPaintEvent', FFI_DEFAULT_ABI);
     addGlobalType('procedure(Sender: TImageBox) of object', 'TImageBoxEvent', FFI_DEFAULT_ABI);

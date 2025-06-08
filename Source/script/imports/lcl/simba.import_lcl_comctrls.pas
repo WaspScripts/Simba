@@ -644,7 +644,7 @@ begin
 
     addGlobalType('procedure(Sender: TObject; var AllowChange: Boolean) of object', 'TLazTabChangingEvent', FFI_DEFAULT_ABI);
 
-    addClass('TLazProgressBar', 'TLazWinControl');
+    addClass('TLazProgressBar', 'TLazWinControl', TProgressBar);
     addClassConstructor('TLazProgressBar', '(AOwner: TLazComponent)', @_LapeProgressBar_Create);
     addGlobalFunc('procedure TLazProgressBar.StepIt;', @_LapeProgressBar_StepIt);
     addGlobalFunc('procedure TLazProgressBar.StepBy(Delta: Integer);', @_LapeProgressBar_StepBy);
@@ -655,7 +655,7 @@ begin
     addProperty('TLazProgressBar', 'Step', 'Integer', @_LapeProgressBar_Step_Read, @_LapeProgressBar_Step_Write);
     addProperty('TLazProgressBar', 'BarShowText', 'Boolean', @_LapeProgressBar_BarShowText_Read, @_LapeProgressBar_BarShowText_Write);
 
-    addClass('TLazTrackBar', 'TLazWinControl');
+    addClass('TLazTrackBar', 'TLazWinControl', TTrackBar);
     addClassConstructor('TLazTrackBar', '(AOwner: TLazComponent)', @_LapeTrackBar_Create);
     addGlobalFunc('procedure TLazTrackBar.SetTick(Value: Integer);', @_LapeTrackBar_SetTick);
     addProperty('TLazTrackBar', 'Frequency', 'Integer', @_LapeTrackBar_Frequency_Read, @_LapeTrackBar_Frequency_Write);
@@ -673,7 +673,7 @@ begin
     addProperty('TLazTrackBar', 'TickMarks', 'ELazTickMark', @_LapeTrackBar_TickMarks_Read, @_LapeTrackBar_TickMarks_Write);
     addProperty('TLazTrackBar', 'TickStyle', 'ELazStickStyle', @_LapeTrackBar_TickStyle_Read, @_LapeTrackBar_TickStyle_Write);
 
-    addClass('TLazCheckListBox', 'TLazCustomListBox');
+    addClass('TLazCheckListBox', 'TLazCustomListBox', TCheckListBox);
     addClassConstructor('TLazCheckListBox', '(AOwner: TLazComponent)', @_LapeCheckListBox_Create);
     addGlobalFunc('procedure TLazCheckListBox.Toggle(AIndex: Integer);', @_LapeCheckListBox_Toggle);
     addGlobalFunc('procedure TLazCheckListBox.CheckAll(AState: ELazCheckBoxState; aAllowGrayed: Boolean = True; aAllowDisabled: Boolean = True);', @_LapeCheckListBox_CheckAll);
@@ -683,13 +683,13 @@ begin
     addPropertyIndexed('TLazCheckListBox', 'State', 'Index: Integer', 'ELazCheckBoxState', @_LapeCheckListBox_State_Read, @_LapeCheckListBox_State_Write);
     addProperty('TLazCheckListBox', 'OnClickCheck', 'TLazNotifyEvent', @_LapeCheckListBox_OnClickCheck_Read, @_LapeCheckListBox_OnClickCheck_Write);
 
-    addClass('TLazTabSheet', 'TLazWinControl');
+    addClass('TLazTabSheet', 'TLazWinControl', TTabSheet);
     addClassConstructor('TLazTabSheet', '(TheOwner: TLazComponent)', @_LapeTabSheet_Create);
     addProperty('TLazTabSheet', 'TabIndex', 'Integer', @_LapeTabSheet_TabIndex_Read);
     addProperty('TLazTabSheet', 'OnHide', 'TLazNotifyEvent', @_LapeTabSheet_OnHide_Read, @_LapeTabSheet_OnHide_Write);
     addProperty('TLazTabSheet', 'OnShow', 'TLazNotifyEvent', @_LapeTabSheet_OnShow_Read, @_LapeTabSheet_OnShow_Write);
 
-    addClass('TLazPageControl', 'TLazWinControl');
+    addClass('TLazPageControl', 'TLazWinControl', TPageControl);
     addClassConstructor('TLazPageControl', '(TheOwner: TLazComponent)', @_LapePageControl_Create);
     addGlobalFunc('function TLazPageControl.TabRect(AIndex: Integer): TLazRect;', @_LapePageControl_TabRect);
     addGlobalFunc('function TLazPageControl.AddTab: TLazTabSheet;', @_LapePageControl_AddTabSheet);
@@ -706,14 +706,14 @@ begin
     addProperty('TLazPageControl', 'TabWidth', 'Integer', @_LapePageControl_TabWidth_Read, @_LapePageControl_TabWidth_Write);
     addProperty('TLazPageControl', 'TabHeight', 'Integer', @_LapePageControl_TabHeight_Read, @_LapePageControl_TabHeight_Write);
 
-    addClass('TLazStatusBar', 'TLazWinControl');
-    addClass('TLazStatusPanel');
+    addClass('TLazStatusBar', 'TLazWinControl', TStatusBar);
+    addClass('TLazStatusPanel', 'TObject', TStatusPanel);
     addGlobalFunc('function TLazStatusPanel.StatusBar: TLazStatusBar;', @_LapeStatusPanel_StatusBar);
     addProperty('TLazStatusPanel', 'Alignment', 'ELazAlignment', @_LapeStatusPanel_Alignment_Read, @_LapeStatusPanel_Alignment_Write);
     addProperty('TLazStatusPanel', 'Text', 'String', @_LapeStatusPanel_Text_Read, @_LapeStatusPanel_Text_Write);
     addProperty('TLazStatusPanel', 'Width', 'Integer', @_LapeStatusPanel_Width_Read, @_LapeStatusPanel_Width_Write);
 
-    addClass('TLazStatusPanels');
+    addClass('TLazStatusPanels', 'TObject', TStatusPanels);
     addClassConstructor('TLazStatusPanels', '(AStatusBar: TLazStatusBar)', @_LapeStatusPanels_Create);
     addGlobalFunc('function TLazStatusPanels.Add: TLazStatusPanel;', @_LapeStatusPanels_Add);
     addPropertyIndexed('TLazStatusPanels', 'Items', 'Index: Integer', 'TLazStatusPanel', @_LapeStatusPanels_Items_Index_Read, @_LapeStatusPanels_Items_Index_Write);

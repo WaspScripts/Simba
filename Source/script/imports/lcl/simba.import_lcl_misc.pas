@@ -602,7 +602,7 @@ procedure ImportLCLMisc(Script: TSimbaScript);
 begin
   with Script.Compiler do
   begin
-    addClass('TLazCustomFloatSpinEdit', 'TLazCustomEdit');
+    addClass('TLazCustomFloatSpinEdit', 'TLazCustomEdit', TCustomFloatSpinEdit);
     addProperty('TLazCustomFloatSpinEdit', 'DecimalPlaces', 'Integer', @_LapeCustomFloatSpinEdit_DecimalPlaces_Read, @_LapeCustomFloatSpinEdit_DecimalPlaces_Write);
     addProperty('TLazCustomFloatSpinEdit', 'Increment', 'Double', @_LapeCustomFloatSpinEdit_Increment_Read, @_LapeCustomFloatSpinEdit_Increment_Write);
     addProperty('TLazCustomFloatSpinEdit', 'MinValue', 'Double', @_LapeCustomFloatSpinEdit_MinValue_Read, @_LapeCustomFloatSpinEdit_MinValue_Write);
@@ -611,21 +611,21 @@ begin
     addProperty('TLazCustomFloatSpinEdit', 'ValueEmpty', 'Boolean', @_LapeCustomFloatSpinEdit_ValueEmpty_Read, @_LapeCustomFloatSpinEdit_ValueEmpty_Write);
     addClassConstructor('TLazCustomFloatSpinEdit', '(TheOwner: TLazComponent)', @_LapeCustomFloatSpinEdit_Create);
 
-    addClass('TLazFloatSpinEdit', 'TLazCustomFloatSpinEdit');
+    addClass('TLazFloatSpinEdit', 'TLazCustomFloatSpinEdit', TFloatSpinEdit);
     addClassConstructor('TLazFloatSpinEdit', '(TheOwner: TLazComponent)', @_LapeFloatSpinEdit_Create);
 
-    addClass('TLazCustomSpinEdit', 'TLazCustomFloatSpinEdit');
+    addClass('TLazCustomSpinEdit', 'TLazCustomFloatSpinEdit', TCustomSpinEdit);
     addProperty('TLazCustomSpinEdit', 'Value', 'Integer', @_LapeCustomSpinEdit_Value_Read, @_LapeCustomSpinEdit_Value_Write);
     addProperty('TLazCustomSpinEdit', 'MinValue', 'Integer', @_LapeCustomSpinEdit_MinValue_Read, @_LapeCustomSpinEdit_MinValue_Write);
     addProperty('TLazCustomSpinEdit', 'MaxValue', 'Integer', @_LapeCustomSpinEdit_MaxValue_Read, @_LapeCustomSpinEdit_MaxValue_Write);
     addProperty('TLazCustomSpinEdit', 'Increment', 'Integer', @_LapeCustomSpinEdit_Increment_Read, @_LapeCustomSpinEdit_Increment_Write);
     addClassConstructor('TLazCustomSpinEdit', '(TheOwner: TLazComponent)', @_LapeCustomSpinEdit_Create);
 
-    addClass('TLazSpinEdit', 'TLazCustomSpinEdit');
+    addClass('TLazSpinEdit', 'TLazCustomSpinEdit', TSpinEdit);
     addClassConstructor('TLazSpinEdit', '(TheOwner: TLazComponent)', @_LapeSpinEdit_Create);
 
-    addClass('TLazMenu', 'TLazComponent');
-    addClass('TLazMenuItem', 'TLazComponent');
+    addClass('TLazMenu', 'TLazComponent', TMenu);
+    addClass('TLazMenuItem', 'TLazComponent', TMenuItem);
     addGlobalFunc('function TLazMenuItem.Find(const ACaption: string): TLazMenuItem;', @_LapeMenuItem_Find);
     addGlobalFunc('function TLazMenuItem.GetParentMenu: TLazMenu;', @_LapeMenuItem_GetParentMenu);
     addGlobalFunc('function TLazMenuItem.IndexOf(Item: TLazMenuItem): Integer;', @_LapeMenuItem_IndexOf);
@@ -667,7 +667,7 @@ begin
     addProperty('TLazMenu', 'Items', 'TLazMenuItem', @_LapeMenu_Items_Read);
     addClassConstructor('TLazMenu', '(AOwner: TLazComponent)', @_LapeMenu_Create);
 
-    addClass('TLazPopupMenu', 'TLazMenu');
+    addClass('TLazPopupMenu', 'TLazMenu', TPopupMenu);
     addClassConstructor('TLazPopupMenu', '(AOwner: TLazComponent)', @_LapePopupMenu_Create);
     addProperty('TLazPopupMenu', 'PopupComponent', 'TLazComponent', @_LapePopupMenu_PopupComponent_Read, @_LapePopupMenu_PopupComponent_Write);
     addProperty('TLazPopupMenu', 'PopupPoint', 'TPoint', @_LapePopupMenu_PopupPoint_Read);
@@ -677,10 +677,10 @@ begin
     addGlobalFunc('procedure TLazPopupMenu.PopUp(X, Y: Integer); overload', @_LapePopupMenu_Popup2);
     addGlobalFunc('procedure TLazPopupMenu.Close', @_LapePopupMenu_Close);
 
-    addClass('TLazMainMenu', 'TLazMenu');
+    addClass('TLazMainMenu', 'TLazMenu', TMainMenu);
     addClassConstructor('TLazMainMenu', '(AOwner: TLazComponent)', @_LapeMainMenu_Create);
 
-    addClass('TLazListFilterEdit', 'TLazCustomControl');
+    addClass('TLazListFilterEdit', 'TLazCustomControl', TListFilterEdit);
     addClassConstructor('TLazListFilterEdit', '(AOwner: TLazComponent)', @_LapeListFilterEdit_Create);
     addProperty('TLazListFilterEdit', 'FilteredListBox', 'TLazListBox', @_LapeListFilterEdit_FilteredListBox_Read, @_LapeListFilterEdit_FilteredListBox_Write);
     addProperty('TLazListFilterEdit', 'Filter', 'String', @_LapeListFilterEdit_Filter_Read, @_LapeListFilterEdit_Filter_Write);
@@ -691,7 +691,7 @@ begin
     addProperty('TLazListFilterEdit', 'OnAfterFilter', 'TLazNotifyEvent', @_LapeListFilterEdit_OnAfterFilter_Read, @_LapeListFilterEdit_OnAfterFilter_Write);
     addProperty('TLazListFilterEdit', 'OnChange', 'TLazNotifyEvent', @_LapeListFilterEdit_OnChange_Read, @_LapeListFilterEdit_OnChange_Write);
 
-    addClass('TLazButtonPanel', 'TLazCustomPanel');
+    addClass('TLazButtonPanel', 'TLazCustomPanel', TButtonPanel);
     addGlobalType('set of enum(OK, Cancel, Close, Help)', 'ELazButtonPanelButtons');
     addClassConstructor('TLazButtonPanel', '(AOwner: TLazComponent)', @_LapeButtonPanel_Create);
     addProperty('TLazButtonPanel', 'ShowButtons', 'ELazButtonPanelButtons', @_LapeButtonPanel_ShowButtons_Read, @_LapeButtonPanel_ShowButtons_Write);

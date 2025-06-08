@@ -881,7 +881,7 @@ begin
 
     DumpSection := '';
 
-    addClass('TBaseClass', 'Pointer');
+    addGlobalType('type Pointer', 'TBaseClass');
     addProperty('TBaseClass', 'Name', 'String', @_LapeBaseClass_Name_Read, @_LapeBaseClass_Name_Write);
     addProperty('TBaseClass', 'FreeOnTerminate', 'Boolean', @_LapeBaseClass_FreeOnTerminate_Read, @_LapeBaseClass_FreeOnTerminate_Write);
 

@@ -827,17 +827,17 @@ begin
     addGlobalType('procedure(Sender: TObject; Shift: ELazShiftStates; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean) of object', 'TLazMouseWheelEvent', FFI_DEFAULT_ABI);
     addGlobalType('procedure(Sender: TObject; Shift: ELazShiftStates; MousePos: TPoint; var Handled: Boolean) of object', 'TLazMouseWheelUpDownEvent', FFI_DEFAULT_ABI);
 
-    addClass('TLazControlBorderSpacing');
+    addClass('TLazControlBorderSpacing', 'TObject', TControlBorderSpacing);
     addProperty('TLazControlBorderSpacing', 'Left', 'Integer', @_LapeControlBorderSpacing_Left_Read, @_LapeControlBorderSpacing_Left_Write);
     addProperty('TLazControlBorderSpacing', 'Right', 'Integer', @_LapeControlBorderSpacing_Right_Read, @_LapeControlBorderSpacing_Right_Write);
     addProperty('TLazControlBorderSpacing', 'Bottom', 'Integer', @_LapeControlBorderSpacing_Bottom_Read, @_LapeControlBorderSpacing_Bottom_Write);
     addProperty('TLazControlBorderSpacing', 'Around', 'Integer', @_LapeControlBorderSpacing_Around_Read, @_LapeControlBorderSpacing_Around_Write);
     addProperty('TLazControlBorderSpacing', 'InnerBorder', 'Integer', @_LapeControlBorderSpacing_InnerBorder_Read, @_LapeControlBorderSpacing_InnerBorder_Write);
 
-    addClass('TLazControl', 'TLazComponent');
-    addClass('TLazWinControl', 'TLazControl');
+    addClass('TLazControl', 'TLazComponent', TControl);
+    addClass('TLazWinControl', 'TLazControl', TWinControl);
 
-    addClass('TLazAnchorSide');
+    addClass('TLazAnchorSide', 'TObject', TAnchorSide);
     addProperty('TLazAnchorSide', 'Side', 'ELazAnchorSideReference', @_LapeAnchorSide_Side_Read, @_LapeAnchorSide_Side_Write);
     addProperty('TLazAnchorSide', 'Kind', 'ELazAnchorKind', @_LapeAnchorSide_Kind_Read);
     addProperty('TLazAnchorSide', 'Control', 'TLazControl', @_LapeAnchorSide_Control_Read, @_LapeAnchorSide_Control_Write);
@@ -910,12 +910,12 @@ begin
     addGlobalFunc('procedure TLazWinControl.PaintTo(ACanvas: TLazCanvas; X, Y: Integer);', @_LapeWinControl_PaintTo);
     addGlobalFunc('procedure TLazWinControl.SetShape(AShape: TLazBitmap);', @_LapeWinControl_SetShape);
 
-    addClass('TLazCustomControl', 'TLazWinControl');
+    addClass('TLazCustomControl', 'TLazWinControl', TCustomControl);
     addClassConstructor('TLazCustomControl', '(AOwner: TLazComponent)', @_LapeCustomControl_Create);
     addProperty('TLazCustomControl', 'Canvas', 'TLazCanvas', @_LapeCustomControl_Canvas_Read, @_LapeCustomControl_Canvas_Write);
     addProperty('TLazCustomControl', 'OnPaint', 'TLazNotifyEvent', @_LapeCustomControl_OnPaint_Read, @_LapeCustomControl_OnPaint_Write);
 
-    addClass('TLazControlScrollBar');
+    addClass('TLazControlScrollBar', 'TObject', TControlScrollBar);
     addClassConstructor('TLazControlScrollBar' ,'(AControl: TLazWinControl; AKind: ELazScrollBarKind)', @_LapeControlScrollBar_Create);
     addGlobalFunc('function TLazControlScrollBar.GetOtherScrollBar: TLazControlScrollBar;', @_LapeControlScrollBar_GetOtherScrollBar);
     addProperty('TLazControlScrollBar', 'Size', 'Integer', @_LapeControlScrollBar_Size_Read);
@@ -930,13 +930,13 @@ begin
     addProperty('TLazControlScrollBar', 'Tracking', 'Boolean', @_LapeControlScrollBar_Tracking_Read, @_LapeControlScrollBar_Tracking_Write);
     addProperty('TLazControlScrollBar', 'Visible', 'Boolean', @_LapeControlScrollBar_Visible_Read, @_LapeControlScrollBar_Visible_Write);
 
-    addClass('TLazScrollingWinControl', 'TLazCustomControl');
+    addClass('TLazScrollingWinControl', 'TLazCustomControl', TScrollingWinControl);
     addClassConstructor('TLazScrollingWinControl', '(AOwner: TLazComponent)', @_LapeScrollingWinControl_Create);
     addGlobalFunc('procedure TLazScrollingWinControl.UpdateScrollbars;', @_LapeScrollingWinControl_UpdateScrollbars);
     addProperty('TLazScrollingWinControl', 'HorzScrollBar', 'TLazControlScrollBar', @_LapeScrollingWinControl_HorzScrollBar_Read, @_LapeScrollingWinControl_HorzScrollBar_Write);
     addProperty('TLazScrollingWinControl', 'VertScrollBar', 'TLazControlScrollBar', @_LapeScrollingWinControl_VertScrollBar_Read, @_LapeScrollingWinControl_VertScrollBar_Write);
 
-    addClass('TLazGraphicControl', 'TLazControl');
+    addClass('TLazGraphicControl', 'TLazControl', TGraphicControl);
     addProperty('TLazGraphicControl', 'Canvas', 'TLazCanvas', @_LapeGraphicControl_Canvas_Read);
   end;
 end;

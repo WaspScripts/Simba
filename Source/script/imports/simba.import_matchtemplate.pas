@@ -146,7 +146,7 @@ begin
   begin
     DumpSection := 'Match Template';
 
-    addClass('TMatchTemplateCache', 'TBaseClass');
+    addGlobalType('type TBaseClass', 'TMatchTemplateCache');
     addGlobalType('(TM_CCORR, TM_CCORR_NORMED, TM_CCOEFF, TM_CCOEFF_NORMED, TM_SQDIFF, TM_SQDIFF_NORMED)', 'ETMFormula');
 
     addGlobalFunc('function TMatchTemplateCache.Create(Image, Template: TIntegerMatrix; Formula: ETMFormula): TMatchTemplateCache; static; overload', @_LapeMatchTemplateCache_Create1);

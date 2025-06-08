@@ -940,7 +940,7 @@ begin
     addGlobalType('procedure(Sender: TObject; var CloseAction: ELazFormCloseAction) of object', 'TLazCloseEvent', FFI_DEFAULT_ABI);
     addGlobalType('procedure(Sender: TObject; var CanClose: Boolean) of object', 'TLazCloseQueryEvent', FFI_DEFAULT_ABI);
 
-    addClass('TLazSizeConstraints');
+    addClass('TLazSizeConstraints', 'TObject', TSizeConstraints);
     addProperty('TLazSizeConstraints', 'Control', 'TLazControl', @_LapeSizeConstraints_Control_Read);
     addProperty('TLazSizeConstraints', 'OnChange', 'TLazNotifyEvent', @_LapeSizeConstraints_OnChange_Read, @_LapeSizeConstraints_OnChange_Write);
     addProperty('TLazSizeConstraints', 'MaxHeight', 'Integer', @_LapeSizeConstraints_MaxHeight_Read, @_LapeSizeConstraints_MaxHeight_Write);
@@ -948,7 +948,7 @@ begin
     addProperty('TLazSizeConstraints', 'MinHeight', 'Integer', @_LapeSizeConstraints_MinHeight_Read, @_LapeSizeConstraints_MinHeight_Write);
     addProperty('TLazSizeConstraints', 'MinWidth', 'Integer', @_LapeSizeConstraints_MinWidth_Read, @_LapeSizeConstraints_MinWidth_Write);
 
-    addClass('TLazCustomForm', 'TLazScrollingWinControl');
+    addClass('TLazCustomForm', 'TLazScrollingWinControl', TCustomForm);
     addClassConstructor('TLazCustomForm', '(AOwner: TLazCustomForm)', @_LapeCustomForm_Create);
     addGlobalFunc('procedure TLazCustomForm.Close;', @_LapeCustomForm_Close);
     addGlobalFunc('function TLazCustomForm.CloseQuery: Boolean;', @_LapeCustomForm_CloseQuery);
@@ -978,7 +978,7 @@ begin
     addProperty('TLazCustomForm', 'AutoScroll', 'Boolean', @_LapeCustomForm_AutoScroll_Read, @_LapeCustomForm_AutoScroll_Write);
     addProperty('TLazCustomForm', 'StayOnTop', 'Boolean', @_LapeCustomForm_StayOnTop_Read, @_LapeCustomForm_StayOnTop_Write);
 
-    addClass('TLazForm', 'TLazCustomForm');
+    addClass('TLazForm', 'TLazCustomForm', TForm);
     addClassConstructor('TLazForm', '(AOwner: TLazComponent = nil)', @_LapeForm_Create);
 
     addGlobalType('record end;', 'LazFormThread');
@@ -1011,10 +1011,10 @@ begin
     addProperty('TLazForm', 'OnShow', 'TLazNotifyEvent', @_LapeForm_OnShow_Read, @_LapeForm_OnShow_Write);
     addProperty('TLazForm', 'OnWindowStateChange', 'TLazNotifyEvent', @_LapeForm_OnWindowStateChange_Read, @_LapeForm_OnWindowStateChange_Write);
 
-    addClass('TLazScrollBox', 'TLazScrollingWinControl');
+    addClass('TLazScrollBox', 'TLazScrollingWinControl', TScrollBox);
     addClassConstructor('TLazScrollBox', '(AOwner: TLazComponent)', @_LapeScrollBox_Create);
 
-    addClass('TLazCommonDialog', 'TLazComponent');
+    addClass('TLazCommonDialog', 'TLazComponent', TCommonDialog);
     addGlobalFunc('function TLazCommonDialog.Execute: Boolean;', @_LapeCommonDialog_Execute);
     addProperty('TLazCommonDialog', 'UserChoice', 'Integer', @_LapeCommonDialog_UserChoice_Read, @_LapeCommonDialog_UserChoice_Write);
     addGlobalFunc('procedure TLazCommonDialog.Close;', @_LapeCommonDialog_Close);
@@ -1024,7 +1024,7 @@ begin
     addProperty('TLazCommonDialog', 'Width', 'Integer', @_LapeCommonDialog_Width_Read, @_LapeCommonDialog_Width_Write);
     addProperty('TLazCommonDialog', 'Height', 'Integer', @_LapeCommonDialog_Height_Read, @_LapeCommonDialog_Height_Write);
 
-    AddClass('TLazFileDialog', 'TLazCommonDialog');
+    AddClass('TLazFileDialog', 'TLazCommonDialog', TFileDialog);
     addProperty('TLazFileDialog', 'Files', 'TLazStrings', @_LapeFileDialog_Files_Read);
     addProperty('TLazFileDialog', 'HistoryList', 'TLazStrings', @_LapeFileDialog_HistoryList_Read, @_LapeFileDialog_HistoryList_Write);
     addProperty('TLazFileDialog', 'DefaultExt', 'String', @_LapeFileDialog_DefaultExt_Read, @_LapeFileDialog_DefaultExt_Write);
@@ -1036,13 +1036,13 @@ begin
     addProperty('TLazFileDialog', 'OnTypeChange', 'TLazNotifyEvent', @_LapeFileDialog_OnTypeChange_Read, @_LapeFileDialog_OnTypeChange_Write);
     addClassConstructor('TLazFileDialog', '(AOwner: TLazComponent)', @_LapeFileDialog_Create);
 
-    addClass('TLazOpenDialog', 'TLazFileDialog');
+    addClass('TLazOpenDialog', 'TLazFileDialog', TOpenDialog);
     addProperty('TLazOpenDialog', 'Options', 'ELazOpenFileOptions', @_LapeOpenDialog_Options_Read, @_LapeOpenDialog_Options_Write);
     addProperty('TLazOpenDialog', 'OnFolderChange', 'TLazNotifyEvent', @_LapeOpenDialog_OnFolderChange_Read, @_LapeOpenDialog_OnFolderChange_Write);
     addProperty('TLazOpenDialog', 'OnSelectionChange', 'TLazNotifyEvent', @_LapeOpenDialog_OnSelectionChange_Read, @_LapeOpenDialog_OnSelectionChange_Write);
     addClassConstructor('TLazOpenDialog', '(AOwner: TLazComponent)', @_LapeOpenDialog_Create);
 
-    addClass('TLazColorDialog', 'TLazCommonDialog');
+    addClass('TLazColorDialog', 'TLazCommonDialog', TColorDialog);
     addProperty('TLazColorDialog', 'Color', 'TColor', @_LapeColorDialog_Color_Read, @_LapeColorDialog_Color_Write);
     addProperty('TLazColorDialog', 'CustomColors', 'TLazStrings', @_LapeColorDialog_CustomColors_Read, @_LapeColorDialog_CustomColors_Write);
     addClassConstructor('TLazColorDialog', '(AOwner: TLazComponent)', @_LapeColorDialog_Create);

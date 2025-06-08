@@ -382,7 +382,7 @@ procedure ImportExternalCanvas(Script: TSimbaScript);
 begin
   with Script.Compiler do
   begin
-    addClass('TExternalCanvas', 'TBaseClass');
+    addGlobalType('type TBaseClass', 'TExternalCanvas');
 
     addGlobalFunc('function TExternalCanvas.Create: TExternalCanvas; static;', @_LapeExternalCanvas_Create);
     addGlobalFunc('procedure TExternalCanvas.Free;', @_LapeExternalCanvas_Free);

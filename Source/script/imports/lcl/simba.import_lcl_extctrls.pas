@@ -251,7 +251,7 @@ begin
   begin
     addGlobalType('enum(None, Lowered, Raised, Space)', 'ELazPanelBevel');
 
-    addClass('TLazTimer', 'TLazComponent');
+    addClass('TLazTimer', 'TLazComponent', TTimer);
     addClassConstructor('TLazTimer', '(AOwner: TLazComponent)', @_LapeTimer_Create);
     addProperty('TLazTimer', 'Enabled', 'Boolean', @_LapeTimer_Enabled_Read, @_LapeTimer_Enabled_Write);
     addProperty('TLazTimer', 'Interval', 'UInt32', @_LapeTimer_Interval_Read, @_LapeTimer_Interval_Write);
@@ -259,7 +259,7 @@ begin
     addProperty('TLazTimer', 'OnStartTimer', 'TLazNotifyEvent', @_LapeTimer_OnStartTimer_Read, @_LapeTimer_OnStartTimer_Write);
     addProperty('TLazTimer', 'OnStopTimer', 'TLazNotifyEvent', @_LapeTimer_OnStopTimer_Read, @_LapeTimer_OnStopTimer_Write);
 
-    addClass('TLazImage', 'TLazGraphicControl');
+    addClass('TLazImage', 'TLazGraphicControl', TImage);
     addClassConstructor('TLazImage', '(AOwner: TLazComponent)', @_LapeImage_Create);
     addGlobalFunc('function TLazImage.DestRect: TLazRect;', @_LapeImage_DestRect);
     addProperty('TLazImage', 'Center', 'Boolean', @_LapeImage_Center_Read, @_LapeImage_Center_Write);
@@ -274,14 +274,14 @@ begin
     addProperty('TLazImage', 'OnMouseLeave', 'TLazNotifyEvent', @_LapeImage_OnMouseLeave_Read, @_LapeImage_OnMouseLeave_Write);
     addProperty('TLazImage', 'OnMouseMove', 'TLazMouseMoveEvent', @_LapeImage_OnMouseMove_Read, @_LapeImage_OnMouseMove_Write);
 
-    addClass('TLazCustomPanel', 'TLazCustomControl');
+    addClass('TLazCustomPanel', 'TLazCustomControl', TCustomPanel);
     addProperty('TLazCustomPanel', 'Alignment', 'ELazAlignment', @_LapeCustomPanel_Alignment_Read, @_LapeCustomPanel_Alignment_Write);
     addProperty('TLazCustomPanel', 'BevelInner', 'ELazPanelBevel', @_LapeCustomPanel_BevelInner_Read, @_LapeCustomPanel_BevelInner_Write);
     addProperty('TLazCustomPanel', 'BevelOuter', 'ELazPanelBevel', @_LapeCustomPanel_BevelOuter_Read, @_LapeCustomPanel_BevelOuter_Write);
     addProperty('TLazCustomPanel', 'BevelWidth', 'Integer', @_LapeCustomPanel_BevelWidth_Read, @_LapeCustomPanel_BevelWidth_Write);
     addClassConstructor('TLazCustomPanel', '(TheOwner: TLazComponent)', @_LapeCustomPanel_Create);
 
-    addClass('TLazPanel', 'TLazCustomPanel');
+    addClass('TLazPanel', 'TLazCustomPanel', TPanel);
     addClassConstructor('TLazPanel', '(TheOwner: TLazComponent)', @_LapePanel_Create);
   end;
 end;
