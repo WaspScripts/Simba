@@ -169,6 +169,36 @@ begin
   json.Free();
 end;
 
+procedure TestClone;
+var
+  jsonObj: TJSONItem;
+  jsonArr: TJSONItem;
+begin
+  jsonObj := ParseJSON("{str: 'abc', int: 123, float: 1.23, bool: true, arr: [], obj: {}}");
+  Assert(jsonObj.ToJSON =
+    '{'                                    + LINE_SEP +
+    '  "str" : "abc",'                     + LINE_SEP +
+    '  "int" : 123,'                       + LINE_SEP +
+    '  "float" : 1.2300000000000000E+000,' + LINE_SEP +
+    '  "bool" : true,'                     + LINE_SEP +
+    '  "arr" : ['                          + LINE_SEP +
+    '  ],'                                 + LINE_SEP +
+    '  "obj" : {}'                         + LINE_SEP +
+    '}'
+  );
+
+  jsonArr := NewJSONArray();
+  jsonArr.Add('', jsonObj);
+  jsonArr.Add('', jsonObj.Clone);
+  jsonArr.Add('', jsonObj.Item['bool'].Clone);
+  Assert(jsonArr.Count = 3);
+  Assert(jsonArr.Item[0].ToJSON() = jsonObj.ToJSON());
+  Assert(jsonArr.Item[1].ToJSON() = jsonObj.ToJSON());
+  Assert(jsonArr.Item[2].ToJSON = 'true');
+  //jsonObj.Free(); the array will manage the object
+  jsonArr.Free();
+end;
+
 procedure TestIndexingObject;
 var
   json: TJSONItem;
@@ -207,6 +237,7 @@ begin
   TestObjectGet();
 
   TestFindPath();
+  TestClone();
 
   TestIndexingObject();
   TestIndexingArray();
