@@ -92,6 +92,26 @@ begin
   PBitmap(Result)^ := PSimbaImageBox(Params^[0])^.Background;
 end;
 
+procedure _LapeSimbaImageBox_Zoom_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PInteger(Result)^ := PSimbaImageBox(Params^[0])^.Zoom;
+end;
+
+procedure _LapeSimbaImageBox_Zoom_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSimbaImageBox(Params^[0])^.Zoom := PInteger(Params^[1])^;
+end;
+
+procedure _LapeSimbaImageBox_AllowZoom_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PBoolean(Result)^ := PSimbaImageBox(Params^[0])^.AllowZoom;
+end;
+
+procedure _LapeSimbaImageBox_AllowZoom_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PSimbaImageBox(Params^[0])^.AllowZoom := PBoolean(Params^[1])^;
+end;
+
 procedure _LapeSimbaImageBox_OnImgPaint_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
   TImageBoxPaintEvent(Result^) := PSimbaImageBox(Params^[0])^.OnImgPaint;
@@ -434,6 +454,8 @@ begin
 
     addProperty('TImageBox', 'Status', 'String', @_LapeSimbaImageBox_Status_Read, @_LapeSimbaImageBox_Status_Write);
     addProperty('TImageBox', 'Background', 'TLazBitmap', @_LapeSimbaImageBox_Background_Read);
+    addProperty('TImageBox', 'Zoom', 'Integer', @_LapeSimbaImageBox_Zoom_Read, @_LapeSimbaImageBox_Zoom_Write);
+    addProperty('TImageBox', 'AllowZoom', 'Boolean', @_LapeSimbaImageBox_AllowZoom_Read, @_LapeSimbaImageBox_AllowZoom_Write);
 
     addGlobalFunc('function TImageBox.FindDTM(DTM: TDTM): TPointArray', @_LapeSimbaImageBox_FindDTM);
     addGlobalFunc('function TImageBox.FindColor(ColorTolerance: TColorTolerance): TPointArray', @_LapeSimbaImageBox_FindColor);

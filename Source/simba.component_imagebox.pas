@@ -46,6 +46,7 @@ type
     FZoomMax: Integer;
     FZoomLevel: Integer;
     FZoomPixels: Integer;
+    FAllowZoom: Boolean;
 
     FVertScroll: TSimbaScrollBar;
     FHorzScroll: TSimbaScrollBar;
@@ -73,14 +74,14 @@ type
 
     procedure Click; override;
     procedure DblClick; override;
-
     procedure Paint; override;
-    procedure DoResize(Sender: TObject);
 
+    procedure DoResize(Sender: TObject);
     procedure DoScrollChange(Sender: TObject);
 
     procedure UpdateScrollBars;
-    procedure ChangeZoom(ZoomIndex: Integer);
+    procedure SetZoom(Level, Pixels: Integer);
+    procedure SetZoomLevel(Level: Integer);
     procedure IncreaseZoom(Inc: Boolean);
 
     function VisibleTopX: Integer;
@@ -119,7 +120,6 @@ type
 
     FOnImgKeyDown: TImageBoxKeyEvent;
     FOnImgKeyUp: TImageBoxKeyEvent;
-
     FOnImgMouseEnter: TImageBoxEvent;
     FOnImgMouseLeave: TImageBoxEvent;
     FOnImgMouseDown: TImageBoxMouseEvent;
@@ -148,12 +148,16 @@ type
     function GetStatus: String;
     function GetShowScrollbars: Boolean;
     function GetShowStatusBar: Boolean;
+    function GetZoom: Integer;
+    function GetAllowZoom: Boolean;
 
     procedure SetCursor(Value: TCursor); override;
     procedure SetStatus(Value: String);
     procedure SetShowScrollbars(AValue: Boolean);
     procedure SetShowStatusBar(AValue: Boolean);
     procedure SetBackground(AValue: TBitmap);
+    procedure SetZoom(AValue: Integer);
+    procedure SetAllowZoom(AValue: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -181,6 +185,8 @@ type
     property MouseX: Integer read FMouseX;
     property MouseY: Integer read FMouseY;
     property MousePoint: TPoint read GetMousePoint;
+    property Zoom: Integer read GetZoom write SetZoom;
+    property AllowZoom: Boolean read GetAllowZoom write SetAllowZoom;
 
     property OnImgKeyDown: TImageBoxKeyEvent read FOnImgKeyDown write FOnImgKeyDown;
     property OnImgKeyUp: TImageBoxKeyEvent read FOnImgKeyUp write FOnImgKeyUp;
@@ -288,12 +294,12 @@ begin
   end;
 end;
 
-procedure TSimbaImageScrollBox.ChangeZoom(ZoomIndex: Integer);
+procedure TSimbaImageScrollBox.SetZoom(Level, Pixels: Integer);
 var
-  Level, Pixels: Integer;
+  OldImagePoint: TPoint;
 begin
-  Level := ZOOM_LEVELS[ZoomIndex];
-  Pixels := ZOOM_PIXELS[ZoomIndex];
+  if MouseInClient then
+    OldImagePoint := ScreenToImage(ScreenToClient(Mouse.CursorPos));
 
   if (Level < FZoomMin) then
     Level := FZoomMin;
@@ -306,9 +312,24 @@ begin
     FZoomPixels := Pixels;
 
     Repaint();
-  end;
+    UpdateScrollBars();
+    if MouseInClient then
+      MoveTo(OldImagePoint{%H-});
 
-  FImageBox.StatusBar.PanelText[2] := Format('%d%s', [FZoomLevel, '%']);
+    FImageBox.StatusBar.PanelText[2] := Format('%d%s', [FZoomLevel, '%']);
+  end;
+end;
+
+procedure TSimbaImageScrollBox.SetZoomLevel(Level: Integer);
+var
+  I: Integer;
+begin
+  for I := Low(ZOOM_LEVELS) to High(ZOOM_LEVELS) do
+    if (ZOOM_LEVELS[I] = Level) then
+    begin
+      SetZoom(ZOOM_LEVELS[I], ZOOM_PIXELS[I]);
+      Exit;
+    end;
 end;
 
 function TSimbaImageScrollBox.VisibleTopX: Integer;
@@ -345,7 +366,7 @@ end;
 
 function TSimbaImageScrollBox.DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean;
 begin
-  if (ssCtrl in Shift) then
+  if (ssCtrl in Shift) and FAllowZoom then
     IncreaseZoom(True);
 
   Result := inherited DoMouseWheelUp(Shift, MousePos);
@@ -353,7 +374,7 @@ end;
 
 function TSimbaImageScrollBox.DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean;
 begin
-  if (ssCtrl in Shift) then
+  if (ssCtrl in Shift) and FAllowZoom then
     IncreaseZoom(False);
 
   Result := inherited DoMouseWheelDown(Shift, MousePos);
@@ -631,20 +652,13 @@ end;
 procedure TSimbaImageScrollBox.IncreaseZoom(Inc: Boolean);
 var
   I: Integer;
-  OldImagePoint: TPoint;
-  DidChange: Boolean;
 begin
-  DidChange := False;
-  if MouseInClient then
-    OldImagePoint := ScreenToImage(ScreenToClient(Mouse.CursorPos));
-
   case Inc of
     True:
       for I := Low(ZOOM_LEVELS) to High(ZOOM_LEVELS) do
         if (ZOOM_LEVELS[I] > FZoomLevel) then
         begin
-          ChangeZoom(I);
-          DidChange := True;
+          SetZoom(ZOOM_LEVELS[I], ZOOM_PIXELS[I]);
           Break;
         end;
 
@@ -652,18 +666,9 @@ begin
       for I := High(ZOOM_LEVELS) downto Low(ZOOM_LEVELS) do
         if (ZOOM_LEVELS[I] < FZoomLevel) then
         begin
-          ChangeZoom(I);
-          DidChange := True;
+          SetZoom(ZOOM_LEVELS[I], ZOOM_PIXELS[I]);
           Break;
         end;
-  end;
-
-  if DidChange then
-  begin
-    UpdateScrollBars();
-
-    if MouseInClient then
-      MoveTo(OldImagePoint{%H-});
   end;
 end;
 
@@ -726,6 +731,7 @@ begin
   FZoomMax := ZOOM_LEVELS[High(ZOOM_LEVELS)];
   FZoomLevel := 100;
   FZoomPixels := 1;
+  FAllowZoom := True;
 
   FVertScroll := TSimbaScrollBar.Create(Self);
   FVertScroll.Parent := Self;
@@ -892,6 +898,26 @@ begin
   FBackground := AValue;
   FImageScrollBox.BackgroundResized();
   FImageScrollBox.Repaint();
+end;
+
+function TSimbaImageBox.GetZoom: Integer;
+begin
+  Result := FImageScrollBox.FZoomLevel;
+end;
+
+function TSimbaImageBox.GetAllowZoom: Boolean;
+begin
+  Result := FImageScrollBox.FAllowZoom;
+end;
+
+procedure TSimbaImageBox.SetZoom(AValue: Integer);
+begin
+  FImageScrollBox.SetZoomLevel(AValue);
+end;
+
+procedure TSimbaImageBox.SetAllowZoom(AValue: Boolean);
+begin
+  FImageScrollBox.FAllowZoom := AValue;
 end;
 
 procedure TSimbaImageBox.Paint;
