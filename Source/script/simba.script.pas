@@ -252,7 +252,6 @@ constructor TSimbaScript.Create;
 begin
   inherited Create();
 
-  //FTarget := TSimbaTarget.Create();
   FPlugins := TSimbaScriptPluginList.Create(True);
 end;
 

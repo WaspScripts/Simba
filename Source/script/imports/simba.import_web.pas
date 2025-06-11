@@ -14,10 +14,10 @@ implementation
 
 uses
   lptypes, ffi,
+  simba.script_importutil,
   simba.nativeinterface, simba.httpclient, simba.internetsocket, simba.openssl, simba.misc;
 
 type
-  PSimbaHTTPClient = ^TSimbaHTTPClient;
   PHTTPStatus = ^EHTTPStatus;
   PInternetSocket = ^TInternetSocket;
   PInternetSocketASync = ^TInternetSocketASync;
@@ -26,7 +26,7 @@ type
 (*
 Web
 ===
-Internet HTTP request/post methods.
+HTTP request/post methods.
 
 - There is a pre-defined variable `HTTPClient` to use.
 *)
@@ -56,135 +56,123 @@ begin
 end;
 
 (*
-TSimbaHTTPClient.Create
------------------------
+THTTPClient.Create
+------------------
 ```
-function TSimbaHTTPClient.Create: TSimbaHTTPClient; static;
+function THTTPClient.Construct: THTTPClient; static;
+function THTTPClient.Construct(Proxy: String; Auth: String = ""): THTTPClient; static;
 ```
 
-Create a SimbaHTTPClient. This must be freed.
-
-Example:
-
+THTTPClient constructor. Use the `new` keyword to call this method like so:
 ```
-var
-  AnotherHTTPClient: TSimbaHTTPClient;
-begin
-  AnotherHTTPClient := TSimbaHTTPClient.Create();
-  WriteLn AnotherHTTPClient.Get('www.google.com');
-  AnotherHTTPClient.Free();
-end;
+myClient := new THTTPClient();
 ```
 *)
-procedure _LapeSimbaHTTPClient_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_Construct1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaHTTPClient(Result)^ := TSimbaHTTPClient.Create();
+  PLapeObjectHTTPClient(Result)^^ := TSimbaHTTPClient.Create();
+end;
+
+procedure _LapeHTTPClient_Construct2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PLapeObjectHTTPClient(Result)^^ := TSimbaHTTPClient.CreateWithProxy(PString(Params^[0])^, PString(Params^[1])^);
+end;
+
+procedure _LapeHTTPClient_Destroy(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  LapeObjectDestroy(PLapeObject(Params^[0]));
 end;
 
 (*
-TSimbaHTTPClient.CreateWithProxy
---------------------------------
+THTTPClient.OnDownloadProgress
+------------------------------
 ```
-function TSimbaHTTPClient.CreateWithProxy(Host: String; User: String = ''; Pass: String = ''): THTTPClient; static;
+property THTTPClient.OnDownloadProgress: TSimbaHTTPDownloadingEvent;
 ```
-
-Variant which uses a proxy for all connections.
 *)
-procedure _LapeSimbaHTTPClient_CreateWithProxy(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_OnDownloadProgress_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaHTTPClient(Result)^ := TSimbaHTTPClient.CreateWithProxy(PString(Params^[0])^, PString(Params^[1])^, PString(Params^[2])^);
+  TSimbaHTTPDownloadingEvent(Result^) := PLapeObjectHTTPClient(Params^[0])^^.OnDownloadProgress;
+end;
+
+procedure _LapeHTTPClient_OnDownloadProgress_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+begin
+  PLapeObjectHTTPClient(Params^[0])^^.OnDownloadProgress := TSimbaHTTPDownloadingEvent(Params^[1]^);
 end;
 
 (*
-TSimbaHTTPClient.OnDownloadProgress
------------------------------------
+THTTPClient.OnExtractProgress
+-----------------------------
 ```
-property TSimbaHTTPClient.OnDownloadProgress: TSimbaHTTPDownloadingEvent;
+property THTTPClient.OnExtractProgress: TSimbaHTTPExtractingEvent;
 ```
 *)
-procedure _LapeSimbaHTTPClient_OnDownloadProgress_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_OnExtractProgress_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  TSimbaHTTPDownloadingEvent(Result^) := PSimbaHTTPClient(Params^[0])^.OnDownloadProgress;
+  TSimbaHTTPExtractingEvent(Result^) := PLapeObjectHTTPClient(Params^[0])^^.OnExtractProgress;
 end;
 
-procedure _LapeSimbaHTTPClient_OnDownloadProgress_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_OnExtractProgress_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaHTTPClient(Params^[0])^.OnDownloadProgress := TSimbaHTTPDownloadingEvent(Params^[1]^);
+  PLapeObjectHTTPClient(Params^[0])^^.OnExtractProgress := TSimbaHTTPExtractingEvent(Params^[1]^);
 end;
 
 (*
-TSimbaHTTPClient.OnExtractProgress
-----------------------------------
+THTTPClient.ConnectTimeout
+--------------------------
 ```
-property TSimbaHTTPClient.OnExtractProgress: TSimbaHTTPExtractingEvent;
+property THTTPClient.ConnectTimeout: Integer;
 ```
 *)
-procedure _LapeSimbaHTTPClient_OnExtractProgress_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_ConnectTimeout_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  TSimbaHTTPExtractingEvent(Result^) := PSimbaHTTPClient(Params^[0])^.OnExtractProgress;
+  PInteger(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.ConnectTimeout;
 end;
 
-procedure _LapeSimbaHTTPClient_OnExtractProgress_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_ConnectTimeout_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaHTTPClient(Params^[0])^.OnExtractProgress := TSimbaHTTPExtractingEvent(Params^[1]^);
+  PLapeObjectHTTPClient(Params^[0])^^.ConnectTimeout := PInteger(Params^[1])^;
 end;
 
 (*
-TSimbaHTTPClient.ConnectTimeout
--------------------------------
+THTTPClient.ReadWriteTimeout
+----------------------------
 ```
-property TSimbaHTTPClient.ConnectTimeout: Integer;
+property THTTPClient.ReadWriteTimeout: Integer;
 ```
 *)
-procedure _LapeSimbaHTTPClient_ConnectTimeout_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_ReadWriteTimeout_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PSimbaHTTPClient(Params^[0])^.ConnectTimeout;
+  PInteger(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.ReadWriteTimeout;
 end;
 
-procedure _LapeSimbaHTTPClient_ConnectTimeout_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_ReadWriteTimeout_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaHTTPClient(Params^[0])^.ConnectTimeout := PInteger(Params^[1])^;
+  PLapeObjectHTTPClient(Params^[0])^^.ReadWriteTimeout := PInteger(Params^[1])^;
 end;
 
 (*
-TSimbaHTTPClient.ReadWriteTimeout
-------------------------
+THTTPClient.Cookies
+-------------------
 ```
-property TSimbaHTTPClient.ReadWriteTimeout: Integer;
+property THTTPClient.Cookies: TStringArray;
 ```
 *)
-procedure _LapeSimbaHTTPClient_ReadWriteTimeout_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_Cookies_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PSimbaHTTPClient(Params^[0])^.ReadWriteTimeout;
+  PStringArray(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.Cookies.ToStringArray();
 end;
 
-procedure _LapeSimbaHTTPClient_ReadWriteTimeout_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_Cookies_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaHTTPClient(Params^[0])^.ReadWriteTimeout := PInteger(Params^[1])^;
+  PLapeObjectHTTPClient(Params^[0])^^.Cookies.AddStrings(PStringArray(Params^[1])^, True);
 end;
 
 (*
-TSimbaHTTPClient.Cookies
-------------------------
+THTTPClient.ResponseStatus
+--------------------------
 ```
-property TSimbaHTTPClient.Cookies: TStringArray;
-```
-*)
-procedure _LapeSimbaHTTPClient_Cookies_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PStringArray(Result)^ := PSimbaHTTPClient(Params^[0])^.Cookies.ToStringArray();
-end;
-
-procedure _LapeSimbaHTTPClient_Cookies_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
-begin
-  PSimbaHTTPClient(Params^[0])^.Cookies.AddStrings(PStringArray(Params^[1])^, True);
-end;
-
-(*
-TSimbaHTTPClient.ResponseStatus
--------------------------------
-```
-property TSimbaHTTPClient.ResponseStatus: EHTTPStatus;
+property THTTPClient.ResponseStatus: EHTTPStatus;
 ```
 
 Returns the response status of the last response.
@@ -194,220 +182,222 @@ Returns the response status of the last response.
     WriteLn('Response status was OK!')
 ```
 *)
-procedure _LapeSimbaHTTPClient_ResponseStatus_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_ResponseStatus_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PHTTPStatus(Result)^ := PSimbaHTTPClient(Params^[0])^.ResponseStatus;
+  PHTTPStatus(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.ResponseStatus;
 end;
 
 (*
-TSimbaHTTPClient.ResponseHeaders
---------------------------------
+THTTPClient.ResponseHeaders
+---------------------------
 ```
-function TSimbaHTTPClient.ResponseHeaders: TStringArray;
+function THTTPClient.ResponseHeaders: TStringArray;
 ```
 *)
-procedure _LapeSimbaHTTPClient_ResponseHeaders_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_ResponseHeaders_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PStringArray(Result)^ := PSimbaHTTPClient(Params^[0])^.ResponseHeaders.ToStringArray();
+  PStringArray(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.ResponseHeaders.ToStringArray();
 end;
 
 (*
-TSimbaHTTPClient.ResponseHeader
--------------------------------
+THTTPClient.ResponseHeader
+--------------------------
 ```
-property TSimbaHTTPClient.ResponseHeader[Name: String]: String;
+property THTTPClient.ResponseHeader[Name: String]: String;
 ```
 *)
-procedure _LapeSimbaHTTPClient_ResponseHeader_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_ResponseHeader_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PSimbaHTTPClient(Params^[0])^.ResponseHeader[PString(Params^[1])^];
+  PString(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.ResponseHeader[PString(Params^[1])^];
 end;
 
 (*
-TSimbaHTTPClient.RequestHeader
-------------------------------
+THTTPClient.RequestHeader
+-------------------------
 ```
-property TSimbaHTTPClient.RequestHeader[Name: String]: String;
+property THTTPClient.RequestHeader[Name: String]: String;
 ```
 *)
-procedure _LapeSimbaHTTPClient_RequestHeader_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_RequestHeader_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PSimbaHTTPClient(Params^[0])^.RequestHeader[PString(Params^[1])^];
+  PString(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.RequestHeader[PString(Params^[1])^];
 end;
 
-procedure _LapeSimbaHTTPClient_RequestHeader_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_RequestHeader_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaHTTPClient(Params^[0])^.RequestHeader[PString(Params^[1])^] := PString(Params^[2])^;
+  PLapeObjectHTTPClient(Params^[0])^^.RequestHeader[PString(Params^[1])^] := PString(Params^[2])^;
 end;
 
 (*
-TSimbaHTTPClient.Reset
-----------------------
+THTTPClient.Reset
+-----------------
 ```
-procedure TSimbaHTTPClient.Reset;
+procedure THTTPClient.Reset;
 ```
 *)
-procedure _LapeSimbaHTTPClient_Reset(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_Reset(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaHTTPClient(Params^[0])^.Reset();
+  PLapeObjectHTTPClient(Params^[0])^^.Reset();
 end;
 
 (*
-TSimbaHTTPClient.Get
---------------------
+THTTPClient.Get
+---------------
 ```
-function TSimbaHTTPClient.Get(URL: String): String;
+function THTTPClient.Get(URL: String): String;
 ```
 
 Return a webpages content as a string.
 *)
-procedure _LapeSimbaHTTPClient_Get(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+
+
+procedure _LapeHTTPClient_Get(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PSimbaHTTPClient(Params^[0])^.Get(PString(Params^[1])^);
+  PString(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.Get(PString(Params^[1])^);
 end;
 
 (*
-TSimbaHTTPClient.GetJson
-------------------------
+THTTPClient.GetJson
+-------------------
 ```
-function TSimbaHTTPClient.GetJson(URL: String): TJsonItem;
+function THTTPClient.GetJson(URL: String): TJsonItem;
 ```
 *)
-procedure _LapeSimbaHTTPClient_GetJson(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_GetJson(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointer(Result)^ := PSimbaHTTPClient(Params^[0])^.GetJson(PString(Params^[1])^);
+  PPointer(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.GetJson(PString(Params^[1])^);
 end;
 
 (*
-TSimbaHTTPClient.GetFile
-------------------------
+THTTPClient.GetFile
+-------------------
 ```
-procedure TSimbaHTTPClient.GetFile(URL, LocalFileName: String);
+procedure THTTPClient.GetFile(URL, LocalFileName: String);
 ```
 
 Save a webpages content to a local file.
 *)
-procedure _LapeSimbaHTTPClient_GetFile(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_GetFile(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaHTTPClient(Params^[0])^.GetFile(PString(Params^[1])^, PString(Params^[2])^);
+  PLapeObjectHTTPClient(Params^[0])^^.GetFile(PString(Params^[1])^, PString(Params^[2])^);
 end;
 
 (*
-TSimbaHTTPClient.GetZip
------------------------
+THTTPClient.GetZip
+------------------
 ```
-procedure TSimbaHTTPClient.GetZip(URL: String; OutputPath: String);
+procedure THTTPClient.GetZip(URL: String; OutputPath: String);
 ```
 *)
-procedure _LapeSimbaHTTPClient_GetZIP(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_GetZIP(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaHTTPClient(Params^[0])^.GetZip(PString(Params^[1])^, PString(Params^[2])^);
+  PLapeObjectHTTPClient(Params^[0])^^.GetZip(PString(Params^[1])^, PString(Params^[2])^);
 end;
 
 (*
-TSimbaHTTPClient.Head
----------------------
+THTTPClient.Head
+----------------
 ```
-function TSimbaHTTPClient.Head(URL: String): EHTTPStatus;
+function THTTPClient.Head(URL: String): EHTTPStatus;
 ```
 
 Header request. Headers will be written to `HTTPClient.GetResponseHeaders()`
 *)
-procedure _LapeSimbaHTTPClient_Head(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_Head(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PHTTPStatus(Result)^ := PSimbaHTTPClient(Params^[0])^.Head(PString(Params^[1])^);
+  PHTTPStatus(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.Head(PString(Params^[1])^);
 end;
 
 (*
-TSimbaHTTPClient.Post
----------------------
+THTTPClient.Post
+----------------
 ```
-function TSimbaHTTPClient.Post(URL: String; Data: String): String;
+function THTTPClient.Post(URL: String; Data: String): String;
 ```
 
 HTTP post request.
 
 - `Data` is sent in request body.
 *)
-procedure _LapeSimbaHTTPClient_Post(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_Post(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PSimbaHTTPClient(Params^[0])^.Post(PString(Params^[1])^, PString(Params^[2])^);
+  PString(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.Post(PString(Params^[1])^, PString(Params^[2])^);
 end;
 
 (*
-TSimbaHTTPClient.Patch
-----------------------
+THTTPClient.Patch
+-----------------
 ```
-function TSimbaHTTPClient.Patch(URL, Data: String): String;
+function THTTPClient.Patch(URL, Data: String): String;
 ```
 *)
-procedure _LapeSimbaHTTPClient_Patch(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_Patch(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PSimbaHTTPClient(Params^[0])^.Patch(PString(Params^[1])^, PString(Params^[2])^);
+  PString(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.Patch(PString(Params^[1])^, PString(Params^[2])^);
 end;
 
 (*
-TSimbaHTTPClient.Put
+THTTPClient.Put
+---------------
+```
+function THTTPClient.Put(URL, Data: String): String;
+```
+*)
+procedure _LapeHTTPClient_Put(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PString(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.Put(PString(Params^[1])^, PString(Params^[2])^);
+end;
+
+(*
+THTTPClient.Delete
+------------------
+```
+function THTTPClient.Delete(URL, Data: String): String;
+```
+*)
+procedure _LapeHTTPClient_Delete(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PString(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.Delete(PString(Params^[1])^, PString(Params^[2])^);
+end;
+
+(*
+THTTPClient.Options
+-------------------
+```
+function THTTPClient.Options(URL, Data: String): String;
+```
+*)
+procedure _LapeHTTPClient_Options(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+begin
+  PString(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.Options(PString(Params^[1])^, PString(Params^[2])^);
+end;
+
+(*
+THTTPClient.PostForm
 --------------------
 ```
-function TSimbaHTTPClient.Put(URL, Data: String): String;
-```
-*)
-procedure _LapeSimbaHTTPClient_Put(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PString(Result)^ := PSimbaHTTPClient(Params^[0])^.Put(PString(Params^[1])^, PString(Params^[2])^);
-end;
-
-(*
-TSimbaHTTPClient.Delete
------------------------
-```
-function TSimbaHTTPClient.Delete(URL, Data: String): String;
-```
-*)
-procedure _LapeSimbaHTTPClient_Delete(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PString(Result)^ := PSimbaHTTPClient(Params^[0])^.Delete(PString(Params^[1])^, PString(Params^[2])^);
-end;
-
-(*
-TSimbaHTTPClient.Options
------------------------
-```
-function TSimbaHTTPClient.Options(URL, Data: String): String;
-```
-*)
-procedure _LapeSimbaHTTPClient_Options(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
-begin
-  PString(Result)^ := PSimbaHTTPClient(Params^[0])^.Options(PString(Params^[1])^, PString(Params^[2])^);
-end;
-
-(*
-TSimbaHTTPClient.PostForm
--------------------------
-```
-function TSimbaHTTPClient.PostForm(URL: String; Data: String): String;
+function THTTPClient.PostForm(URL: String; Data: String): String;
 ```
 
 Post form data (www-urlencoded)
 *)
-procedure _LapeSimbaHTTPClient_PostForm(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_PostForm(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PSimbaHTTPClient(Params^[0])^.PostForm(PString(Params^[1])^, PString(Params^[2])^);
+  PString(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.PostForm(PString(Params^[1])^, PString(Params^[2])^);
 end;
 
 (*
-TSimbaHTTPClient.PostFormFile
------------------------------
+THTTPClient.PostFormFile
+------------------------
 ```
-function TSimbaHTTPClient.PostFormFile(const URL, FieldName, FileName: string): String;
+function THTTPClient.PostFormFile(const URL, FieldName, FileName: string): String;
 ```
 
 Post form with a local file file
 *)
-procedure _LapeSimbaHTTPClient_PostFormFile(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+procedure _LapeHTTPClient_PostFormFile(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PSimbaHTTPClient(Params^[0])^.PostFormFile(PString(Params^[1])^, PString(Params^[2])^, PString(Params^[3])^);
+  PString(Result)^ := PLapeObjectHTTPClient(Params^[0])^^.PostFormFile(PString(Params^[1])^, PString(Params^[2])^, PString(Params^[3])^);
 end;
 
 (*
@@ -659,8 +649,6 @@ TInternetSocket.ReadWriteTimeout
 --------------------------------
 ```
 property TInternetSocket.ReadWriteTimeout: Integer
-```
-```
 property TInternetSocket.ReadWriteTimeout(Value: Integer)
 ```
 
@@ -906,44 +894,46 @@ begin
   begin
     DumpSection := 'Web';
 
+    LapeObjectImport(Script.Compiler, 'THTTPClient');
+
     addGlobalType(specialize GetEnumDecl<EHTTPStatus>(True, True), 'EHTTPStatus');
     addGlobalFunc('property EHTTPStatus.AsInteger: Integer', @_LapeHTTPStatus_AsInteger_Read);
     addGlobalFunc('property EHTTPStatus.AsString: String', @_LapeHTTPStatus_AsString_Read);
 
-    addGlobalType('type TBaseClass', 'THTTPClient');
     addGlobalType('procedure(Sender: THTTPClient; URL, ContentType: String; Position, Size: Int64) of object', 'THTTPDownloadingEvent', FFI_DEFAULT_ABI);
     addGlobalType('procedure(Sender: THTTPClient; URL: String; Percent: Double) of object', 'THTTPExtractingEvent', FFI_DEFAULT_ABI);
 
-    addGlobalFunc('function THTTPClient.Create: THTTPClient; static;', @_LapeSimbaHTTPClient_Create);
-    addGlobalFunc('function THTTPClient.CreateWithProxy(Proxy: String; User: String = ''; Pass: String = ''): THTTPClient; static;', @_LapeSimbaHTTPClient_CreateWithProxy);
+    addGlobalFunc('function THTTPClient.Construct: THTTPClient; static; overload;', @_LapeHTTPClient_Construct1);
+    addGlobalFunc('function THTTPClient.Construct(Proxy: String; Auth: String = ""): THTTPClient; static; overload', @_LapeHTTPClient_Construct2);
+    addGlobalFunc('procedure THTTPClient.Destroy;', @_LapeHTTPClient_Destroy);
 
-    addProperty('THTTPClient', 'OnDownloadProgress', 'THTTPDownloadingEvent', @_LapeSimbaHTTPClient_OnDownloadProgress_Read, @_LapeSimbaHTTPClient_OnDownloadProgress_Write);
-    addProperty('THTTPClient', 'OnExtractProgress', 'THTTPExtractingEvent', @_LapeSimbaHTTPClient_OnExtractProgress_Read, @_LapeSimbaHTTPClient_OnExtractProgress_Write);
+    addProperty('THTTPClient', 'OnDownloadProgress', 'THTTPDownloadingEvent', @_LapeHTTPClient_OnDownloadProgress_Read, @_LapeHTTPClient_OnDownloadProgress_Write);
+    addProperty('THTTPClient', 'OnExtractProgress', 'THTTPExtractingEvent', @_LapeHTTPClient_OnExtractProgress_Read, @_LapeHTTPClient_OnExtractProgress_Write);
 
-    addProperty('THTTPClient', 'ReadWriteTimeout', 'Integer', @_LapeSimbaHTTPClient_ReadWriteTimeout_Read, @_LapeSimbaHTTPClient_ReadWriteTimeout_Write);
-    addProperty('THTTPClient', 'ConnectTimeout', 'Integer', @_LapeSimbaHTTPClient_ConnectTimeout_Read, @_LapeSimbaHTTPClient_ConnectTimeout_Write);
-    addProperty('THTTPClient', 'Cookies', 'TStringArray', @_LapeSimbaHTTPClient_Cookies_Read, @_LapeSimbaHTTPClient_Cookies_Write);
-    addProperty('THTTPClient', 'ResponseStatus', 'EHTTPStatus', @_LapeSimbaHTTPClient_ResponseStatus_Read);
-    addProperty('THTTPClient', 'ResponseHeaders', 'TStringArray', @_LapeSimbaHTTPClient_ResponseHeaders_Read);
-    addPropertyIndexed('THTTPClient', 'RequestHeader', 'Name: String', 'String', @_LapeSimbaHTTPClient_RequestHeader_Read, @_LapeSimbaHTTPClient_RequestHeader_Write);
-    addPropertyIndexed('THTTPClient', 'ResponseHeader', 'Name: String', 'String', @_LapeSimbaHTTPClient_ResponseHeader_Read);
+    addProperty('THTTPClient', 'ReadWriteTimeout', 'Integer', @_LapeHTTPClient_ReadWriteTimeout_Read, @_LapeHTTPClient_ReadWriteTimeout_Write);
+    addProperty('THTTPClient', 'ConnectTimeout', 'Integer', @_LapeHTTPClient_ConnectTimeout_Read, @_LapeHTTPClient_ConnectTimeout_Write);
+    addProperty('THTTPClient', 'Cookies', 'TStringArray', @_LapeHTTPClient_Cookies_Read, @_LapeHTTPClient_Cookies_Write);
+    addProperty('THTTPClient', 'ResponseStatus', 'EHTTPStatus', @_LapeHTTPClient_ResponseStatus_Read);
+    addProperty('THTTPClient', 'ResponseHeaders', 'TStringArray', @_LapeHTTPClient_ResponseHeaders_Read);
+    addPropertyIndexed('THTTPClient', 'RequestHeader', 'Name: String', 'String', @_LapeHTTPClient_RequestHeader_Read, @_LapeHTTPClient_RequestHeader_Write);
+    addPropertyIndexed('THTTPClient', 'ResponseHeader', 'Name: String', 'String', @_LapeHTTPClient_ResponseHeader_Read);
 
-    addGlobalFunc('procedure THTTPClient.Reset', @_LapeSimbaHTTPClient_Reset);
+    addGlobalFunc('procedure THTTPClient.Reset', @_LapeHTTPClient_Reset);
 
-    addGlobalFunc('function THTTPClient.Get(URL: String): String', @_LapeSimbaHTTPClient_Get);
-    addGlobalFunc('function THTTPClient.GetJson(URL: String): TJsonItem', @_LapeSimbaHTTPClient_GetJson);
-    addGlobalFunc('procedure THTTPClient.GetFile(URL, LocalFileName: String)', @_LapeSimbaHTTPClient_GetFile);
-    addGlobalFunc('procedure THTTPClient.GetZip(URL: String; OutputPath: String)', @_LapeSimbaHTTPClient_GetZIP);
-    addGlobalFunc('function THTTPClient.Head(URL: String): EHTTPStatus', @_LapeSimbaHTTPClient_Head);
+    addGlobalFunc('function THTTPClient.Get(URL: String): String', @_LapeHTTPClient_Get);
+    addGlobalFunc('function THTTPClient.GetJson(URL: String): TJsonItem', @_LapeHTTPClient_GetJson);
+    addGlobalFunc('procedure THTTPClient.GetFile(URL, LocalFileName: String)', @_LapeHTTPClient_GetFile);
+    addGlobalFunc('procedure THTTPClient.GetZip(URL: String; OutputPath: String)', @_LapeHTTPClient_GetZIP);
+    addGlobalFunc('function THTTPClient.Head(URL: String): EHTTPStatus', @_LapeHTTPClient_Head);
 
-    addGlobalFunc('function THTTPClient.Post(URL: String; Data: String): String', @_LapeSimbaHTTPClient_Post);
-    addGlobalFunc('function THTTPClient.Patch(URL, PostData: String): String', @_LapeSimbaHTTPClient_Patch);
-    addGlobalFunc('function THTTPClient.Put(URL, PostData: String): String', @_LapeSimbaHTTPClient_Put);
-    addGlobalFunc('function THTTPClient.Delete(URL, PostData: String): String', @_LapeSimbaHTTPClient_Delete);
-    addGlobalFunc('function THTTPClient.Options(URL, PostData: String): String', @_LapeSimbaHTTPClient_Options);
+    addGlobalFunc('function THTTPClient.Post(URL: String; Data: String): String', @_LapeHTTPClient_Post);
+    addGlobalFunc('function THTTPClient.Patch(URL, PostData: String): String', @_LapeHTTPClient_Patch);
+    addGlobalFunc('function THTTPClient.Put(URL, PostData: String): String', @_LapeHTTPClient_Put);
+    addGlobalFunc('function THTTPClient.Delete(URL, PostData: String): String', @_LapeHTTPClient_Delete);
+    addGlobalFunc('function THTTPClient.Options(URL, PostData: String): String', @_LapeHTTPClient_Options);
 
-    addGlobalFunc('function THTTPClient.PostForm(URL: String; Data: String): String', @_LapeSimbaHTTPClient_PostForm);
-    addGlobalFunc('function THTTPClient.PostFormFile(const URL, FieldName, FileName: string): String', @_LapeSimbaHTTPClient_PostFormFile);
+    addGlobalFunc('function THTTPClient.PostForm(URL: String; Data: String): String', @_LapeHTTPClient_PostForm);
+    addGlobalFunc('function THTTPClient.PostFormFile(const URL, FieldName, FileName: string): String', @_LapeHTTPClient_PostFormFile);
 
     addGlobalFunc('procedure URLOpenInBrowser(URL: String)', @_LapeURLOpenInBrowser);
     addGlobalFunc('function URLFetch(URL: String): String', @_LapeURLFetch);
@@ -952,11 +942,14 @@ begin
     addGlobalFunc('function URLEncode(S: String): String', @_LapeURLEncode);
     addGlobalFunc('function URLDecode(S: String): String', @_LapeURLDecode);
 
-    with addGlobalVar('THTTPClient', nil, 'HTTPClient') do
-    begin
-      TSimbaHTTPClient(Ptr^) := TSimbaHTTPClient.Create();
-      TSimbaHTTPClient(Ptr^).FreeOnTerminate := True
-    end;
+    with addGlobalVar('THTTPClient', '[]', 'HTTPClient') do
+      Used := duTrue;
+
+    addDelayedCode(
+      'begin HTTPClient := new THTTPClient(); end;',
+      '!WebSetup',
+      False
+    );
 
     DumpSection := '';
 

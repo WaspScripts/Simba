@@ -64,6 +64,7 @@ const
   IMG_TICK = 62;
   IMG_PROPERTY = 63;
   IMG_INFO = 64;
+  IMG_EYE = 65;
 
 type
   TSimbaMainForm = class(TForm)

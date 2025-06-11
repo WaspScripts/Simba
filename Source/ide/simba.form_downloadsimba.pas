@@ -156,7 +156,7 @@ begin
   if (FError <> '') then
     FStatusLabel.Caption := 'Error: ' + FError
   else
-    FStatusLabel.Caption := 'Downloaded: ' + FFile;
+    FStatusLabel.Caption := 'Downloaded: ' + TSimbaPath.PathExtractRelative(Application.Location, FFile);
 
   Self.Free();
 end;

@@ -99,6 +99,7 @@ type
   TSimbaHTTPStatusEvent      = procedure(Sender: TObject; ResponseStatus: EHTTPStatus) of object;
   TSimbaHTTPDownloadingEvent = procedure(Sender: TObject; URL, ContentType: String; Position, Size: Int64) of object;
 
+  PSimbaHTTPClient = ^TSimbaHTTPClient;
   TSimbaHTTPClient = class(TSimbaBaseClass)
   protected
   type
@@ -206,7 +207,7 @@ type
     function Options(URL, Data: String): String;
 
     constructor Create; reintroduce;
-    constructor CreateWithProxy(Host: String; User: String = ''; Pass: String = ''); reintroduce;
+    constructor CreateWithProxy(Host: String; Auth: String = ''); reintroduce;
     destructor Destroy; override;
   end;
 
@@ -521,7 +522,7 @@ begin
   Reset();
 end;
 
-constructor TSimbaHTTPClient.CreateWithProxy(Host: String; User: String; Pass: String);
+constructor TSimbaHTTPClient.CreateWithProxy(Host: String; Auth: String);
 begin
   Create();
 
@@ -529,8 +530,12 @@ begin
   begin
     Host := Host.Before(':');
     Port := Host.After(':').ToInt();
-    UserName := User;
-    Password := Pass;
+
+    if (Auth <> '') then
+    begin
+      UserName := Auth.Before(':');
+      Password := Auth.After(':');
+    end;
   end;
 end;
 
