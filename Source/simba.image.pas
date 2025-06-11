@@ -34,6 +34,7 @@ type
   TSimbaImageLineStarts = array of PColorBGRA;
   TSimbaImageArray = array of TSimbaImage;
 
+  PSimbaImage = ^TSimbaImage;
   TSimbaImage = class(TSimbaBaseClass)
   protected
     FWidth: Integer;

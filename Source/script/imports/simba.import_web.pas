@@ -14,7 +14,7 @@ implementation
 
 uses
   lptypes, ffi,
-  simba.script_importutil,
+  simba.script_objectutil,
   simba.nativeinterface, simba.httpclient, simba.internetsocket, simba.openssl, simba.misc;
 
 type

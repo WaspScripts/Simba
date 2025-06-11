@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,
-  simba.base, simba.script, simba.script_importutil;
+  simba.base, simba.script, simba.script_objectutil;
 
 procedure ImportTarget(Script: TSimbaScript);
 
@@ -219,13 +219,12 @@ myTarget := new TTarget();
 *)
 procedure _LapeTarget_Construct(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PLapeObject(Result)^ := TSimbaTarget.Create();
+  PLapeObjectTarget(Result)^^ := TSimbaTarget.Create();
 end;
 
 procedure _LapeTarget_Destroy(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  if IsManaging(PLapeObject(Params^[0])) and Assigned(PSimbaTarget(PLapeObject(Params^[0])^)^) then
-    FreeAndNil(PSimbaTarget(PLapeObject(Params^[0])^)^);
+  LapeObjectDestroy(PLapeObject(Params^[0]));
 end;
 
 (*
@@ -243,7 +242,7 @@ This is the default target for any TTarget created
 *)
 procedure _LapeTarget_SetDesktop(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.SetDesktop();
+  PLapeObjectTarget(Params^[0])^^.SetDesktop();
 end;
 
 (*
@@ -256,16 +255,16 @@ procedure TTarget.SetImage(TImage: TImage);
 Sets the TSimbaImage as a target.
 
 ```{note}
-Ownership of the image is taken. It will be freed when the target is changed or target is freed
+Ownership of the image is taken. It will be freed whenever the target is changed or freed
 ```
 *)
 procedure _LapeTarget_SetImage(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
   if (PLapeObject(Params^[1])^ = nil) then
-    PSimbaTarget(PLapeObject(Params^[0])^)^.SetImage(nil)
+    PLapeObjectTarget(Params^[0])^^.SetImage(nil)
   else
   begin
-    PSimbaTarget(PLapeObject(Params^[0])^)^.SetImage(PSimbaImage(PLapeObject(Params^[1])^)^);
+    PLapeObjectTarget(Params^[0])^^.SetImage(PLapeObjectImage(Params^[1])^^);
     SetManaging(PLapeObject(Params^[1]), False);
   end;
 end;
@@ -281,7 +280,7 @@ Sets a window handle as a target.
 *)
 procedure _LapeTarget_SetWindow(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.SetWindow(PWindowHandle(Params^[1])^);
+  PLapeObjectTarget(Params^[0])^^.SetWindow(PWindowHandle(Params^[1])^);
 end;
 
 (*
@@ -295,7 +294,7 @@ Sets a plugin (via EIOS API) as the target.
 *)
 procedure _LapeTarget_SetEIOS(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.SetEIOS(PString(Params^[1])^, PString(Params^[2])^);
+  PLapeObjectTarget(Params^[0])^^.SetEIOS(PString(Params^[1])^, PString(Params^[2])^);
 end;
 
 (*
@@ -310,7 +309,7 @@ For more details about the API see <http://villavu.github.io/Simba/tutorials/plu
 *)
 procedure _LapeTarget_SetPlugin1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.SetPlugin(PString(Params^[1])^, PString(Params^[2])^);
+  PLapeObjectTarget(Params^[0])^^.SetPlugin(PString(Params^[1])^, PString(Params^[2])^);
 end;
 
 (*
@@ -324,7 +323,7 @@ Overloaded version that returns a "external canvas" to draw on.
 *)
 procedure _LapeTarget_SetPlugin2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.SetPlugin(PString(Params^[1])^, PString(Params^[2])^, TSimbaExternalCanvas(Params^[3]^));
+  PLapeObjectTarget(Params^[0])^^.SetPlugin(PString(Params^[1])^, PString(Params^[2])^, TSimbaExternalCanvas(Params^[3]^));
 end;
 
 (*
@@ -336,7 +335,7 @@ procedure TTarget.FreezeImage(Bounds: TBox = [-1,-1,-1,-1]);
 *)
 procedure _LapeTarget_FreezeImage(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.FreezeImage(PBox(Params^[1])^);
+  PLapeObjectTarget(Params^[0])^^.FreezeImage(PBox(Params^[1])^);
 end;
 
 (*
@@ -348,7 +347,7 @@ procedure TTarget.UnFreezeImage;
 *)
 procedure _LapeTarget_UnFreezeImage(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.UnFreezeImage();
+  PLapeObjectTarget(Params^[0])^^.UnFreezeImage();
 end;
 
 (*
@@ -360,7 +359,7 @@ function TTarget.IsImageFrozen: Boolean;
 *)
 procedure _LapeTarget_IsImageFrozen(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.IsImageFrozen();
+  PBoolean(Result)^ := PLapeObjectTarget(Params^[0])^^.IsImageFrozen();
 end;
 
 (*
@@ -375,7 +374,7 @@ If bounds is not specified the entire target image is returned.
 *)
 procedure _LapeTarget_GetImage(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PLapeObject(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.GetImage(PBox(Params^[1])^);
+  PLapeObjectImage(Result)^^ := PLapeObjectTarget(Params^[0])^^.GetImage(PBox(Params^[1])^);
 end;
 
 (*
@@ -387,7 +386,7 @@ function TTarget.IsValid: Boolean;
 *)
 procedure _LapeTarget_IsValid(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.IsValid();
+  PBoolean(Result)^ := PLapeObjectTarget(Params^[0])^^.IsValid();
 end;
 
 (*
@@ -399,7 +398,7 @@ function TTarget.IsFocused: Boolean;
 *)
 procedure _LapeTarget_IsFocused(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.IsFocused();
+  PBoolean(Result)^ := PLapeObjectTarget(Params^[0])^^.IsFocused();
 end;
 
 (*
@@ -411,7 +410,7 @@ function TTarget.Focus: Boolean;
 *)
 procedure _LapeTarget_Focus(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.Focus();
+  PBoolean(Result)^ := PLapeObjectTarget(Params^[0])^^.Focus();
 end;
 
 (*
@@ -423,7 +422,7 @@ function TTarget.ToString: String;
 *)
 procedure _LapeTarget_ToString(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.ToString();
+  PString(Result)^ := PLapeObjectTarget(Params^[0])^^.ToString();
 end;
 
 (*
@@ -443,12 +442,12 @@ Input.MouseMove([1,1]); // Will move the mouse to [101,101] on the "real" bounds
 *)
 procedure _LapeTarget_SetCustomClientArea(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.CustomClientArea := PBox(Params^[1])^;
+  PLapeObjectTarget(Params^[0])^^.CustomClientArea := PBox(Params^[1])^;
 end;
 
 procedure _LapeTarget_GetCustomClientArea(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBox(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.CustomClientArea;
+  PBox(Result)^ := PLapeObjectTarget(Params^[0])^^.CustomClientArea;
 end;
 
 (*
@@ -460,7 +459,7 @@ property TTarget.Bounds: TBox;
 *)
 procedure _LapeTarget_Bounds(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBox(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.Bounds;
+  PBox(Result)^ := PLapeObjectTarget(Params^[0])^^.Bounds;
 end;
 
 (*
@@ -472,7 +471,7 @@ property TTarget.Width: Integer;
 *)
 procedure _LapeTarget_Width(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.Width;
+  PInteger(Result)^ := PLapeObjectTarget(Params^[0])^^.Width;
 end;
 
 (*
@@ -484,7 +483,7 @@ property TTarget.Height: Integer;
 *)
 procedure _LapeTarget_Height(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.Height;
+  PInteger(Result)^ := PLapeObjectTarget(Params^[0])^^.Height;
 end;
 
 (*
@@ -498,7 +497,7 @@ Returns the targets dimensions as in a TSize.
 *)
 procedure _LapeTarget_Size(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSize(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.Size;
+  PSize(Result)^ := PLapeObjectTarget(Params^[0])^^.Size;
 end;
 
 (*
@@ -517,7 +516,7 @@ Target.Options.MouseSpeed := 15;
 *)
 procedure _LapeTarget_Options_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTargetOptions(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.Options;
+  PSimbaTargetOptions(Result)^ := PLapeObjectTarget(Params^[0])^^.Options;
 end;
 
 (*
@@ -550,20 +549,15 @@ var
 procedure TEventProxy.DoProxy(Target: TSimbaTarget; Data: TTargetEventData; UserData: Pointer);
 type
   TScriptCallback = procedure(Target: TByteArray; Data: TTargetEventData) of object;
-var
-  LapeObject: TLapeObject;
 begin
-  // Create a temp lape object that also wont free the target
-  LapeObject := Target;
-  SetManaging(@LapeObject, False);
-
+  // create a temp lape object that also wont free the target and
   // call the real script callback in userdata
-  TScriptCallback(UserData^)(LapeObject, Data);
+  TScriptCallback(UserData^)(LapeObjectAlloc(Target, False), Data);
 end;
 
 procedure _LapeTarget_AddEvent(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.AddEvent(PTargetEvent(Params^[1])^, @EventProxy.DoProxy, Params^[2], SizeOf(TMethod));
+  PInteger(Result)^ := PLapeObjectTarget(Params^[0])^^.AddEvent(PTargetEvent(Params^[1])^, @EventProxy.DoProxy, Params^[2], SizeOf(TMethod));
 end;
 
 (*
@@ -575,7 +569,7 @@ procedure TTarget.RemoveEvent(EventType: ETargetEventType; Index: Integer);
 *)
 procedure _LapeTarget_RemoveEvent(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.RemoveEvent(PTargetEvent(Params^[1])^, PInteger(Params^[2])^);
+  PLapeObjectTarget(Params^[0])^^.RemoveEvent(PTargetEvent(Params^[1])^, PInteger(Params^[2])^);
 end;
 
 (*
@@ -589,7 +583,7 @@ Instantly moves the mouse to `P`
 *)
 procedure _LapeTarget_MouseTeleport(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.MouseTeleport(PPoint(Params^[1])^);
+  PLapeObjectTarget(Params^[0])^^.MouseTeleport(PPoint(Params^[1])^);
 end;
 
 (*
@@ -601,7 +595,7 @@ procedure TTarget.MouseClick(Button: EMouseButton);
 *)
 procedure _LapeTarget_MouseClick(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.MouseClick(PMouseButton(Params^[1])^);
+  PLapeObjectTarget(Params^[0])^^.MouseClick(PMouseButton(Params^[1])^);
 end;
 
 (*
@@ -613,7 +607,7 @@ procedure TTarget.MouseDown(Button: EMouseButton);
 *)
 procedure _LapeTarget_MouseDown(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.MouseDown(PMouseButton(Params^[1])^);
+  PLapeObjectTarget(Params^[0])^^.MouseDown(PMouseButton(Params^[1])^);
 end;
 
 (*
@@ -625,7 +619,7 @@ procedure TTarget.MouseUp(Button: EMouseButton);
 *)
 procedure _LapeTarget_MouseUp(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.MouseUp(PMouseButton(Params^[1])^);
+  PLapeObjectTarget(Params^[0])^^.MouseUp(PMouseButton(Params^[1])^);
 end;
 
 (*
@@ -637,7 +631,7 @@ procedure TTarget.MouseScroll(Scrolls: Integer);
 *)
 procedure _LapeTarget_MouseScroll(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.MouseScroll(PInteger(Params^[1])^);
+  PLapeObjectTarget(Params^[0])^^.MouseScroll(PInteger(Params^[1])^);
 end;
 
 (*
@@ -649,7 +643,7 @@ function TTarget.MousePressed(Button: EMouseButton): Boolean;
 *)
 procedure _LapeTarget_MousePressed(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.MousePressed(PMouseButton(Params^[1])^);
+  PBoolean(Result)^ := PLapeObjectTarget(Params^[0])^^.MousePressed(PMouseButton(Params^[1])^);
 end;
 
 (*
@@ -668,7 +662,7 @@ The algorithm used is WindMouse. For more details see <https://ben.land/post/202
 *)
 procedure _LapeTarget_MouseMove1(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.MouseMove(PPoint(Params^[1])^);
+  PLapeObjectTarget(Params^[0])^^.MouseMove(PPoint(Params^[1])^);
 end;
 
 (*
@@ -684,12 +678,12 @@ Use `ForcedMove` to determine if the mouse will still move if it's already insid
 *)
 procedure _LapeTarget_MouseMove2(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.MouseMove(PBox(Params^[1])^, PBoolean(Params^[2])^);
+  PLapeObjectTarget(Params^[0])^^.MouseMove(PBox(Params^[1])^, PBoolean(Params^[2])^);
 end;
 
 procedure _LapeTarget_MouseMove3(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.MouseMove(PQuad(Params^[1])^, PBoolean(Params^[2])^);
+  PLapeObjectTarget(Params^[0])^^.MouseMove(PQuad(Params^[1])^, PBoolean(Params^[2])^);
 end;
 
 (*
@@ -702,12 +696,12 @@ property TTarget.MouseXY(Value: TPoint);
 *)
 procedure _LapeTarget_MouseXY_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPoint(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.MouseXY;
+  PPoint(Result)^ := PLapeObjectTarget(Params^[0])^^.MouseXY;
 end;
 
 procedure _LapeTarget_MouseXY_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.MouseXY := PPoint(Params^[1])^;
+  PLapeObjectTarget(Params^[0])^^.MouseXY := PPoint(Params^[1])^;
 end;
 
 (*
@@ -720,12 +714,12 @@ property TTarget.MouseX(Value: Integer);
 *)
 procedure _LapeTarget_MouseX_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.MouseX;
+  PInteger(Result)^ := PLapeObjectTarget(Params^[0])^^.MouseX;
 end;
 
 procedure _LapeTarget_MouseX_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.MouseX := PInteger(Params^[1])^;
+  PLapeObjectTarget(Params^[0])^^.MouseX := PInteger(Params^[1])^;
 end;
 
 (*
@@ -738,12 +732,12 @@ property TTarget.MouseY(Value: Integer);
 *)
 procedure _LapeTarget_MouseY_Read(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.MouseY;
+  PInteger(Result)^ := PLapeObjectTarget(Params^[0])^^.MouseY;
 end;
 
 procedure _LapeTarget_MouseY_Write(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.MouseY := PInteger(Params^[1])^;
+  PLapeObjectTarget(Params^[0])^^.MouseY := PInteger(Params^[1])^;
 end;
 
 (*
@@ -755,7 +749,7 @@ procedure TTarget.KeySend(Text: String);
 *)
 procedure _LapeTarget_KeySend(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.KeySend(PString(Params^[1])^);
+  PLapeObjectTarget(Params^[0])^^.KeySend(PString(Params^[1])^);
 end;
 
 (*
@@ -767,7 +761,7 @@ procedure TTarget.KeyDown(Key: EKeyCode);
 *)
 procedure _LapeTarget_KeyDown(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.KeyDown(PKeyCode(Params^[1])^);
+  PLapeObjectTarget(Params^[0])^^.KeyDown(PKeyCode(Params^[1])^);
 end;
 
 (*
@@ -779,7 +773,7 @@ procedure TTarget.KeyUp(Key: EKeyCode);
 *)
 procedure _LapeTarget_KeyUp(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.KeyUp(PKeyCode(Params^[1])^);
+  PLapeObjectTarget(Params^[0])^^.KeyUp(PKeyCode(Params^[1])^);
 end;
 
 (*
@@ -791,7 +785,7 @@ procedure TTarget.KeyPress(Key: EKeyCode);
 *)
 procedure _LapeTarget_KeyPress(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaTarget(PLapeObject(Params^[0])^)^.KeyPress(PKeyCode(Params^[1])^);
+  PLapeObjectTarget(Params^[0])^^.KeyPress(PKeyCode(Params^[1])^);
 end;
 
 (*
@@ -803,7 +797,7 @@ function TTarget.KeyPressed(Key: EKeyCode): Boolean;
 *)
 procedure _LapeTarget_KeyPressed(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.KeyPressed(PKeyCode(Params^[1])^);
+  PBoolean(Result)^ := PLapeObjectTarget(Params^[0])^^.KeyPressed(PKeyCode(Params^[1])^);
 end;
 
 (*
@@ -815,7 +809,7 @@ function TTarget.KeyCodeFromChar(C: Char): EKeyCode;
 *)
 procedure _LapeTarget_KeyCodeFromChar(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PKeyCode(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.KeyCodeFromChar(PChar(Params^[1])^);
+  PKeyCode(Result)^ := PLapeObjectTarget(Params^[0])^^.KeyCodeFromChar(PChar(Params^[1])^);
 end;
 
 (*
@@ -827,7 +821,7 @@ function TTarget.MatchColor(Color: TColor; ColorSpace: EColorSpace; Multipliers:
 *)
 procedure _LapeTarget_MatchColor(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSingleMatrix(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.MatchColor(PColor(Params^[1])^, PColorSpace(Params^[2])^, PChannelMultipliers(Params^[3])^, PBox(Params^[4])^);
+  PSingleMatrix(Result)^ := PLapeObjectTarget(Params^[0])^^.MatchColor(PColor(Params^[1])^, PColorSpace(Params^[2])^, PChannelMultipliers(Params^[3])^, PBox(Params^[4])^);
 end;
 
 (*
@@ -839,7 +833,7 @@ function TTarget.FindColor(Color: TColor; Tolerance: Single; Bounds: TBox = [-1,
 *)
 procedure _LapeTarget_FindColor1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindColor(PColor(Params^[1])^, PSingle(Params^[2])^, PBox(Params^[3])^);
+  PPointArray(Result)^ := PLapeObjectTarget(Params^[0])^^.FindColor(PColor(Params^[1])^, PSingle(Params^[2])^, PBox(Params^[3])^);
 end;
 
 (*
@@ -851,7 +845,7 @@ function TTarget.FindColor(Color: TColorTolerance; Bounds: TBox = [-1,-1,-1,-1])
 *)
 procedure _LapeTarget_FindColor3(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindColor(PColorTolerance(Params^[1])^, PBox(Params^[2])^);
+  PPointArray(Result)^ := PLapeObjectTarget(Params^[0])^^.FindColor(PColorTolerance(Params^[1])^, PBox(Params^[2])^);
 end;
 
 (*
@@ -863,7 +857,7 @@ function TTarget.CountColor(Color: TColor; Tolerance: Single; Bounds: TBox = [-1
 *)
 procedure _LapeTarget_CountColor1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.CountColor(PColor(Params^[1])^, PSingle(Params^[2])^, PBox(Params^[3])^);
+  PInteger(Result)^ := PLapeObjectTarget(Params^[0])^^.CountColor(PColor(Params^[1])^, PSingle(Params^[2])^, PBox(Params^[3])^);
 end;
 
 (*
@@ -875,7 +869,7 @@ function TTarget.CountColor(Color: TColorTolerance; Bounds: TBox = [-1,-1,-1,-1]
 *)
 procedure _LapeTarget_CountColor3(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.CountColor(PColorTolerance(Params^[1])^, PBox(Params^[2])^);
+  PInteger(Result)^ := PLapeObjectTarget(Params^[0])^^.CountColor(PColorTolerance(Params^[1])^, PBox(Params^[2])^);
 end;
 
 (*
@@ -887,7 +881,7 @@ function TTarget.HasColor(Color: TColor; Tolerance: Single; MinCount: Integer = 
 *)
 procedure _LapeTarget_HasColor2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.HasColor(PColor(Params^[1])^, PSingle(Params^[2])^, PInteger(Params^[3])^, PBox(Params^[4])^);
+  PBoolean(Result)^ := PLapeObjectTarget(Params^[0])^^.HasColor(PColor(Params^[1])^, PSingle(Params^[2])^, PInteger(Params^[3])^, PBox(Params^[4])^);
 end;
 
 (*
@@ -899,7 +893,7 @@ function TTarget.HasColor(Color: TColorTolerance; MinCount: Integer = 1; Bounds:
 *)
 procedure _LapeTarget_HasColor3(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PBoolean(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.HasColor(PColorTolerance(Params^[1])^, PInteger(Params^[2])^, PBox(Params^[3])^);
+  PBoolean(Result)^ := PLapeObjectTarget(Params^[0])^^.HasColor(PColorTolerance(Params^[1])^, PInteger(Params^[2])^, PBox(Params^[3])^);
 end;
 
 (*
@@ -911,7 +905,7 @@ function TTarget.GetColor(P: TPoint): TColor;
 *)
 procedure _LapeTarget_GetColor(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PColor(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.GetColor(PPoint(Params^[1])^);
+  PColor(Result)^ := PLapeObjectTarget(Params^[0])^^.GetColor(PPoint(Params^[1])^);
 end;
 
 (*
@@ -923,7 +917,7 @@ function TTarget.GetColors(Points: TPointArray): TColorArray;
 *)
 procedure _LapeTarget_GetColors(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PColorArray(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.GetColors(PPointArray(Params^[1])^);
+  PColorArray(Result)^ := PLapeObjectTarget(Params^[0])^^.GetColors(PPointArray(Params^[1])^);
 end;
 
 (*
@@ -935,7 +929,7 @@ function TTarget.GetColorsMatrix(Bounds: TBox = [-1,-1,-1,-1]): TIntegerMatrix;
 *)
 procedure _LapeTarget_GetColorsMatrix(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PIntegerMatrix(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.GetColorsMatrix(PBox(Params^[1])^);
+  PIntegerMatrix(Result)^ := PLapeObjectTarget(Params^[0])^^.GetColorsMatrix(PBox(Params^[1])^);
 end;
 
 (*
@@ -947,7 +941,7 @@ function TTarget.FindImage(Image: TImage; Tolerance: Single; Bounds: TBox = [-1,
 *)
 procedure _LapeTarget_FindImage1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPoint(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindImage(PSimbaImage(PLapeObject(Params^[1])^)^, PSingle(Params^[2])^, PBox(Params^[3])^);
+  PPoint(Result)^ := PLapeObjectTarget(Params^[0])^^.FindImage(PLapeObjectImage(Params^[1])^^, PSingle(Params^[2])^, PBox(Params^[3])^);
 end;
 
 (*
@@ -959,7 +953,7 @@ function TTarget.FindImage(Image: TImage; Tolerance: Single; ColorSpace: EColorS
 *)
 procedure _LapeTarget_FindImage2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPoint(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindImage(PSimbaImage(PLapeObject(Params^[1])^)^, PSingle(Params^[2])^, PColorSpace(Params^[3])^, PChannelMultipliers(Params^[4])^, PBox(Params^[5])^);
+  PPoint(Result)^ := PLapeObjectTarget(Params^[0])^^.FindImage(PLapeObjectImage(Params^[1])^^, PSingle(Params^[2])^, PColorSpace(Params^[3])^, PChannelMultipliers(Params^[4])^, PBox(Params^[5])^);
 end;
 
 (*
@@ -971,7 +965,7 @@ function TTarget.FindImageEx(Image: TImage; Tolerance: Single; MaxToFind: Intege
 *)
 procedure _LapeTarget_FindImageEx1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindImageEx(PSimbaImage(PLapeObject(Params^[1])^)^, PSingle(Params^[2])^, PInteger(Params^[3])^, PBox(Params^[4])^);
+  PPointArray(Result)^ := PLapeObjectTarget(Params^[0])^^.FindImageEx(PLapeObjectImage(Params^[1])^^, PSingle(Params^[2])^, PInteger(Params^[3])^, PBox(Params^[4])^);
 end;
 
 (*
@@ -983,7 +977,7 @@ function TTarget.FindImageEx(Image: TImage; Tolerance: Single; ColorSpace: EColo
 *)
 procedure _LapeTarget_FindImageEx2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindImageEx(PSimbaImage(PLapeObject(Params^[1])^)^, PSingle(Params^[2])^, PColorSpace(Params^[3])^, PChannelMultipliers(Params^[4])^, PInteger(Params^[5])^, PBox(Params^[6])^);
+  PPointArray(Result)^ := PLapeObjectTarget(Params^[0])^^.FindImageEx(PLapeObjectImage(Params^[1])^^, PSingle(Params^[2])^, PColorSpace(Params^[3])^, PChannelMultipliers(Params^[4])^, PInteger(Params^[5])^, PBox(Params^[6])^);
 end;
 
 (*
@@ -995,7 +989,7 @@ function TTarget.FindTemplate(Image: TImage; out Match: Single; Bounds: TBox = [
 *)
 procedure _LapeTarget_FindTemplate(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPoint(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindTemplate(PSimbaImage(PLapeObject(Params^[1])^)^, PSingle(Params^[2])^, PBox(Params^[3])^);
+  PPoint(Result)^ := PLapeObjectTarget(Params^[0])^^.FindTemplate(PLapeObjectImage(Params^[1])^^, PSingle(Params^[2])^, PBox(Params^[3])^);
 end;
 
 (*
@@ -1007,7 +1001,7 @@ function TTarget.FindDTM(DTM: TDTM; Bounds: TBox = [-1,-1,-1,-1]): TPoint;
 *)
 procedure _LapeTarget_FindDTM(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPoint(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindDTM(PDTM(Params^[1])^, PBox(Params^[2])^);
+  PPoint(Result)^ := PLapeObjectTarget(Params^[0])^^.FindDTM(PDTM(Params^[1])^, PBox(Params^[2])^);
 end;
 
 (*
@@ -1019,7 +1013,7 @@ function TTarget.FindDTMEx(DTM: TDTM; MaxToFind: Integer = 1; Bounds: TBox = [-1
 *)
 procedure _LapeTarget_FindDTMEx(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindDTMEx(PDTM(Params^[1])^, PInteger(Params^[2])^, PBox(Params^[3])^);
+  PPointArray(Result)^ := PLapeObjectTarget(Params^[0])^^.FindDTMEx(PDTM(Params^[1])^, PInteger(Params^[2])^, PBox(Params^[3])^);
 end;
 
 (*
@@ -1031,7 +1025,7 @@ function TTarget.FindDTMRotated(DTM: TDTM; StartDegrees, EndDegrees: Double; Ste
 *)
 procedure _LapeTarget_FindDTMRotated(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPoint(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindDTMRotated(PDTM(Params^[1])^, PDouble(Params^[2])^, PDouble(Params^[3])^, PDouble(Params^[4])^, PDoubleArray(Params^[5])^, PBox(Params^[6])^);
+  PPoint(Result)^ := PLapeObjectTarget(Params^[0])^^.FindDTMRotated(PDTM(Params^[1])^, PDouble(Params^[2])^, PDouble(Params^[3])^, PDouble(Params^[4])^, PDoubleArray(Params^[5])^, PBox(Params^[6])^);
 end;
 
 (*
@@ -1043,7 +1037,7 @@ function TTarget.FindDTMRotatedEx(DTM: TDTM; StartDegrees, EndDegrees: Double; S
 *)
 procedure _LapeTarget_FindDTMRotatedEx(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindDTMRotatedEx(PDTM(Params^[1])^, PDouble(Params^[2])^, PDouble(Params^[3])^, PDouble(Params^[4])^, PDoubleArray(Params^[5])^, PInteger(Params^[6])^, PBox(Params^[7])^);
+  PPointArray(Result)^ := PLapeObjectTarget(Params^[0])^^.FindDTMRotatedEx(PDTM(Params^[1])^, PDouble(Params^[2])^, PDouble(Params^[3])^, PDouble(Params^[4])^, PDoubleArray(Params^[5])^, PInteger(Params^[6])^, PBox(Params^[7])^);
 end;
 
 (*
@@ -1055,7 +1049,7 @@ function TTarget.FindEdges(MinDiff: Single; ColorSpace: EColorSpace; Multipliers
 *)
 procedure _LapeFinder_FindEdges1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindEdges(PSingle(Params^[1])^, PColorSpace(Params^[2])^, PChannelMultipliers(Params^[3])^, PBox(Params^[4])^);
+  PPointArray(Result)^ := PLapeObjectTarget(Params^[0])^^.FindEdges(PSingle(Params^[1])^, PColorSpace(Params^[2])^, PChannelMultipliers(Params^[3])^, PBox(Params^[4])^);
 end;
 
 (*
@@ -1067,7 +1061,7 @@ function TTarget.FindEdges(MinDiff: Single; Bounds: TBox = [-1,-1,-1,-1]): TPoin
 *)
 procedure _LapeFinder_FindEdges2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.FindEdges(PSingle(Params^[1])^, PBox(Params^[2])^);
+  PPointArray(Result)^ := PLapeObjectTarget(Params^[0])^^.FindEdges(PSingle(Params^[1])^, PBox(Params^[2])^);
 end;
 
 (*
@@ -1079,7 +1073,7 @@ function TTarget.GetPixelDifference(WaitTime: Integer; Bounds: TBox = [-1,-1,-1,
 *)
 procedure _LapeFinder_GetPixelDifference1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.GetPixelDifference(PInteger(Params^[1])^, PBox(Params^[2])^);
+  PPointArray(Result)^ := PLapeObjectTarget(Params^[0])^^.GetPixelDifference(PInteger(Params^[1])^, PBox(Params^[2])^);
 end;
 
 (*
@@ -1091,7 +1085,7 @@ function TTarget.GetPixelDifference(WaitTime, Tolerance: Single; Bounds: TBox = 
 *)
 procedure _LapeFinder_GetPixelDifference2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PPointArray(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.GetPixelDifference(PInteger(Params^[1])^, PSingle(Params^[2])^, PBox(Params^[3])^);
+  PPointArray(Result)^ := PLapeObjectTarget(Params^[0])^^.GetPixelDifference(PInteger(Params^[1])^, PSingle(Params^[2])^, PBox(Params^[3])^);
 end;
 
 (*
@@ -1103,7 +1097,7 @@ function TTarget.AverageBrightness(Bounds: TBox = [-1,-1,-1,-1]): Integer;
 *)
 procedure _LapeFinder_AverageBrightness(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.AverageBrightness(PBox(Params^[1])^);
+  PInteger(Result)^ := PLapeObjectTarget(Params^[0])^^.AverageBrightness(PBox(Params^[1])^);
 end;
 
 (*
@@ -1115,7 +1109,7 @@ function TTarget.PeakBrightness(Bounds: TBox = [-1,-1,-1,-1]): Integer;
 *)
 procedure _LapeFinder_PeakBrightness(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PInteger(Result)^ := PSimbaTarget(PLapeObject(Params^[0])^)^.PeakBrightness(PBox(Params^[1])^);
+  PInteger(Result)^ := PLapeObjectTarget(Params^[0])^^.PeakBrightness(PBox(Params^[1])^);
 end;
 
 procedure ImportTarget(Script: TSimbaScript);

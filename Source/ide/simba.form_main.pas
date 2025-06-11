@@ -554,15 +554,15 @@ begin
   DockMaster.MakeVisible(SimbaFileBrowserForm, False);
   DockMaster.ScaleOnResize := False;
 
-  Width := 1200;
-  Height := 850;
+  Width := Scale96ToScreen(1200);
+  Height := Scale96ToScreen(850);
 
   if GetDockSplitter(DockMaster.GetAnchorSite(SimbaTabsForm), akLeft, Splitter) then
-    Splitter.SetSplitterPosition(250);
+    Splitter.SetSplitterPosition(Scale96ToScreen(250));
   if GetDockSplitter(DockMaster.GetAnchorSite(SimbaTabsForm), akRight, Splitter) then
-    Splitter.SetSplitterPosition(1200 - 250);
+    Splitter.SetSplitterPosition(Scale96ToScreen(1200 - 250));
   if GetDockSplitter(DockMaster.GetAnchorSite(SimbaTabsForm), akBottom, Splitter) then
-    Splitter.SetSplitterPosition(350);
+    Splitter.SetSplitterPosition(Scale96ToScreen(500));
 
   Dockmaster.ScaleOnResize := True;
 

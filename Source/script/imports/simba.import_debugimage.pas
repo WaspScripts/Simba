@@ -14,10 +14,7 @@ implementation
 
 uses
   lptypes,
-  simba.script_importutil;
-
-type
-  PSimbaImage = ^TSimbaImage;
+  simba.script_objectutil;
 
 (*
 Debug Image
@@ -169,7 +166,7 @@ begin
   begin
     if (SimbaCommunication = nil) then
       SimbaException('DebugImage requires Simba communication');
-    SimbaCommunication.DebugImage_Show(PSimbaImage(PLapeObject(Params^[1])^)^, PBoolean(Params^[2])^);
+    SimbaCommunication.DebugImage_Show(PLapeObjectImage(Params^[1])^^, PBoolean(Params^[2])^);
   end;
 end;
 
@@ -186,7 +183,7 @@ begin
   begin
     if (SimbaCommunication = nil) then
       SimbaException('DebugImage requires Simba communication');
-    SimbaCommunication.DebugImage_Update(PSimbaImage(PLapeObject(Params^[1])^)^);
+    SimbaCommunication.DebugImage_Update(PLapeObjectImage(Params^[1])^^);
   end;
 end;
 

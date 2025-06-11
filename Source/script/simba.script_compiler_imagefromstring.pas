@@ -19,7 +19,7 @@ implementation
 
 uses
   lptypes, lptree, lpvartypes, lpmessages,
-  simba.image, simba.script_importutil;
+  simba.image, simba.script_objectutil;
 
 type
   TLapeTree_InternalMethod_ImageFromString = class(TLapeTree_InternalMethod)
@@ -58,7 +58,7 @@ begin
     Image := TSimbaImage.CreateFromString(PAnsiString(Param.Ptr)^);
     Image.FreeOnTerminate := True;
 
-    PLapeObject(Result.Ptr)^ := Image;
+    PLapeObjectImage(Result.Ptr)^ := @Image;
     SetManaging(Result.Ptr, False);
   except
     on E: Exception do

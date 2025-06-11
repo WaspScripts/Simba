@@ -15,7 +15,7 @@ implementation
 uses
   lptypes,
   simba.image, simba.image_textdrawer, simba.externalcanvas,
-  simba.vartype_quad, simba.script_importutil;
+  simba.vartype_quad, simba.script_objectutil;
 
 type
   PSimbaExternalCanvas = ^TSimbaExternalCanvas;
@@ -245,7 +245,7 @@ end;
 
 procedure _LapeExternalCanvas_DrawImage(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaExternalCanvas(Params^[0])^.DrawImage(PSimbaImage(PLapeObject(Params^[1])^)^, PPoint(Params^[2])^);
+  PSimbaExternalCanvas(Params^[0])^.DrawImage(PLapeObjectImage(Params^[1])^^, PPoint(Params^[2])^);
 end;
 
 procedure _LapeExternalCanvas_DrawBox(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV

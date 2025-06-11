@@ -15,7 +15,7 @@ implementation
 uses
   clipbrd, dialogs,
   lptypes,
-  simba.script_importutil,
+  simba.script_objectutil,
   simba.process,
   simba.nativeinterface, simba.settings, simba.compress, simba.env,
   simba.dtmeditor, simba.dialog, simba.threading, simba.target,
@@ -23,7 +23,6 @@ uses
   simba.colormath, simba.aca;
 
 type
-  PSimbaTarget = ^TSimbaTarget;
   PProcessID = ^TProcessID;
 
 (*
@@ -231,7 +230,7 @@ procedure _LapeShowDTMEditor(const Params: PParamArray; const Result: Pointer); 
 
   procedure Execute;
   begin
-    ShowDTMEditor(PSimbaTarget(PLapeObject(Params^[0])^)^, False, PString(Result)^);
+    ShowDTMEditor(PLapeObjectTarget(Params^[0])^^, False, PString(Result)^);
   end;
 
 begin
@@ -250,7 +249,7 @@ procedure _LapeShowACA(const Params: PParamArray; const Result: Pointer); LAPE_W
 
   procedure Execute;
   begin
-    ShowACA(PSimbaTarget(PLapeObject(Params^[0])^)^, False, PColorTolerance(Result)^);
+    ShowACA(PLapeObjectTarget(Params^[0])^^, False, PColorTolerance(Result)^);
   end;
 
 begin

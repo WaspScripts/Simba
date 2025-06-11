@@ -18,7 +18,7 @@ uses
   simba.image, simba.image_textdrawer,
   simba.dtm, simba.colormath,
   simba.target,
-  simba.vartype_quad, simba.script_importutil;
+  simba.vartype_quad, simba.script_objectutil;
 
 type
   PComponent = ^TComponent;
@@ -69,7 +69,7 @@ end;
 
 procedure _LapeSimbaImageBox_SetImage(const Params: PParamArray); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSimbaImageBox(Params^[0])^.SetImage(PSimbaImage(PLapeObject(Params^[1])^)^, False);
+  PSimbaImageBox(Params^[0])^.SetImage(PLapeObjectImage(Params^[1])^^, False);
 end;
 
 procedure _LapeSimbaImageBox_Create(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV

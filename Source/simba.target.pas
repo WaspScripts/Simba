@@ -119,6 +119,7 @@ type
     constructor Create;
   end;
 
+  PSimbaTarget = ^TSimbaTarget;
   TSimbaTarget = class(TSimbaBaseClass)
   private
     FTargetKind: ESimbaTargetKind;

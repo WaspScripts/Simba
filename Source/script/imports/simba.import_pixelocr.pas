@@ -15,12 +15,11 @@ implementation
 uses
   lptypes, lpvartypes,
   simba.pixelocr,
-  simba.image, simba.script_importutil;
+  simba.image, simba.script_objectutil;
 
 type
   PPixelFont = ^TPixelFont;
   PPixelOCR = ^TPixelOCR;
-  PSimbaImage = ^TSimbaImage;
 
 procedure _LapePixelOCR_LoadFont(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
@@ -34,22 +33,22 @@ end;
 
 procedure _LapePixelOCR_Locate(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PSingle(Result)^ := PPixelOCR(Params^[0])^.Locate(PSimbaImage(PLapeObject(Params^[1])^)^, PPixelFont(Params^[2])^, PString(Params^[3])^);
+  PSingle(Result)^ := PPixelOCR(Params^[0])^.Locate(PLapeObjectImage(Params^[1])^^, PPixelFont(Params^[2])^, PString(Params^[3])^);
 end;
 
 procedure _LapePixelOCR_Recognize1(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PPixelOCR(Params^[0])^.Recognize(PSimbaImage(PLapeObject(Params^[1])^)^, PPixelFont(Params^[2])^, PPoint(Params^[3])^);
+  PString(Result)^ := PPixelOCR(Params^[0])^.Recognize(PLapeObjectImage(Params^[1])^^, PPixelFont(Params^[2])^, PPoint(Params^[3])^);
 end;
 
 procedure _LapePixelOCR_Recognize2(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PString(Result)^ := PPixelOCR(Params^[0])^.Recognize(PSimbaImage(PLapeObject(Params^[1])^)^, PPixelFont(Params^[2])^, PBox(Params^[3])^);
+  PString(Result)^ := PPixelOCR(Params^[0])^.Recognize(PLapeObjectImage(Params^[1])^^, PPixelFont(Params^[2])^, PBox(Params^[3])^);
 end;
 
 procedure _LapePixelOCR_RecognizeLines(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PStringArray(Result)^ := PPixelOCR(Params^[0])^.RecognizeLines(PSimbaImage(PLapeObject(Params^[1])^)^, PPixelFont(Params^[2])^, PBox(Params^[3])^);
+  PStringArray(Result)^ := PPixelOCR(Params^[0])^.RecognizeLines(PLapeObjectImage(Params^[1])^^, PPixelFont(Params^[2])^, PBox(Params^[3])^);
 end;
 
 procedure ImportPixelOCR(Script: TSimbaScript);

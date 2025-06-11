@@ -28,7 +28,7 @@ implementation
 
 uses
   lptypes,
-  simba.random, simba.image, simba.script_importutil;
+  simba.random, simba.image, simba.script_objectutil;
 
 (*
 Random
@@ -126,7 +126,7 @@ Assign a value to `RandSeed` for a constant output of <x> random shapes.
 *)
 procedure _LapeRandomShapes(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
 begin
-  PLapeObject(Result)^ := RandomShapes(PInteger(Params^[0])^, PInteger(Params^[1])^, PSingle(Params^[2])^, PSingle(Params^[3])^);
+  PLapeObjectImage(Result)^^ := RandomShapes(PInteger(Params^[0])^, PInteger(Params^[1])^, PSingle(Params^[2])^, PSingle(Params^[3])^);
 end;
 
 (*
