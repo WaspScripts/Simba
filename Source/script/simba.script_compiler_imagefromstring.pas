@@ -58,8 +58,7 @@ begin
     Image := TSimbaImage.CreateFromString(PAnsiString(Param.Ptr)^);
     Image.FreeOnTerminate := True;
 
-    PLapeObjectImage(Result.Ptr)^ := @Image;
-    SetManaging(Result.Ptr, False);
+    PLapeObject(Result.Ptr)^ := LapeObjectAlloc(Image, False);
   except
     on E: Exception do
       LapeException(E.Message, DocPos);
