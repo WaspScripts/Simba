@@ -260,7 +260,7 @@ begin
   if IsManagedType(K) then
   begin
     if (GetTypeKind(K) = tkAString) then
-      FCompareFunc := @HashString;
+      FCompareFunc := @CompareString;
   end else
   begin
     if (GetTypeKind(K) in [tkInteger, tkInt64, tkQWord, tkBool, tkPointer, tkRecord]) then
