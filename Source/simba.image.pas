@@ -280,6 +280,7 @@ uses
   simba.image_stringconv,
   simba.image_filters,
   simba.image_draw,
+  simba.image_drawmatrix,
   simba.colormath_distance,
   simba.colormath_conversion,
   simba.zip,
@@ -381,66 +382,13 @@ begin
 end;
 
 procedure TSimbaImage.FromMatrix(Matrix: TIntegerMatrix);
-var
-  X, Y, W, H: Integer;
 begin
-  SetSize(Matrix.Width, Matrix.Height);
-
-  W := FWidth - 1;
-  H := FHeight - 1;
-  for Y := 0 to H do
-    for X := 0 to W do
-      FData[Y * FWidth + X] := TSimbaColorConversion.ColorToBGRA(Matrix[Y,X], ALPHA_OPAQUE);
+  SimbaImage_FromMatrix(Self, Matrix);
 end;
 
 procedure TSimbaImage.FromMatrix(Matrix: TSingleMatrix; ColorMapType: Integer = 0);
-var
-  X,Y, W,H: TColor;
-  Normed: TSingleMatrix;
-  HSL: TColorHSL;
 begin
-  SetSize(Matrix.Width, Matrix.Height);
-
-  Normed := Matrix.NormMinMax(0, 1);
-  HSL := Default(TColorHSL);
-  W := FWidth - 1;
-  H := FHeight - 1;
-
-  for Y := 0 to H do
-    for X := 0 to W do
-    begin
-      case ColorMapType of
-        0:begin //cold blue to red
-            HSL.H := (1 - Normed[Y,X]) * 240;
-            HSL.S := 40 + Normed[Y,X] * 60;
-            HSL.L := 50;
-          end;
-        1:begin //black -> blue -> red
-            HSL.H := (1 - Normed[Y,X]) * 240;
-            HSL.S := 100;
-            HSL.L := Normed[Y,X] * 50;
-          end;
-        2:begin //white -> blue -> red
-            HSL.H := (1 - Normed[Y,X]) * 240;
-            HSL.S := 100;
-            HSL.L := 100 - Normed[Y,X] * 50;
-          end;
-        3:begin //Light (to white)
-            HSL.L := (1 - Normed[Y,X]) * 100;
-          end;
-        4:begin //Light (to black)
-            HSL.L := Normed[Y,X] * 100;
-          end;
-        else
-          begin //Custom black to hue to white
-            HSL.H := ColorMapType;
-            HSL.S := 100;
-            HSL.L := Normed[Y,X] * 100;
-          end;
-      end;
-
-      FData[Y * FWidth + X] := TSimbaColorConversion.ColorToBGRA(HSL.ToColor(), ALPHA_OPAQUE);
-    end;
+  SimbaImage_FromMatrix(Self, Matrix, ColorMapType);
 end;
 
 procedure TSimbaImage.FromStream(Stream: TStream; FileName: String);

@@ -13,7 +13,7 @@ interface
 
 uses
   Classes, SysUtils,
-  lpcompiler,
+  lpcompiler, lptypes,
   simba.target,
   simba.image,
   simba.httpclient;
@@ -40,32 +40,32 @@ type
   PLapeObjectImage = ^PSimbaImage;
   PLapeObjectTarget = ^PSimbaTarget;
 
-function IsManaging(Obj: PLapeObject): Boolean;
-procedure SetManaging(Obj: PLapeObject; Value: Boolean);
+function IsManaging(const Obj: PLapeObject): Boolean;
+procedure SetManaging(const Obj: PLapeObject; const Value: Boolean);
 
-procedure LapeObjectImport(Compiler: TLapeCompiler; Name: String);
-procedure LapeObjectDestroy(Obj: PLapeObject);
+procedure LapeObjectImport(const Compiler: TLapeCompiler; const Name: lpString);
+procedure LapeObjectDestroy(const Obj: PLapeObject);
 function LapeObjectAlloc(Instance: Pointer; Manage: Boolean = True): TLapeObject;
 
 implementation
 
-function IsManaging(Obj: PLapeObject): Boolean;
+function IsManaging(const Obj: PLapeObject): Boolean;
 begin
   Result := not PBoolean(@Obj^[LapeObjectDontManageOffset])^;
 end;
 
-procedure SetManaging(Obj: PLapeObject; Value: Boolean);
+procedure SetManaging(const Obj: PLapeObject; const Value: Boolean);
 begin
   PBoolean(@Obj^[LapeObjectDontManageOffset])^ := not Value;
 end;
 
-procedure LapeObjectImport(Compiler: TLapeCompiler; Name: String);
+procedure LapeObjectImport(const Compiler: TLapeCompiler; const Name: lpString);
 begin
   Compiler.addGlobalType('object {%CODETOOLS OFF} Instance: Pointer; DontManage: Boolean; {%CODETOOLS ON} end;', Name);
 end;
 
 // just cast to TObject and call destructor
-procedure LapeObjectDestroy(Obj: PLapeObject);
+procedure LapeObjectDestroy(const Obj: PLapeObject);
 type
   PObject = ^TObject;
   PPObject = ^PObject;

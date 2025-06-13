@@ -9,8 +9,6 @@
 }
 unit simba.colormath_conversion;
 
-{$DEFINE SIMBA_MAX_OPTIMIZATION}
-
 {$i simba.inc}
 
 interface

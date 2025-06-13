@@ -12,12 +12,15 @@ interface
 
 uses
   Classes, SysUtils, Graphics, LCLType, FPImage,
-  simba.base, simba.image_lazbridge, simba.component_imageboxdrawers, simba.image_textdrawer,
+  simba.base,
+  simba.image,
+  simba.image_lazbridge,
+  simba.image_textdrawer,
+  simba.component_imageboxdrawers,
   simba.vartype_quad;
 
 type
   TSimbaImageBoxCanvas = class;
-  PSimbaImageBoxCanvas = ^TSimbaImageBoxCanvas;
 
   TTextDrawer = class(TSimbaTextDrawerBase)
   protected
@@ -45,6 +48,10 @@ type
     FData: PByte;
     FBytesPerLine: Integer;
     FTextDrawer: TTextDrawer;
+
+    // Is anything of the currently box visible?
+    function IsVisible(P: TPoint; Width, Height: Integer): Boolean; overload;
+    function IsVisible(B: TBox): Boolean; overload;
 
     function GetDrawInfo(Color: TColor): TDrawInfo;
 
@@ -101,7 +108,9 @@ type
     procedure DrawPoint(Point: TPoint; Color: TColor);
     procedure DrawPoints(TPA: TPointArray; Color: TColor);
 
+    // mat must be normalized to 0..1
     procedure DrawHeatmap(Mat: TSingleMatrix);
+    procedure DrawImage(Img: TSimbaImage; Point: TPoint);
 
     property Bitmap: TBitmap read FBitmap;
     property Width: Integer read FWidth;
@@ -149,6 +158,25 @@ begin
   inherited Create();
 
   FBitmap := Bitmap;
+end;
+
+function TSimbaImageBoxCanvas.IsVisible(P: TPoint; Width, Height: Integer): Boolean;
+var
+  B: TBox;
+begin
+  B.X1 := P.X;
+  B.Y1 := P.Y;
+  B.X2 := P.X + Width;
+  B.Y2 := P.Y + Height;
+
+  with B.Clip(TBox(FRect)) do
+    Result := (X2 - X1 > 0) or (Y2 - Y1 > 0);
+end;
+
+function TSimbaImageBoxCanvas.IsVisible(B: TBox): Boolean;
+begin
+  with B.Clip(TBox(FRect)) do
+    Result := (X2 - X1 > 0) or (Y2 - Y1 > 0);
 end;
 
 function TSimbaImageBoxCanvas.GetDrawInfo(Color: TColor): TDrawInfo;
@@ -442,6 +470,16 @@ begin
     ELazPixelFormat.BGRA: specialize DoDrawHeatmap<TColorBGRA>(Mat, GetDrawInfo(0));
     ELazPixelFormat.ARGB: specialize DoDrawHeatmap<TColorARGB>(Mat, GetDrawInfo(0));
   end;
+end;
+
+procedure TSimbaImageBoxCanvas.DrawImage(Img: TSimbaImage; Point: TPoint);
+begin
+  if IsVisible(Point, Img.Width, Img.Height) then
+    case FPixelFormat of
+      ELazPixelFormat.BGR:  specialize DoDrawImage<TColorBGR>(Img, Point, GetDrawInfo(0));
+      ELazPixelFormat.BGRA: specialize DoDrawImage<TColorBGRA>(Img, Point, GetDrawInfo(0));
+      ELazPixelFormat.ARGB: specialize DoDrawImage<TColorARGB>(Img, Point, GetDrawInfo(0));
+    end;
 end;
 
 end.
