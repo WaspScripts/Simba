@@ -186,6 +186,44 @@ begin
   Assert(img2.FindImage(templ, 100) = [0,0]);
 end;
 
+// some random crazyness to check images dont leak
+procedure TestLeaks;
+
+  procedure Nested(a: TImage; const b: TImage; constref c: TImage; var d: TImage; out e: TImage);
+  begin
+    for 0 to 3 do
+    begin
+      a := b.Copy();
+      a := c.Copy();
+      d := new TImage(123,123);
+      d := d.Invert.Copy();
+      e := new TImage(69,69);
+      e := d.Copy.Copy.Copy.Invert;
+    end;
+  end;
+
+var img: TImage;
+var imgVarParam: TImage;
+var imgOutParam: TImage;
+begin
+  img := new TImage(100,100);
+  for 0 to 3 do
+  begin
+    img := new TImage(100,100);
+    img := new TImage(100,100);
+    img := img.Threshold(False,5);
+    img := img.Invert.Brightness(25);
+    img := img.Threshold(False,5);
+    img := new TImage(50,50);
+
+    Nested(img, img, img, imgVarParam, imgOutParam);
+    Nested(img, img, img, imgVarParam, imgOutParam);
+  end;
+  img := img.Copy.Invert.Posterize(1).Brightness(5);
+  Assert(img.Width = 50);
+  Assert(img.Height = 50);
+end;
+
 begin
   img := new TImage(100,100);
 
@@ -203,5 +241,8 @@ begin
   TestToString();
   TestFindAlpha();
   TestFindImage();
+  TestLeaks();
+
+  Assert(Length(GetLoadedImages()) = 1); // 1 because of the global image var
 end.
 

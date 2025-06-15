@@ -23,7 +23,6 @@ type
   PQuad = ^TQuad;
   PQuadArray = ^TQuadArray;
   PSimbaImage = ^TSimbaImage;
-  PSimbaImageArray = ^TSimbaImageArray;
 
 (*
 Image
@@ -1652,8 +1651,19 @@ function GetLoadedImages: TImageArray;
 Returns an array of all the loaded images.
 *)
 procedure _LapeImage_GetLoadedImages(const Params: PParamArray; const Result: Pointer); LAPE_WRAPPER_CALLING_CONV
+type
+  TLapeObjectArray = array of TLapeObject;
+var
+  Imgs: TSimbaImageArray;
+  Arr: TLapeObjectArray;
+  I: Integer;
 begin
-  PSimbaImageArray(Result)^ := TSimbaImageArray(GetSimbaObjectsOfClass(TSimbaImage));
+  Imgs := TSimbaImageArray(GetSimbaObjectsOfClass(TSimbaImage));
+  SetLength(Arr, Length(Imgs));
+  for I := 0 to High(Imgs) do
+    Arr[i] := LapeObjectAlloc(Imgs[I], False);
+
+  TLapeObjectArray(Result^) := Arr;
 end;
 
 (*
