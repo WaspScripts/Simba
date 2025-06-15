@@ -20,8 +20,11 @@ uses
 type
   {$SCOPEDENUMS ON}
   EJSONItemType = (UNKNOWN, INT, FLOAT, STR, BOOL, NULL, ARR, OBJ);
+  EJSONFormatOption = (SINGLE_LINE_ARRAY, SINGLE_LINE_OBJECT, NO_QUOTE_MEMBERS, USE_TABS, NO_WHITESPACE);
+  EJSONFormatOptions = set of EJSONFormatOption;
   {$SCOPEDENUMS OFF}
 
+  PSimbaJSONItem = ^TSimbaJSONItem;
   TSimbaJSONItem = type Pointer;
   TSimbaJSONItemHelper = type helper for TSimbaJSONItem
   private
@@ -45,6 +48,7 @@ type
     procedure SetAsInt(AValue: Int64);
     procedure SetAsString(AValue: String);
     procedure SetAsUnicodeString(AValue: UnicodeString);
+    procedure SetKey(Index: Integer; AValue: String);
   public
     property Typ: EJSONItemType read GetItemType;
 
@@ -57,7 +61,7 @@ type
     property Count: Integer read GetCount;
     property ItemsByIndex[Index: Integer]: TSimbaJSONItem read GetItemByIndex;
     property ItemsByKey[AKey: String]: TSimbaJSONItem read GetItemByKey;
-    property Key[Index: Integer]: String read GetKey;
+    property Key[Index: Integer]: String read GetKey write SetKey;
 
     procedure Add(AKey: String; Value: TSimbaJSONItem);
     procedure AddInt(AKey: String; Value: Int64);
@@ -82,9 +86,13 @@ type
     function FindPath(Path: String): TSimbaJSONItem;
     function Clone: TSimbaJSONItem;
     procedure Delete(Item: TSimbaJSONItem);
+    function Extract(Item: TSimbaJSONItem): TSimbaJSONItem;
     procedure Clear;
 
-    function ToJSON: String;
+    procedure Parse(Str: String);
+    procedure Load(FileName: String);
+    procedure Save(FileName: String; Options: EJSONFormatOptions = []; Indent: Integer = 2);
+    function Format(Options: EJSONFormatOptions = []; Indent: Integer = 2): String;
 
     procedure Free;
   end;
@@ -93,7 +101,7 @@ type
   function NewJSONArray: TSimbaJSONItem;
   function ParseJSON(Str: String): TSimbaJSONItem;
   function LoadJSON(FileName: String): TSimbaJSONItem;
-  procedure SaveJSON(Json: TSimbaJSONItem; FileName: String);
+  procedure SaveJSON(Json: TSimbaJSONItem; FileName: String; Options: EJSONFormatOptions = []; Indent: Integer = 2);
 
 implementation
 
@@ -195,11 +203,6 @@ begin
   Result := TJSONObject(Self).Names[Index];
 end;
 
-function TSimbaJSONItemHelper.ToJSON: String;
-begin
-  Result := TJSONData(Self).FormatJSON();
-end;
-
 procedure TSimbaJSONItemHelper.SetAsBool(AValue: Boolean);
 begin
   TJSONData(Self).AsBoolean := AValue;
@@ -223,6 +226,13 @@ end;
 procedure TSimbaJSONItemHelper.SetAsUnicodeString(AValue: UnicodeString);
 begin
   TJSONData(Self).AsUnicodeString := AValue;
+end;
+
+procedure TSimbaJSONItemHelper.SetKey(Index: Integer; AValue: String);
+begin
+  CheckIsObject();
+
+  TJSONObject(Self).Add(AValue, TJSONObject(Self).Extract(Index));
 end;
 
 procedure TSimbaJSONItemHelper.Add(AKey: String; Value: TSimbaJSONItem);
@@ -395,6 +405,17 @@ begin
   end;
 end;
 
+function TSimbaJSONItemHelper.Extract(Item: TSimbaJSONItem): TSimbaJSONItem;
+begin
+  CheckIsObjectOrArray();
+
+  Result := Item;
+  case TJSONData(Self).JSONType of
+    jtObject: TJSONObject(Self).Remove(TJSONData(Item));
+    jtArray:  TJSONArray(Self).Remove(TJSONData(Item));
+  end;
+end;
+
 procedure TSimbaJSONItemHelper.Clear;
 begin
   CheckIsObjectOrArray();
@@ -403,6 +424,60 @@ begin
     jtObject: TJSONObject(Self).Clear;
     jtArray:  TJSONArray(Self).Clear;
   end;
+end;
+
+procedure TSimbaJSONItemHelper.Parse(Str: String);
+begin
+  Free();
+  Self := ParseJSON(Str);
+end;
+
+procedure TSimbaJSONItemHelper.Load(FileName: String);
+var
+  Stream: TFileStream;
+begin
+  Free();
+
+  Stream := TFileStream.Create(FileName, fmOpenRead);
+  with TSimbaJSONParser.Create(Stream, True) do
+  try
+    Self := Parse();
+  finally
+    Free();
+  end;
+end;
+
+procedure TSimbaJSONItemHelper.Save(FileName: String; Options: EJSONFormatOptions; Indent: Integer);
+var
+  Stream: TFileStream;
+  Text: String;
+begin
+  Text := Format(Options, Indent);
+  if (Length(Text) = 0) then
+    Exit;
+
+  if FileExists(FileName) then
+    Stream := TFileStream.Create(FileName, fmOpenReadWrite)
+  else
+    Stream := TFileStream.Create(FileName, fmCreate);
+  try
+    Stream.Write(Text[1], Length(Text));
+  finally
+    Stream.Free();
+  end;
+end;
+
+function TSimbaJSONItemHelper.Format(Options: EJSONFormatOptions; Indent: Integer): String;
+var
+  Opts: TFormatOptions = []; // fpc FormatOptions
+begin
+  if (EJSONFormatOption.SINGLE_LINE_ARRAY  in Options) then Include(Opts, foSingleLineArray);
+  if (EJSONFormatOption.SINGLE_LINE_OBJECT in Options) then Include(Opts, foSingleLineObject);
+  if (EJSONFormatOption.NO_QUOTE_MEMBERS   in Options) then Include(Opts, foDoNotQuoteMembers);
+  if (EJSONFormatOption.USE_TABS           in Options) then Include(Opts, foUseTabchar);
+  if (EJSONFormatOption.NO_WHITESPACE      in Options) then Include(Opts, foSkipWhiteSpace);
+
+  Result := TJSONData(Self).FormatJSON(Opts, Indent);
 end;
 
 procedure TSimbaJSONItemHelper.Free;
@@ -443,12 +518,12 @@ begin
   end;
 end;
 
-procedure SaveJSON(Json: TSimbaJSONItem; FileName: String);
+procedure SaveJSON(Json: TSimbaJSONItem; FileName: String; Options: EJSONFormatOptions; Indent: Integer);
 var
   Stream: TFileStream;
   Text: String;
 begin
-  Text := JSON.ToJSON;
+  Text := JSON.Format(Options, Indent);
   if (Length(Text) = 0) then
     Exit;
 

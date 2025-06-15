@@ -265,7 +265,7 @@ begin
   else
   begin
     PLapeObjectTarget(Params^[0])^^.SetImage(PLapeObjectImage(Params^[1])^^);
-    SetManaging(PLapeObject(Params^[1]), False);
+    SetLapeObjectManage(PLapeObject(Params^[1]), False);
   end;
 end;
 

@@ -16,7 +16,8 @@ uses
   lpcompiler, lptypes,
   simba.target,
   simba.image,
-  simba.httpclient;
+  simba.httpclient,
+  simba.json;
 
 {
  Lape objects internally are just dynarray of byte.
@@ -39,9 +40,10 @@ type
   PLapeObjectHTTPClient = ^PSimbaHTTPClient;
   PLapeObjectImage = ^PSimbaImage;
   PLapeObjectTarget = ^PSimbaTarget;
+  PLapeObjectJSON = ^PSimbaJSONItem;
 
-function IsManaging(const Obj: PLapeObject): Boolean;
-procedure SetManaging(const Obj: PLapeObject; const Value: Boolean);
+function IsLapeObjectManage(const Obj: PLapeObject): Boolean;
+procedure SetLapeObjectManage(const Obj: PLapeObject; const Value: Boolean);
 
 procedure LapeObjectImport(const Compiler: TLapeCompiler; const Name: lpString);
 procedure LapeObjectDestroy(const Obj: PLapeObject);
@@ -49,12 +51,12 @@ function LapeObjectAlloc(Instance: Pointer; Manage: Boolean = True): TLapeObject
 
 implementation
 
-function IsManaging(const Obj: PLapeObject): Boolean;
+function IsLapeObjectManage(const Obj: PLapeObject): Boolean;
 begin
   Result := not PBoolean(@Obj^[LapeObjectDontManageOffset])^;
 end;
 
-procedure SetManaging(const Obj: PLapeObject; const Value: Boolean);
+procedure SetLapeObjectManage(const Obj: PLapeObject; const Value: Boolean);
 begin
   PBoolean(@Obj^[LapeObjectDontManageOffset])^ := not Value;
 end;
@@ -70,7 +72,7 @@ type
   PObject = ^TObject;
   PPObject = ^PObject;
 begin
-  if IsManaging(Obj) and Assigned(PPObject(Obj)^^) then
+  if IsLapeObjectManage(Obj) and Assigned(PPObject(Obj)^^) then
     FreeAndNil(PPObject(Obj)^^);
 end;
 
