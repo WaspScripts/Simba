@@ -229,10 +229,31 @@ begin
 end;
 
 procedure TSimbaJSONItemHelper.SetKey(Index: Integer; AValue: String);
+var
+  Items: array of record
+    Key: TJSONStringType;
+    Value: TJSONData;
+  end;
+  I: Integer;
 begin
   CheckIsObject();
+  if (Index < 0) or (Index >= TJSONObject(Self).Count) then
+    SimbaException('Index %d is out of range', [Index]);
 
-  TJSONObject(Self).Add(AValue, TJSONObject(Self).Extract(Index));
+  // not ideal since FPC doesn't provide access to FHashList but should be fine
+  // no new objects are made, just rehashing
+  SetLength(Items, TJSONObject(Self).Count);
+  I := High(Items); // looping down probs more efficent for deletes
+  while (TJSONObject(Self).Count > 0) do
+  begin
+    Items[I].Key   := TJSONObject(Self).Names[I];
+    Items[I].Value := TJSONObject(Self).Extract(I);
+    Dec(I);
+  end;
+
+  Items[Index].Key := AValue;
+  for I := 0 to High(Items) do
+    TJSONObject(Self).Add(Items[I].Key, Items[I].Value);
 end;
 
 procedure TSimbaJSONItemHelper.Add(AKey: String; Value: TSimbaJSONItem);
@@ -461,7 +482,7 @@ begin
   else
     Stream := TFileStream.Create(FileName, fmCreate);
   try
-    Stream.Write(Text[1], Length(Text));
+    Stream.Size := Stream.Write(Text[1], Length(Text));
   finally
     Stream.Free();
   end;

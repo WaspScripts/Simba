@@ -58,8 +58,13 @@ begin
     '  "obj" : {}'                          + LINE_SEP +
     '}'
   );
-  json.Key[0] := 'text';
-  Assert(json.Has('text', EJSONType.STR));
+
+  Assert(json.key[0] = 'str');
+  Assert(json.key[4] = 'arr');
+  json.Key[0] := 'str_but_renamed';
+  json.Key[4] := 'arr_but_renamed';
+  Assert(json.key[0] = 'str_but_renamed');
+  Assert(json.key[4] = 'arr_but_renamed');
 end;
 
 procedure TestParseArray;
