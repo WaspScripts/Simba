@@ -115,6 +115,11 @@ begin
         end;
         Value := 'TStringArray([' + Value + '])';
       end;
+
+    'SIMBACOMMIT':
+      begin
+        Value := #39 + SIMBA_COMMIT + #39;
+      end;
   end;
 end;
 
@@ -182,6 +187,7 @@ begin
   FCompiler.addPreprocessorMacro('FINDLIB', @DoCompilerMacro);
   FCompiler.addPreprocessorMacro('LOADEDLIB', @DoCompilerMacro);
   FCompiler.addPreprocessorMacro('LOADEDLIBS', @DoCompilerMacro);
+  FCompiler.addPreprocessorMacro('SIMBACOMMIT', @DoCompilerMacro);
 
   FCompiler.addPreprocessorFunc('LOADEDLIB', @DoCompilerPreprocessorFunc);
   FCompiler.addPreprocessorFunc('FINDLIB', @DoCompilerPreprocessorFunc);
